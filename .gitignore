@@ -1,3 +1,5 @@
+.openzeppelin
+.idea
 node_modules
 .env
 coverage
@@ -7,5 +9,6 @@ typechain
 #Hardhat files
 cache
 artifacts
-.idea/workspace.xml
-.idea/vcs.xml
+process.env
+
+config/addresses.json

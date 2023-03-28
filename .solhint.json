@@ -1,0 +1,30 @@
+{
+    "extends": "solhint:recommended",
+    "plugins": ["prettier"],
+    "rules": {
+        "prettier/prettier": "error",
+        "compiler-version": ["error", "^0.8.0"],
+        "max-states-count": ["warn", 15],
+        "payable-fallback": "error",
+        "reason-string": ["warn", { "maxLength": 150 }],
+        "comprehensive-interface": "warn",
+        "quotes": ["error", "double"],
+        "no-unused-vars": "error",
+        "func-visibility": ["warn", { "ignoreConstructors": true }],
+        "const-name-snakecase": "warn",
+        "contract-name-camelcase": "warn",
+        "event-name-camelcase": "warn",
+        "func-name-mixedcase": "warn",
+        "use-forbidden-name": "warn",
+        "imports-on-top": "warn",
+        "visibility-modifier-order": "warn",
+        "avoid-sha3": "error",
+        "avoid-tx-origin": "warn",
+        "check-send-result": "warn",
+        "multiple-sends": "warn",
+        "reentrancy": "error",
+        "state-visibility": "warn",
+        "max-line-length": ["error", 150],
+        "not-rely-on-time": "off"
+    }
+}
