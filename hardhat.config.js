@@ -5,14 +5,12 @@ require('@nomiclabs/hardhat-truffle5');
 require('@nomiclabs/hardhat-ethers');
 require('hardhat-gas-reporter');
 require('hardhat-log-remover');
-require('hardhat-spdx-license-identifier');
 require("hardhat-tracer");
 require('dotenv').config();
 require('solidity-coverage');
 
 const fs = require("fs");
 
-const updater = require('./scripts/utils/updateAddresses');
 
 const {   DEPLOYER_PRIVATE_KEY, PROD_DEPLOYER_PRIVATE_KEY,
     } = process.env;
@@ -28,7 +26,7 @@ module.exports = {
     solidity: {
       compilers: [
           {
-              version: "0.8.12",
+              version: "0.8.18",
               settings: {
                   optimizer: {
                       enabled: true,
@@ -173,11 +171,6 @@ subtask("flat:get-flattened-sources", "Returns all contracts and their dependenc
             isFirst = false
         }
 
-        // Remove every line started with "// SPDX-License-Identifier:"
-        flattened = flattened.replace(/SPDX-License-Identifier:/gm, "License-Identifier:")
-
-        flattened = `// SPDX-License-Identifier: MIXED\n\n${flattened}`
-
         // Remove every line started with "pragma experimental ABIEncoderV2;" except the first one
         flattened = flattened.replace(/pragma experimental ABIEncoderV2;\n/gm, ((i) => (m) => (!i++ ? m : ""))(0))
         // Remove every line started with "pragma abicoder v2;" except the first one
@@ -220,18 +213,3 @@ task("flat", "Flattens and prints contracts and their dependencies")
             })
         )
     })
-
-task(
-    "test",
-    "Download addresses and run tests",
-    async function (taskArguments, hre, runSuper) {
-        await updater.updateAddresses().then(function() {
-            return runSuper();
-        });
-    }
-);
-
-task("update", "Updates addresses")
-    .setAction(async (taskArgs) => {
-        await updater.updateAddresses();
-    });
