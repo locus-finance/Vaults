@@ -43,26 +43,32 @@ describe("BaseVault", function () {
 
     it('should deploy and receive deposit', async function () {
         const { vault, whale, token } = await loadFixture(deployContractAndSetVariables);
-        await token.connect(whale).approve(vault.address, ethers.utils.parseEther('1'));
+        const amount = ethers.utils.parseEther('1');
+        await token.connect(whale).approve(vault.address, amount);
         await expect(
-            () => vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('1'))
+            () => vault.connect(whale)['deposit(uint256)'](amount)
         ).to.changeTokenBalances(
             token,
             [whale, vault],
-            [ethers.utils.parseEther('-1'), ethers.utils.parseEther('1')]
+            [ethers.utils.parseEther('-1'), amount]
         );
+        expect(await vault.balanceOf(whale.address)).to.equal(amount);
+        expect(await vault.totalSupply()).to.equal(amount);
     });
 
     it('should deploy and withdraw', async function () {
         const { vault, whale, token } = await loadFixture(deployContractAndSetVariables);
-        await token.connect(whale).approve(vault.address, ethers.utils.parseEther('1'));
-        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('1'));
+        const amount = ethers.utils.parseEther('1');
+        await token.connect(whale).approve(vault.address, amount);
+        await vault.connect(whale)['deposit(uint256)'](amount);
         await expect(
-            () => vault.connect(whale)['withdraw(uint256)'](ethers.utils.parseEther('1'))
+            () => vault.connect(whale)['withdraw(uint256)'](amount)
         ).to.changeTokenBalances(
             token,
             [vault, whale],
-            [ethers.utils.parseEther('-1'), ethers.utils.parseEther('1')]
+            [ethers.utils.parseEther('-1'), amount]
         );
+        expect(await vault.balanceOf(whale.address)).to.equal(0);
+        expect(await vault.totalSupply()).to.equal(0);
     });
 });
