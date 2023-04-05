@@ -4,10 +4,8 @@ const { ethers } = require("hardhat");
 
 describe("BaseVault", function () {
     async function deployContractAndSetVariables() {
-        const [deployer, whale] = await ethers.getSigners();    
+        const [deployer, whale, governance, treasury] = await ethers.getSigners();
         
-        const governance = deployer.address;
-        const treasury = deployer.address;
         const name = "ETH Vault";
         const symbol = "vETH";
 
@@ -20,10 +18,16 @@ describe("BaseVault", function () {
         const vault = await BaseVault.deploy();
         await vault.deployed();
 
-        await vault['initialize(address,address,address,string,string)'](token.address, governance, treasury, name, symbol);
+        await vault['initialize(address,address,address,string,string)'](
+            token.address,
+            deployer.address,
+            treasury.address,
+            name,
+            symbol
+        );
         await vault['setDepositLimit(uint256)'](ethers.utils.parseEther('10000'))
 
-        return { vault, deployer, symbol, name, whale, token };
+        return { vault, deployer, symbol, name, whale, token, governance, treasury };
     }
 
     it('should deploy and set the symbol correctly', async function () {
@@ -39,6 +43,11 @@ describe("BaseVault", function () {
     it('should deploy and set the token correctly', async function () {
         const { vault, token } = await loadFixture(deployContractAndSetVariables);
         expect(await vault.token()).to.equal(token.address);
+    });
+
+    it('should deploy and set the treasury correctly', async function () {
+        const { vault, token, treasury } = await loadFixture(deployContractAndSetVariables);
+        expect(await vault.rewards()).to.equal(treasury.address);
     });
 
     it('should deploy and receive deposit', async function () {
@@ -70,5 +79,15 @@ describe("BaseVault", function () {
         );
         expect(await vault.balanceOf(whale.address)).to.equal(0);
         expect(await vault.totalSupply()).to.equal(0);
+    });
+
+    it('should deploy and set governance', async function () {
+        const { vault, deployer, governance } = await loadFixture(deployContractAndSetVariables);
+
+        await vault['setGovernance(address)'](governance.address);
+        expect(await vault.governance()).to.equal(deployer.address);
+
+        await vault.connect(governance)['acceptGovernance()']();
+        expect(await vault.governance()).to.equal(governance.address);
     });
 });

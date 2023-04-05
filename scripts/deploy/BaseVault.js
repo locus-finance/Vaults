@@ -2,7 +2,7 @@
 const hre = require("hardhat");
 
 async function main() {
-    const [owner, otherAccount] = await ethers.getSigners();
+    const [owner] = await ethers.getSigners();
 
     const wETHToken = "0xee44150250aff3e6ac25539765f056edb7f85d7b";
     const governance = owner.address;
@@ -15,7 +15,8 @@ async function main() {
 
     await vault.deployed();
 
-    await vault['initialize(address,address,address,string,string)'](wETHToken, governance, treasury, vaultName, vaultSymbol);
+    let tx = await vault['initialize(address,address,address,string,string)'](wETHToken, governance, treasury, vaultName, vaultSymbol);
+    await tx.wait();
 
     console.log(
         `ETH vault deployed to ${vault.address}`
