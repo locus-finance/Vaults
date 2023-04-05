@@ -60,6 +60,10 @@ module.exports = {
              url: `https://rpc.ankr.com/optimism_testnet`,
           accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
          },
+      goerli: {
+        url: `https://rpc.ankr.com/eth_goerli`,
+        accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
+      },
       optimism:{
         url: `https://rpc.ankr.com/optimism`,
         accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`]
