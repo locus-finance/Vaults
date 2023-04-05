@@ -60,8 +60,8 @@ module.exports = {
              url: `https://rpc.ankr.com/optimism_testnet`,
           accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
          },
-      goerli: {
-        url: `https://rpc.ankr.com/eth_goerli`,
+      sepolia: {
+        url: `https://rpc.ankr.com/eth_sepolia`,
         accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
       },
       optimism:{
