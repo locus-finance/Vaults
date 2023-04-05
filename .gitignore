@@ -10,5 +10,3 @@ typechain
 cache
 artifacts
 process.env
-
-config/addresses.json
