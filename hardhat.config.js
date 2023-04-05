@@ -3,6 +3,7 @@ require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
 require('@nomiclabs/hardhat-truffle5');
 require('@nomiclabs/hardhat-ethers');
+require("@nomiclabs/hardhat-vyper");
 require('hardhat-gas-reporter');
 require('hardhat-log-remover');
 require("hardhat-tracer");
@@ -12,7 +13,7 @@ require('solidity-coverage');
 const fs = require("fs");
 
 
-const {   DEPLOYER_PRIVATE_KEY, PROD_DEPLOYER_PRIVATE_KEY,
+const {   DEPLOYER_PRIVATE_KEY, PROD_DEPLOYER_PRIVATE_KEY, ETH_NODE
     } = process.env;
 
 task("fork_reset", "Reset to local fork", async (taskArgs) => {
@@ -24,29 +25,34 @@ task("fork_reset", "Reset to local fork", async (taskArgs) => {
 
 module.exports = {
     solidity: {
-      compilers: [
-          {
-              version: "0.8.18",
-              settings: {
-                  optimizer: {
-                      enabled: true,
-                      runs: 1000000,
-                  },
-                  outputSelection: {
-                      "*": {
-                          "*": ["storageLayout"],
-                      },
-                  },
-              },
-          },
-
-      ],
-  },
+        compilers: [
+        {
+            version: "0.8.18",
+            settings: {
+                optimizer: {
+                    enabled: true,
+                    runs: 1000000,
+                },
+                outputSelection: {
+                    "*": {
+                        "*": ["storageLayout"],
+                    },
+                },
+            },
+        },
+        ],
+    },
+    vyper: {
+        version: "0.3.3",
+    },
     networks: {
         localhost: {
         },
         hardhat: {
             chainId: 43114,
+            forking: {
+                url: ETH_NODE
+            },
          },
         optimismgoerli: {
              url: `https://rpc.ankr.com/optimism_testnet`,
@@ -103,11 +109,11 @@ module.exports = {
             bscTestnet: process.env.BSC_API_KEY,
             arbitrumOne: process.env.ARBITRUM_API_KEY
         }
-  },
+    },
     gasReporter: {
-    enable: true,
-    currency: 'USD',
-  },
+        enable: true,
+        currency: 'USD',
+    },
     spdxLicenseIdentifier: {
         overwrite: false,
         runOnCompile: true,

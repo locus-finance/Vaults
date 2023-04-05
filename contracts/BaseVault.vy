@@ -310,7 +310,7 @@ def domain_separator() -> bytes32:
     return keccak256(
         concat(
             DOMAIN_TYPE_HASH,
-            keccak256(convert("Yearn Vault", Bytes[11])), // todo
+            keccak256(convert("Yearn Vault", Bytes[11])), # todo
             keccak256(convert(API_VERSION, Bytes[28])),
             convert(chain.id, bytes32),
             convert(self, bytes32)
