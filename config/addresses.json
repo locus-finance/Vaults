@@ -1,13 +1,14 @@
 {
   "VAULTS": {
     "MAINNET": {
-      "ETHEREUM": "",
-      "AVAX":  "",
-      "OPTIMISM": "",
-      "ARBITRUM": ""
+      "ETHEREUM": " ",
+      "AVAX": " ",
+      "OPTIMISM": " ",
+      "ARBITRUM": " "
     },
     "TESTNET": {
       "OPTIMISM_GOERLI": "0x4FAbCac711eA90B2025462034824C5eb102B8B7a",
+      "SEPOLIA": "0xD8647A1018B9b2edAaf3bDD3482621798AB4C2e4",
       "GOERLI": " ",
       "FUJI_AVAX": " "
     }
