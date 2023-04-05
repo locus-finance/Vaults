@@ -1,4 +1,5 @@
 require('@openzeppelin/hardhat-upgrades');
+
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
 require('@nomiclabs/hardhat-truffle5');
@@ -6,6 +7,7 @@ require('@nomiclabs/hardhat-ethers');
 require("@nomiclabs/hardhat-vyper");
 require('hardhat-gas-reporter');
 require('hardhat-log-remover');
+require('hardhat-abi-exporter');
 require("hardhat-tracer");
 require('dotenv').config();
 require('solidity-coverage');
@@ -117,7 +119,16 @@ module.exports = {
     spdxLicenseIdentifier: {
         overwrite: false,
         runOnCompile: true,
-    }
+    },
+  abiExporter: {
+    path: './abi',
+    runOnCompile: true,
+    clear: true,
+    flat: true,
+    spacing: 2,
+    only: [':BaseVault$']
+
+  }
 };
 
 

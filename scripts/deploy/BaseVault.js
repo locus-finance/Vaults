@@ -4,7 +4,7 @@ const hre = require("hardhat");
 async function main() {
     const [owner, otherAccount] = await ethers.getSigners();
 
-    const wETHToken = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+    const wETHToken = "0x4200000000000000000000000000000000000006";
     const governance = owner.address;
     const treasury = owner.address;
     const vaultName = "ETH Vault";
