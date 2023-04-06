@@ -65,6 +65,16 @@ describe("BaseVault", function () {
         expect(await vault.totalSupply()).to.equal(amount);
     });
 
+    it('should deploy and not receive deposit over limit', async function () {
+        const { vault, whale, token } = await loadFixture(deployContractAndSetVariables);
+        await vault['setDepositLimit(uint256)'](ethers.utils.parseEther('0.01'));
+        await expect(
+            vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('1'))
+        ).to.be.reverted;
+        // @TODO test with active strategy
+        expect(await vault.availableDepositLimit()).to.equal(ethers.utils.parseEther('0.01'));
+    });
+
     it('should deploy and withdraw', async function () {
         const { vault, whale, token } = await loadFixture(deployContractAndSetVariables);
         const amount = ethers.utils.parseEther('1');
@@ -89,5 +99,47 @@ describe("BaseVault", function () {
 
         await vault.connect(governance)['acceptGovernance()']();
         expect(await vault.governance()).to.equal(governance.address);
+    });
+
+    it('should deploy, add and revoke strategy', async function () {
+        const { vault, deployer, governance } = await loadFixture(deployContractAndSetVariables);
+
+        const TestStrategy = await ethers.getContractFactory('TestStrategy');
+        const strategy = await TestStrategy.connect(deployer).deploy(vault.address);
+        await strategy.deployed();
+
+        await vault['addStrategy(address,uint256,uint256,uint256,uint256)'](
+            strategy.address,
+            80,
+            ethers.utils.parseEther("1"),
+            ethers.utils.parseEther("10000"),
+            100,
+        );
+        let {
+            performanceFee,
+            activation,
+            debtRatio,
+            minDebtPerHarvest,
+            maxDebtPerHarvest,
+            lastReport,
+            totalDebt,
+            totalGain,
+            totalLoss
+        } = await vault.strategies(strategy.address);
+        expect(debtRatio).to.equal(80);
+
+        await vault['revokeStrategy(address)'](strategy.address);
+        ({
+            performanceFee,
+            activation,
+            debtRatio,
+            minDebtPerHarvest,
+            maxDebtPerHarvest,
+            lastReport,
+            totalDebt,
+            totalGain,
+            totalLoss
+        } = await vault.strategies(strategy.address));
+        expect(debtRatio).to.equal(0);
     });
 });
