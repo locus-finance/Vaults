@@ -75,6 +75,66 @@ describe("BaseVault", function () {
         expect(await vault.availableDepositLimit()).to.equal(ethers.utils.parseEther('0.01'));
     });
 
+    it('should not receive any deposit when deposit limit is zero', async function () {
+        const { vault, whale, token } = await loadFixture(deployContractAndSetVariables);
+        await vault['setDepositLimit(uint256)'](0);
+        const amount = 1;
+        await token.connect(whale).approve(vault.address, amount);
+        await expect(
+            vault.connect(whale)['deposit(uint256)'](amount)
+        ).to.be.reverted;
+        expect(await vault.availableDepositLimit()).to.equal(0);
+    });
+
+    it('should not receive any deposit when emergency shutdown is active', async function () {
+        const { vault, whale, token } = await loadFixture(deployContractAndSetVariables);
+        await vault['setEmergencyShutdown(bool)'](true);
+        const amount = ethers.utils.parseEther('1');
+        await token.connect(whale).approve(vault.address, amount);
+        await expect(
+            vault.connect(whale)['deposit(uint256)'](amount)
+        ).to.be.reverted;
+    });
+
+    it('should not withdraw when no idle and withdrawl queue is empty', async function () {
+        const { vault, whale, deployer, token } = await loadFixture(deployContractAndSetVariables);
+
+        const amount = ethers.utils.parseEther('1');
+        await token.connect(whale).approve(vault.address, amount);
+        await vault.connect(whale)['deposit(uint256)'](amount);
+
+        const TestStrategy = await ethers.getContractFactory('TestStrategy');
+        const strategy = await TestStrategy.connect(deployer).deploy(vault.address);
+        await strategy.deployed();
+
+        await vault['addStrategy(address,uint256,uint256,uint256,uint256)'](
+            strategy.address,
+            10000,
+            ethers.utils.parseEther("0.001"),
+            ethers.utils.parseEther("10000"),
+            100,
+        );
+
+        await vault.removeStrategyFromQueue(strategy.address);
+
+        await strategy.harvest();
+
+        await expect(
+            () => vault.connect(whale)['withdraw(uint256)'](amount)
+        ).to.changeTokenBalances(
+            token,
+            [vault, whale, strategy],
+            [0, 0, 0]
+        );
+
+        await expect(
+            vault.connect(whale)['withdraw(uint256)'](amount)
+        ).to.emit(token, 'Transfer')
+        .withArgs(vault.address, whale.address, 0)
+        .and.to.emit(vault, 'Transfer')
+        .withArgs(whale.address, "0x0000000000000000000000000000000000000000", 0);
+    });
+
     it('should withdraw', async function () {
         const { vault, whale, token } = await loadFixture(deployContractAndSetVariables);
         const amount = ethers.utils.parseEther('1');
@@ -177,6 +237,7 @@ describe("BaseVault", function () {
         await strategy.harvest();
 
         expect(await vault.maxAvailableShares()).to.equal(ethers.utils.parseEther('0.2'));
+        expect(await vault.pricePerShare()).to.equal(amount);
     });
 
     it('should be able to withdraw all assets when strategy is active and in withdrawal queue', async function () {
@@ -201,5 +262,6 @@ describe("BaseVault", function () {
         await strategy.harvest();
 
         expect(await vault.maxAvailableShares()).to.equal(amount);
+        expect(await vault.pricePerShare()).to.equal(amount);
     });
 });
