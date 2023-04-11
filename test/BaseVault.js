@@ -30,27 +30,27 @@ describe("BaseVault", function () {
         return { vault, deployer, symbol, name, whale, token, governance, treasury };
     }
 
-    it('should deploy and set the symbol correctly', async function () {
+    it('should set the symbol correctly', async function () {
         const { vault, symbol } = await loadFixture(deployContractAndSetVariables);
         expect(await vault.symbol()).to.equal(symbol);
     });
 
-    it('should deploy and set the name correctly', async function () {
+    it('should set the name correctly', async function () {
         const { vault, name } = await loadFixture(deployContractAndSetVariables);
         expect(await vault.name()).to.equal(name);
     });
 
-    it('should deploy and set the token correctly', async function () {
+    it('should set the token correctly', async function () {
         const { vault, token } = await loadFixture(deployContractAndSetVariables);
         expect(await vault.token()).to.equal(token.address);
     });
 
-    it('should deploy and set the treasury correctly', async function () {
+    it('should set the treasury correctly', async function () {
         const { vault, token, treasury } = await loadFixture(deployContractAndSetVariables);
         expect(await vault.rewards()).to.equal(treasury.address);
     });
 
-    it('should deploy and receive deposit', async function () {
+    it('should receive deposit', async function () {
         const { vault, whale, token } = await loadFixture(deployContractAndSetVariables);
         const amount = ethers.utils.parseEther('1');
         await token.connect(whale).approve(vault.address, amount);
@@ -65,7 +65,7 @@ describe("BaseVault", function () {
         expect(await vault.totalSupply()).to.equal(amount);
     });
 
-    it('should deploy and not receive deposit over limit', async function () {
+    it('should not receive deposit over limit', async function () {
         const { vault, whale, token } = await loadFixture(deployContractAndSetVariables);
         await vault['setDepositLimit(uint256)'](ethers.utils.parseEther('0.01'));
         await expect(
@@ -75,7 +75,7 @@ describe("BaseVault", function () {
         expect(await vault.availableDepositLimit()).to.equal(ethers.utils.parseEther('0.01'));
     });
 
-    it('should deploy and withdraw', async function () {
+    it('should withdraw', async function () {
         const { vault, whale, token } = await loadFixture(deployContractAndSetVariables);
         const amount = ethers.utils.parseEther('1');
         await token.connect(whale).approve(vault.address, amount);
@@ -91,7 +91,7 @@ describe("BaseVault", function () {
         expect(await vault.totalSupply()).to.equal(0);
     });
 
-    it('should deploy and set governance', async function () {
+    it('should set governance', async function () {
         const { vault, deployer, governance } = await loadFixture(deployContractAndSetVariables);
 
         await vault['setGovernance(address)'](governance.address);
@@ -101,7 +101,7 @@ describe("BaseVault", function () {
         expect(await vault.governance()).to.equal(governance.address);
     });
 
-    it('should deploy, add and revoke strategy', async function () {
+    it('should add and revoke strategy', async function () {
         const { vault, deployer, governance } = await loadFixture(deployContractAndSetVariables);
 
         const TestStrategy = await ethers.getContractFactory('TestStrategy');
@@ -141,5 +141,65 @@ describe("BaseVault", function () {
             totalLoss
         } = await vault.strategies(strategy.address));
         expect(debtRatio).to.equal(0);
+    });
+
+    it('should be able to withdraw all assets when no active strategy', async function () {
+        const { vault, deployer, whale, token } = await loadFixture(deployContractAndSetVariables);
+
+        const amount = ethers.utils.parseEther('1');
+        await token.connect(whale).approve(vault.address, amount);
+        await vault.connect(whale)['deposit(uint256)'](amount);
+
+        expect(await vault.maxAvailableShares()).to.equal(amount);
+    });
+
+    it('should be able to withdraw part of assets when strategy is active but not in withdrawal queue', async function () {
+        const { vault, deployer, whale, token } = await loadFixture(deployContractAndSetVariables);
+
+        const TestStrategy = await ethers.getContractFactory('TestStrategy');
+        const strategy = await TestStrategy.connect(deployer).deploy(vault.address);
+        await strategy.deployed();
+
+        await vault['addStrategy(address,uint256,uint256,uint256,uint256)'](
+            strategy.address,
+            8000,
+            ethers.utils.parseEther("0.001"),
+            ethers.utils.parseEther("10000"),
+            100,
+        );
+
+        await vault.removeStrategyFromQueue(strategy.address);
+
+        const amount = ethers.utils.parseEther('1');
+        await token.connect(whale).approve(vault.address, amount);
+        await vault.connect(whale)['deposit(uint256)'](amount);
+
+        await strategy.harvest();
+
+        expect(await vault.maxAvailableShares()).to.equal(ethers.utils.parseEther('0.2'));
+    });
+
+    it('should be able to withdraw all assets when strategy is active and in withdrawal queue', async function () {
+        const { vault, deployer, whale, token } = await loadFixture(deployContractAndSetVariables);
+
+        const TestStrategy = await ethers.getContractFactory('TestStrategy');
+        const strategy = await TestStrategy.connect(deployer).deploy(vault.address);
+        await strategy.deployed();
+
+        await vault['addStrategy(address,uint256,uint256,uint256,uint256)'](
+            strategy.address,
+            8000,
+            ethers.utils.parseEther("0.001"),
+            ethers.utils.parseEther("10000"),
+            100,
+        );
+
+        const amount = ethers.utils.parseEther('1');
+        await token.connect(whale).approve(vault.address, amount);
+        await vault.connect(whale)['deposit(uint256)'](amount);
+
+        await strategy.harvest();
+
+        expect(await vault.maxAvailableShares()).to.equal(amount);
     });
 });
