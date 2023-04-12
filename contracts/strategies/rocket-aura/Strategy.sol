@@ -4,7 +4,7 @@
 pragma solidity ^0.8.12;
 pragma experimental ABIEncoderV2;
 
-import {BaseStrategy, StrategyParams} from "@yearnvaults/contracts/BaseStrategy.sol";
+import {BaseStrategy, StrategyParams} from "../../BaseStrategy.sol";
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
@@ -12,7 +12,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "forge-std/console.sol";
+// import "forge-std/console.sol";
 import "./interfaces/ICToken.sol";
 import "./interfaces/IBalancerV2Vault.sol";
 import "./interfaces/IBalancerPool.sol";
@@ -349,24 +349,24 @@ contract Strategy is BaseStrategy {
         // TODO: Do stuff here to free up to `_amountNeeded` from all positions back into `want`
         // NOTE: Maintain invariant `want.balanceOf(this) >= _liquidatedAmount`
         // NOTE: Maintain invariant `_liquidatedAmount + _loss <= _amountNeeded`
-        console.log("wETH tokens", want.balanceOf(address(this)));
-        console.log("Start liquidate positions:", _amountNeeded);
+        // console.log("wETH tokens", want.balanceOf(address(this)));
+        // console.log("Start liquidate positions:", _amountNeeded);
         uint256 _wethBal = want.balanceOf(address(this));
         if(_wethBal >= _amountNeeded){
-            console.log("wethBal >= _amountNeeded");
+            // console.log("wethBal >= _amountNeeded");
             return (_amountNeeded, 0);
         }
 
-        console.log("Earmark rewards");
+        // console.log("Earmark rewards");
         IAuraBooster(auraBooster).earmarkRewards(15);
 
         // @TODO withdraw only rewards if possible
         // to safe position
-        console.log("Withdraw wETH", _amountNeeded);
+        // console.log("Withdraw wETH", _amountNeeded);
         withdrawSome(_amountNeeded);
 
         _wethBal = want.balanceOf(address(this));
-        console.log("wETH tokens", want.balanceOf(address(this)));
+        // console.log("wETH tokens", want.balanceOf(address(this)));
 
         if (_amountNeeded > _wethBal) {
             _liquidatedAmount = _wethBal;
@@ -377,26 +377,26 @@ contract Strategy is BaseStrategy {
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        console.log("Start liquidating all positions");
+        // console.log("Start liquidating all positions");
 
-        console.log("\nauraBrETH tokens:", IERC20(auraBRethStable).balanceOf(address(this)));
-        console.log("brEth tokens:", IERC20(bRethStable).balanceOf(address(this)));
-        console.log("AURA tokens:", IERC20(auraToken).balanceOf(address(this)));
-        console.log("BAL tokens:", IERC20(balToken).balanceOf(address(this)));
-        console.log("want tokens:", want.balanceOf(address(this)));
+        // console.log("\nauraBrETH tokens:", IERC20(auraBRethStable).balanceOf(address(this)));
+        // console.log("brEth tokens:", IERC20(bRethStable).balanceOf(address(this)));
+        // console.log("AURA tokens:", IERC20(auraToken).balanceOf(address(this)));
+        // console.log("BAL tokens:", IERC20(balToken).balanceOf(address(this)));
+        // console.log("want tokens:", want.balanceOf(address(this)));
 
-        // 1. Unwrap LP tokens
-        console.log("Unwrap auraBrEthStable to BrEthStable");
+        // // 1. Unwrap LP tokens
+        // console.log("Unwrap auraBrEthStable to BrEthStable");
         IConvexRewards auraPool = IConvexRewards(auraBRethStable);
         auraPool.withdrawAndUnwrap(auraPool.balanceOf(address(this)), true);
 
-        console.log("\nauraBrETH tokens:", IERC20(auraBRethStable).balanceOf(address(this)));
-        console.log("brEth tokens:", IERC20(bRethStable).balanceOf(address(this)));
-        console.log("AURA tokens:", IERC20(auraToken).balanceOf(address(this)));
-        console.log("BAL tokens:", IERC20(balToken).balanceOf(address(this)));
-        console.log("want tokens:", want.balanceOf(address(this)));
+        // console.log("\nauraBrETH tokens:", IERC20(auraBRethStable).balanceOf(address(this)));
+        // console.log("brEth tokens:", IERC20(bRethStable).balanceOf(address(this)));
+        // console.log("AURA tokens:", IERC20(auraToken).balanceOf(address(this)));
+        // console.log("BAL tokens:", IERC20(balToken).balanceOf(address(this)));
+        // console.log("want tokens:", want.balanceOf(address(this)));
 
-        console.log("\nExit from pool. Send BrEthStable and get wETH");
+        // console.log("\nExit from pool. Send BrEthStable and get wETH");
         // 2. Remove liquidity from pool
         // exit entire position for single token. Could revert due to single exit limit enforced by balancer
         address[] memory _assets = new address[](2);
@@ -413,13 +413,13 @@ contract Strategy is BaseStrategy {
         IBalancerV2Vault.ExitPoolRequest memory request = IBalancerV2Vault.ExitPoolRequest(_assets, _minAmountsOut, userData, false);
         balancerVault.exitPool(poolId, address(this), payable(address(this)), request);    
 
-        console.log("\nauraBrETH tokens:", IERC20(auraBRethStable).balanceOf(address(this)));
-        console.log("brEth tokens:", IERC20(bRethStable).balanceOf(address(this)));
-        console.log("AURA tokens:", IERC20(auraToken).balanceOf(address(this)));
-        console.log("BAL tokens:", IERC20(balToken).balanceOf(address(this)));
-        console.log("want tokens:", want.balanceOf(address(this)));
+        // console.log("\nauraBrETH tokens:", IERC20(auraBRethStable).balanceOf(address(this)));
+        // console.log("brEth tokens:", IERC20(bRethStable).balanceOf(address(this)));
+        // console.log("AURA tokens:", IERC20(auraToken).balanceOf(address(this)));
+        // console.log("BAL tokens:", IERC20(balToken).balanceOf(address(this)));
+        // console.log("want tokens:", want.balanceOf(address(this)));
 
-        console.log("\nSell AURA rewards for wETH");
+        // console.log("\nSell AURA rewards for wETH");
         // 3. Sell AURA rewards
         uint256 auraBal = IERC20(auraToken).balanceOf(address(this));
         
@@ -455,13 +455,13 @@ contract Strategy is BaseStrategy {
             type(uint256).max // @TODO set state variable deadline
         );
 
-        console.log("\nauraBrETH tokens:", IERC20(auraBRethStable).balanceOf(address(this)));
-        console.log("brEth tokens:", IERC20(bRethStable).balanceOf(address(this)));
-        console.log("AURA tokens:", IERC20(auraToken).balanceOf(address(this)));
-        console.log("BAL tokens:", IERC20(balToken).balanceOf(address(this)));
-        console.log("want tokens:", want.balanceOf(address(this)));
+        // console.log("\nauraBrETH tokens:", IERC20(auraBRethStable).balanceOf(address(this)));
+        // console.log("brEth tokens:", IERC20(bRethStable).balanceOf(address(this)));
+        // console.log("AURA tokens:", IERC20(auraToken).balanceOf(address(this)));
+        // console.log("BAL tokens:", IERC20(balToken).balanceOf(address(this)));
+        // console.log("want tokens:", want.balanceOf(address(this)));
 
-        console.log("\nSell BAL rewards for wETH");
+        // console.log("\nSell BAL rewards for wETH");
         // 4. Sell BAL rewards
         uint256 balBal = IERC20(balToken).balanceOf(address(this));
         assets[0] = balToken;
@@ -494,11 +494,11 @@ contract Strategy is BaseStrategy {
             type(uint256).max // @TODO set state variable deadline
         );
 
-        console.log("\nauraBrETH tokens:", IERC20(auraBRethStable).balanceOf(address(this)));
-        console.log("brEth tokens:", IERC20(bRethStable).balanceOf(address(this)));
-        console.log("AURA tokens:", IERC20(auraToken).balanceOf(address(this)));
-        console.log("BAL tokens:", IERC20(balToken).balanceOf(address(this)));
-        console.log("want tokens:", want.balanceOf(address(this)));
+        // console.log("\nauraBrETH tokens:", IERC20(auraBRethStable).balanceOf(address(this)));
+        // console.log("brEth tokens:", IERC20(bRethStable).balanceOf(address(this)));
+        // console.log("AURA tokens:", IERC20(auraToken).balanceOf(address(this)));
+        // console.log("BAL tokens:", IERC20(balToken).balanceOf(address(this)));
+        // console.log("want tokens:", want.balanceOf(address(this)));
 
         return want.balanceOf(address(this));
     }
