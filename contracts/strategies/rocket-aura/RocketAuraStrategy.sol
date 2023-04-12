@@ -28,7 +28,7 @@ import "./interfaces/IAuraMinter.sol";
 
 import "./utils/AuraMath.sol";
 
-contract Strategy is BaseStrategy {
+contract RocketAuraStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
     using Address for address;
     using AuraMath for uint256;
