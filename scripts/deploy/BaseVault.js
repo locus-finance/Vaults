@@ -7,7 +7,6 @@ async function main() {
 
     const want = prompt('Vault want token address: ') || "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
 
-    // const want = "0xee44150250aff3e6ac25539765f056edb7f85d7b";
     const governance = owner.address;
     const treasury = owner.address;
     const vaultName = "ETH Vault";
