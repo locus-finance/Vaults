@@ -51,7 +51,19 @@ module.exports = {
         localhost: {
         },
         hardhat: {
-        },
+            chainId: 43114,
+            forking: {
+                url: `https://rpc.ankr.com/eth_sepolia`
+            },
+            accounts: [{privateKey: `0x${DEPLOYER_PRIVATE_KEY}`, balance: '10000000000000000000'}]
+         },
+         custom: {
+             chainId: 43114,
+             forking: {
+                 url: `https://rpc.ankr.com/eth_sepolia`
+             },
+             accounts: [{privateKey: `0x${DEPLOYER_PRIVATE_KEY}`, balance: '10000000000000000000'}]
+          },
         optimismgoerli: {
              url: `https://rpc.ankr.com/optimism_testnet`,
           accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
