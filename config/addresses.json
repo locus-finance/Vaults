@@ -13,6 +13,9 @@
       "FUJI_AVAX": " "
     }
   },
+  "vETH_Strategy": {
+    "SEPOLIA": "0x66633600383A279B46f81bd69b79E8D9d9215073"
+  },
   "BALANCER": {
     "ethereum" : "0x"
   },

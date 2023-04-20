@@ -3,7 +3,7 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("BaseVault", function () {
-    async function deployContractAndSetVariables() {
+    async function deployVaultAndSetVariables() {
         const [deployer, whale, governance, treasury] = await ethers.getSigners();
         
         const name = "ETH Vault";
@@ -30,28 +30,66 @@ describe("BaseVault", function () {
         return { vault, deployer, symbol, name, whale, token, governance, treasury };
     }
 
+    async function deployVaultAndStrategy() {
+        const [deployer, whale, governance, treasury] = await ethers.getSigners();
+        
+        const name = "ETH Vault";
+        const symbol = "vETH";
+
+        const Token = await hre.ethers.getContractFactory("Token");
+        const token = await Token.deploy();
+        await token.deployed();
+        await token.transfer(whale.address, ethers.utils.parseEther('10000'));
+
+        const BaseVault = await ethers.getContractFactory('BaseVault');
+        const vault = await BaseVault.deploy();
+        await vault.deployed();
+
+        await vault['initialize(address,address,address,string,string)'](
+            token.address,
+            deployer.address,
+            treasury.address,
+            name,
+            symbol
+        );
+        await vault['setDepositLimit(uint256)'](ethers.utils.parseEther('10000'))
+
+        const TestStrategy = await ethers.getContractFactory('TestStrategy');
+        const strategy = await TestStrategy.connect(deployer).deploy(vault.address);
+        await strategy.deployed();
+
+        await vault['addStrategy(address,uint256,uint256,uint256,uint256)'](
+            strategy.address,
+            8000,
+            1,
+            ethers.utils.parseEther("10000"),
+            0,
+        );
+        return { vault, deployer, symbol, name, whale, token, governance, treasury, strategy };
+    }
+
     it('should set the symbol correctly', async function () {
-        const { vault, symbol } = await loadFixture(deployContractAndSetVariables);
+        const { vault, symbol } = await loadFixture(deployVaultAndSetVariables);
         expect(await vault.symbol()).to.equal(symbol);
     });
 
     it('should set the name correctly', async function () {
-        const { vault, name } = await loadFixture(deployContractAndSetVariables);
+        const { vault, name } = await loadFixture(deployVaultAndSetVariables);
         expect(await vault.name()).to.equal(name);
     });
 
     it('should set the token correctly', async function () {
-        const { vault, token } = await loadFixture(deployContractAndSetVariables);
+        const { vault, token } = await loadFixture(deployVaultAndSetVariables);
         expect(await vault.token()).to.equal(token.address);
     });
 
     it('should set the treasury correctly', async function () {
-        const { vault, token, treasury } = await loadFixture(deployContractAndSetVariables);
+        const { vault, token, treasury } = await loadFixture(deployVaultAndSetVariables);
         expect(await vault.rewards()).to.equal(treasury.address);
     });
 
     it('should receive deposit', async function () {
-        const { vault, whale, token } = await loadFixture(deployContractAndSetVariables);
+        const { vault, whale, token } = await loadFixture(deployVaultAndSetVariables);
         const amount = ethers.utils.parseEther('1');
         await token.connect(whale).approve(vault.address, amount);
         await expect(
@@ -66,7 +104,7 @@ describe("BaseVault", function () {
     });
 
     it('should not receive deposit over limit', async function () {
-        const { vault, whale, token } = await loadFixture(deployContractAndSetVariables);
+        const { vault, whale, token } = await loadFixture(deployVaultAndSetVariables);
         await vault['setDepositLimit(uint256)'](ethers.utils.parseEther('0.01'));
         await expect(
             vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('1'))
@@ -76,7 +114,7 @@ describe("BaseVault", function () {
     });
 
     it('should not receive any deposit when deposit limit is zero', async function () {
-        const { vault, whale, token } = await loadFixture(deployContractAndSetVariables);
+        const { vault, whale, token } = await loadFixture(deployVaultAndSetVariables);
         await vault['setDepositLimit(uint256)'](0);
         const amount = 1;
         await token.connect(whale).approve(vault.address, amount);
@@ -87,7 +125,7 @@ describe("BaseVault", function () {
     });
 
     it('should not receive any deposit when emergency shutdown is active', async function () {
-        const { vault, whale, token } = await loadFixture(deployContractAndSetVariables);
+        const { vault, whale, token } = await loadFixture(deployVaultAndSetVariables);
         await vault['setEmergencyShutdown(bool)'](true);
         const amount = ethers.utils.parseEther('1');
         await token.connect(whale).approve(vault.address, amount);
@@ -97,7 +135,7 @@ describe("BaseVault", function () {
     });
 
     it('should not withdraw when no idle and withdrawl queue is empty', async function () {
-        const { vault, whale, deployer, token } = await loadFixture(deployContractAndSetVariables);
+        const { vault, whale, deployer, token } = await loadFixture(deployVaultAndSetVariables);
 
         const amount = ethers.utils.parseEther('1');
         await token.connect(whale).approve(vault.address, amount);
@@ -112,7 +150,7 @@ describe("BaseVault", function () {
             10000,
             ethers.utils.parseEther("0.001"),
             ethers.utils.parseEther("10000"),
-            100,
+            0,
         );
 
         await vault.removeStrategyFromQueue(strategy.address);
@@ -136,7 +174,7 @@ describe("BaseVault", function () {
     });
 
     it('should withdraw', async function () {
-        const { vault, whale, token } = await loadFixture(deployContractAndSetVariables);
+        const { vault, whale, token } = await loadFixture(deployVaultAndSetVariables);
         const amount = ethers.utils.parseEther('1');
         await token.connect(whale).approve(vault.address, amount);
         await vault.connect(whale)['deposit(uint256)'](amount);
@@ -152,7 +190,7 @@ describe("BaseVault", function () {
     });
 
     it('should set governance', async function () {
-        const { vault, deployer, governance } = await loadFixture(deployContractAndSetVariables);
+        const { vault, deployer, governance } = await loadFixture(deployVaultAndSetVariables);
 
         await vault['setGovernance(address)'](governance.address);
         expect(await vault.governance()).to.equal(deployer.address);
@@ -162,7 +200,7 @@ describe("BaseVault", function () {
     });
 
     it('should add and revoke strategy', async function () {
-        const { vault, deployer, governance } = await loadFixture(deployContractAndSetVariables);
+        const { vault, deployer, governance } = await loadFixture(deployVaultAndSetVariables);
 
         const TestStrategy = await ethers.getContractFactory('TestStrategy');
         const strategy = await TestStrategy.connect(deployer).deploy(vault.address);
@@ -173,7 +211,7 @@ describe("BaseVault", function () {
             80,
             ethers.utils.parseEther("1"),
             ethers.utils.parseEther("10000"),
-            100,
+            0,
         );
         let {
             performanceFee,
@@ -204,7 +242,7 @@ describe("BaseVault", function () {
     });
 
     it('should be able to withdraw all assets when no active strategy', async function () {
-        const { vault, deployer, whale, token } = await loadFixture(deployContractAndSetVariables);
+        const { vault, deployer, whale, token } = await loadFixture(deployVaultAndSetVariables);
 
         const amount = ethers.utils.parseEther('1');
         await token.connect(whale).approve(vault.address, amount);
@@ -214,7 +252,7 @@ describe("BaseVault", function () {
     });
 
     it('should be able to withdraw part of assets when strategy is active but not in withdrawal queue', async function () {
-        const { vault, deployer, whale, token } = await loadFixture(deployContractAndSetVariables);
+        const { vault, deployer, whale, token } = await loadFixture(deployVaultAndSetVariables);
 
         const TestStrategy = await ethers.getContractFactory('TestStrategy');
         const strategy = await TestStrategy.connect(deployer).deploy(vault.address);
@@ -225,7 +263,7 @@ describe("BaseVault", function () {
             8000,
             ethers.utils.parseEther("0.001"),
             ethers.utils.parseEther("10000"),
-            100,
+            0,
         );
 
         await vault.removeStrategyFromQueue(strategy.address);
@@ -241,19 +279,7 @@ describe("BaseVault", function () {
     });
 
     it('should be able to withdraw all assets when strategy is active and in withdrawal queue', async function () {
-        const { vault, deployer, whale, token } = await loadFixture(deployContractAndSetVariables);
-
-        const TestStrategy = await ethers.getContractFactory('TestStrategy');
-        const strategy = await TestStrategy.connect(deployer).deploy(vault.address);
-        await strategy.deployed();
-
-        await vault['addStrategy(address,uint256,uint256,uint256,uint256)'](
-            strategy.address,
-            8000,
-            ethers.utils.parseEther("0.001"),
-            ethers.utils.parseEther("10000"),
-            100,
-        );
+        const { vault, whale, token, strategy } = await loadFixture(deployVaultAndStrategy);
 
         const amount = ethers.utils.parseEther('1');
         await token.connect(whale).approve(vault.address, amount);
@@ -263,5 +289,65 @@ describe("BaseVault", function () {
 
         expect(await vault.maxAvailableShares()).to.equal(amount);
         expect(await vault.pricePerShare()).to.equal(amount);
+    });
+
+    it('should give strategy credit', async function () {
+        const { vault, whale, token, strategy } = await loadFixture(deployVaultAndStrategy);
+
+        const amount = ethers.utils.parseEther('1');
+        await token.connect(whale).approve(vault.address, amount);
+        await vault.connect(whale)['deposit(uint256)'](amount);
+
+        await expect(
+            () => strategy.harvest()
+        ).to.changeTokenBalances(
+            token,
+            [strategy, vault],
+            [ethers.utils.parseEther('0.8'), ethers.utils.parseEther('-0.8')]
+        );
+    });
+
+    it('should handle strategy profit', async function () {
+        const { vault, whale, token, strategy } = await loadFixture(deployVaultAndStrategy);
+
+        const amount = ethers.utils.parseEther('1');
+        await token.connect(whale).approve(vault.address, amount);
+        await vault.connect(whale)['deposit(uint256)'](amount);
+        
+        await strategy.harvest();
+
+        await token.connect(whale).transfer(strategy.address, ethers.utils.parseEther('0.23'));
+
+        await expect(
+            () => strategy.harvest()
+        ).to.changeTokenBalances(
+            token,
+            [strategy, vault],
+            [ethers.utils.parseEther('-0.23'), ethers.utils.parseEther('0.23')]
+        );
+    });
+
+    it('should handle strategy loss', async function () {
+        const { vault, deployer, whale, token, strategy } = await loadFixture(deployVaultAndStrategy);
+
+        const amount = ethers.utils.parseEther('1');
+        await token.connect(whale).approve(vault.address, amount);
+        await vault.connect(whale)['deposit(uint256)'](amount);
+        
+        await strategy.harvest();
+        await strategy.connect(deployer)._takeFunds(ethers.utils.parseEther('0.23'));
+        await strategy.harvest();
+        ({
+            performanceFee,
+            activation,
+            debtRatio,
+            minDebtPerHarvest,
+            maxDebtPerHarvest,
+            lastReport,
+            totalDebt,
+            totalGain,
+            totalLoss
+        } = await vault.strategies(strategy.address));
+        expect(totalLoss).to.equal(ethers.utils.parseEther('0.23'));
     });
 });
