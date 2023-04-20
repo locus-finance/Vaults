@@ -26,9 +26,6 @@ task("fork_reset", "Reset to local fork", async (taskArgs) => {
 });
 
 module.exports = {
-    mocha: {
-        timeout: 100000000
-    },
     solidity: {
         compilers: [
         {
@@ -56,9 +53,8 @@ module.exports = {
         hardhat: {
             chainId: 43114,
             forking: {
-                url: `https://rpc.ankr.com/eth_sepolia`
+                url: ETH_NODE
             },
-            accounts: [{privateKey: `0x${DEPLOYER_PRIVATE_KEY}`, balance: '10000000000000000000'}]
         },
         eth_mainnet: {
             url: ETH_NODE,

@@ -47,7 +47,8 @@ contract RocketAuraStrategy is BaseStrategy {
     // @TODO retrieve with pool.getPoolId() instead of hard-code
     bytes32 internal constant poolId = 0x1e19cf2d73a72ef1332c882f20534b6519be0276000200000000000000000112;
 
-    uint internal etaCached;
+    //@TODO allow changing
+    bool public claimRewards = true; // claim rewards when withdrawAndUnwrap
 
     constructor(address _vault) BaseStrategy(_vault) {
         want.approve(address(balancerVault), type(uint256).max);
@@ -324,7 +325,7 @@ contract RocketAuraStrategy is BaseStrategy {
         uint256 bptToUnstake = Math.min(wethToRethToBpt, IERC20(auraBRethStable).balanceOf(address(this)));
 
         if(bptToUnstake > 0){
-            IConvexRewards(auraBRethStable).withdrawAndUnwrap(bptToUnstake, true);
+            IConvexRewards(auraBRethStable).withdrawAndUnwrap(bptToUnstake, claimRewards);
 
             // exit entire position for single token. Could revert due to single exit limit enforced by balancer
             address[] memory _assets = new address[](2);
@@ -353,7 +354,6 @@ contract RocketAuraStrategy is BaseStrategy {
         // console.log("Start liquidate positions:", _amountNeeded);
         uint256 _wethBal = want.balanceOf(address(this));
         if(_wethBal >= _amountNeeded){
-            // console.log("wethBal >= _amountNeeded");
             return (_amountNeeded, 0);
         }
 
@@ -377,6 +377,9 @@ contract RocketAuraStrategy is BaseStrategy {
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
+        // @TODO sell using BatchSwap
+        // https://etherscan.io/address/0x33e1086881f3664406bba42dcae038c5cd26f184#code#L2099
+
         // console.log("Start liquidating all positions");
 
         // console.log("\nauraBrETH tokens:", IERC20(auraBRethStable).balanceOf(address(this)));

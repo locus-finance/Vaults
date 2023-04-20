@@ -1,4 +1,4 @@
-const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+const { loadFixture, mine } = require("@nomicfoundation/hardhat-network-helpers");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
@@ -47,14 +47,75 @@ describe("RocketAuraStrategy", function () {
         expect(await strategy.vault()).to.equal(vault.address);
     });
 
-    it('should operate', async function () {
-        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables);
+    it('should withdraw requested amount', async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
 
-        auraBRethStable = await hre.ethers.getContractAt(
-            IERC20_SOURCE, 
-            "0x001B78CEC62DcFdc660E06A91Eb1bC966541d758", // WETH
-        );
+        // console.log('keccak256(abi.encodePacked("contract.address", _contractName))');
+        // console.log(await strategy.testEncode());
+
+        const balanceBefore = await want.balanceOf(whale.address);
         
+        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
+        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('10'));
+
+        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
+
+        console.log("1 estimatedTotalAssets(): ", await strategy.estimatedTotalAssets());
+        await strategy.connect(deployer).harvest();
+
+        console.log("2 estimatedTotalAssets(): ");
+        expect(await strategy.estimatedTotalAssets())
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.02'));
+
+        // console.log("await vault.balanceOf(whale.address)");
+        // console.log(await vault.balanceOf(whale.address));
+        // console.log("await want.balanceOf(whale.address)");
+        // console.log(await want.balanceOf(whale.address));
+        console.log("mine");
+        mine(36000, 12);
+
+        const RocketNetworkBalances = await ethers.getContractAt("IRocketNetworkBalances", "0x07fcabcbe4ff0d80c2b1eb42855c0131b6cba2f4");
+        const BalancerPool = await ethers.getContractAt("IBalancerPool", "0x1E19CF2D73a72Ef1332C882F20534B6519Be0276");
+
+        const banklessOracleAddress = "0x2c6c5809a257ea74a2df6d20aee6119196d4bea0";
+        await network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [banklessOracleAddress],
+        });
+
+        console.log("BalancerPool.getRate()", await BalancerPool.getRate());
+        const { number } = await hre.ethers.provider.getBlock("latest");
+        console.log("block number", number);
+        console.log("RocketNetworkBalances submitBalances");
+        const rocketOracle = await ethers.getSigner(banklessOracleAddress);
+        const res = await RocketNetworkBalances.connect(rocketOracle).submitBalances(
+            number,
+            ethers.utils.parseUnits('269797986344896932342501', "wei"), 
+            ethers.utils.parseUnits('251343391847070839638941', "wei"), 
+            ethers.utils.parseUnits('243511291968943109734586', "wei")
+        );
+        mine(1, 12);
+        console.log("BalancerPool.getRate()", await BalancerPool.getRate());
+        // console.log(res);
+
+        console.log("harvest");
+        await strategy.connect(deployer).harvest();
+        console.log("3 estimatedTotalAssets(): ", await strategy.estimatedTotalAssets());
+
+        console.log("mine");
+        mine(72000, 12);
+        console.log("harvest");
+        await strategy.connect(deployer).harvest();
+        console.log("4 estimatedTotalAssets(): ", await strategy.estimatedTotalAssets());
+
+        await vault.connect(whale)['withdraw(uint256)'](ethers.utils.parseEther('10'));
+
+        expect(await want.balanceOf(whale.address)).to.equal(balanceBefore);
+    });
+
+    it('should withdraw with loss', async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
+
         const balanceBefore = await want.balanceOf(whale.address);
         
         await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
@@ -63,22 +124,49 @@ describe("RocketAuraStrategy", function () {
         expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
 
         await strategy.connect(deployer).harvest();
+
         expect(await strategy.estimatedTotalAssets())
         .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.02'));
 
-        console.log("await vault.balanceOf(whale.address)");
-        console.log(await vault.balanceOf(whale.address));
-        console.log("await want.balanceOf(whale.address)");
-        console.log(await want.balanceOf(whale.address));
         await strategy.connect(deployer).tend();
 
-        await vault.connect(whale)['withdraw(uint256)'](ethers.utils.parseEther('10'));
+        await vault.connect(whale)['withdraw(uint256,address,uint256)'](
+            ethers.utils.parseEther('10'), 
+            whale.address, 
+            5 // 0.05% acceptable loss
+        );
 
-        // expect(await want.balanceOf(whale.address))
-        // .to.be.closeTo(balanceBefore, ethers.utils.parseEther('1.5'));
-        console.log("await vault.balanceOf(whale.address)");
-        console.log(await vault.balanceOf(whale.address));
-        console.log("await want.balanceOf(whale.address)");
-        console.log(await want.balanceOf(whale.address));
+        expect(await want.balanceOf(whale.address))
+        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.02'));
+    });
+
+    it('should not withdraw with loss', async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
+
+        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
+        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('10'));
+
+        const balanceBefore = await want.balanceOf(whale.address);
+
+        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
+
+        await strategy.connect(deployer).harvest();
+
+        expect(await strategy.estimatedTotalAssets())
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.02'));
+
+        await strategy.connect(deployer).tend();
+
+        await expect( 
+            vault.connect(whale)['withdraw(uint256,address,uint256)'](
+                ethers.utils.parseEther('10'), 
+                whale.address, 
+                0 // 0% acceptable loss
+            )
+        ).to.be.reverted;
+
+        expect(await want.balanceOf(whale.address)).to.equal(balanceBefore);
     });
 });
+
+
