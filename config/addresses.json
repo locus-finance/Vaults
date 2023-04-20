@@ -1,17 +1,16 @@
 {
   "VAULTS": {
-    "MAINNET": {
       "ETHEREUM": " ",
       "AVAX": " ",
       "OPTIMISM": " ",
-      "ARBITRUM": " "
-    },
-    "TESTNET": {
+      "ARBITRUM": " ",
       "OPTIMISM_GOERLI": "0x4FAbCac711eA90B2025462034824C5eb102B8B7a",
       "SEPOLIA": "0xD8647A1018B9b2edAaf3bDD3482621798AB4C2e4",
       "GOERLI": " ",
       "FUJI_AVAX": " "
-    }
+  },
+  "vETH_Strategy": {
+    "SEPOLIA": "0x66633600383A279B46f81bd69b79E8D9d9215073"
   },
   "BALANCER": {
     "ethereum" : "0x"
