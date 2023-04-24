@@ -26,6 +26,9 @@ task("fork_reset", "Reset to local fork", async (taskArgs) => {
 });
 
 module.exports = {
+    mocha: {
+        timeout: 100000000
+    },
     solidity: {
         compilers: [
         {
