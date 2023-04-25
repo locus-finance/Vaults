@@ -39,18 +39,26 @@ interface VaultAPI is IERC20 {
 
     function deposit(uint256 amount) external returns (uint256);
 
-    function deposit(uint256 amount, address recipient) external returns (uint256);
+    function deposit(
+        uint256 amount,
+        address recipient
+    ) external returns (uint256);
 
     // NOTE: Vyper produces multiple signatures for a given function with "default" args
     function withdraw() external returns (uint256);
 
     function withdraw(uint256 maxShares) external returns (uint256);
 
-    function withdraw(uint256 maxShares, address recipient) external returns (uint256);
+    function withdraw(
+        uint256 maxShares,
+        address recipient
+    ) external returns (uint256);
 
     function token() external view returns (address);
 
-    function strategies(address _strategy) external view returns (StrategyParams memory);
+    function strategies(
+        address _strategy
+    ) external view returns (StrategyParams memory);
 
     function pricePerShare() external view returns (uint256);
 
@@ -127,9 +135,6 @@ interface VaultAPI is IERC20 {
     function guardian() external view returns (address);
 }
 
-/**
- * This interface is here for the keeper bot to use.
- */
 interface StrategyAPI {
     function name() external view returns (string memory);
 
@@ -155,7 +160,12 @@ interface StrategyAPI {
 
     function harvest() external;
 
-    event Harvested(uint256 profit, uint256 loss, uint256 debtPayment, uint256 debtOutstanding);
+    event Harvested(
+        uint256 profit,
+        uint256 loss,
+        uint256 debtPayment,
+        uint256 debtOutstanding
+    );
 }
 
 interface HealthCheck {
@@ -171,23 +181,6 @@ interface HealthCheck {
 interface IBaseFee {
     function isCurrentBaseFeeAcceptable() external view returns (bool);
 }
-
-/**
- * @title Yearn Base Strategy
- * @author yearn.finance
- * @notice
- *  BaseStrategy implements all of the required functionality to interoperate
- *  closely with the Vault contract. This contract should be inherited and the
- *  abstract methods implemented to adapt the Strategy to the particular needs
- *  it has to create a return.
- *
- *  Of special interest is the relationship between `harvest()` and
- *  `vault.report()'. `harvest()` may be called simply because enough time has
- *  elapsed since the last report, and not because any funds need to be moved
- *  or positions adjusted. This is critical so that the Vault may maintain an
- *  accurate picture of the Strategy's performance. See  `vault.report()`,
- *  `harvest()`, and `harvestTrigger()` for further details.
- */
 
 abstract contract BaseStrategy {
     using SafeERC20 for IERC20;
@@ -245,7 +238,12 @@ abstract contract BaseStrategy {
     IERC20 public want;
 
     // So indexers can keep track of this
-    event Harvested(uint256 profit, uint256 loss, uint256 debtPayment, uint256 debtOutstanding);
+    event Harvested(
+        uint256 profit,
+        uint256 loss,
+        uint256 debtPayment,
+        uint256 debtOutstanding
+    );
 
     event UpdatedStrategist(address newStrategist);
 
@@ -331,7 +329,12 @@ abstract contract BaseStrategy {
     }
 
     function _onlyEmergencyAuthorized() internal {
-        require(msg.sender == strategist || msg.sender == governance() || msg.sender == vault.guardian() || msg.sender == vault.management());
+        require(
+            msg.sender == strategist ||
+                msg.sender == governance() ||
+                msg.sender == vault.guardian() ||
+                msg.sender == vault.management()
+        );
     }
 
     function _onlyStrategist() internal {
@@ -393,7 +396,7 @@ abstract contract BaseStrategy {
 
         // initialize variables
         maxReportDelay = 30 days;
-        creditThreshold = 1_000_000 * 10**vault.decimals(); // set this high by default so we don't get tons of false triggers if not changed
+        creditThreshold = 1_000_000 * 10 ** vault.decimals(); // set this high by default so we don't get tons of false triggers if not changed
 
         vault.approve(rewards, type(uint256).max); // Allow rewards to be pulled
     }
@@ -499,7 +502,9 @@ abstract contract BaseStrategy {
      * @param _creditThreshold The number of want tokens that will
      *  automatically trigger a harvest.
      */
-    function setCreditThreshold(uint256 _creditThreshold) external onlyVaultManagers {
+    function setCreditThreshold(
+        uint256 _creditThreshold
+    ) external onlyVaultManagers {
         creditThreshold = _creditThreshold;
         emit UpdatedCreditThreshold(_creditThreshold);
     }
@@ -514,7 +519,9 @@ abstract contract BaseStrategy {
      * @param _forceHarvestTriggerOnce Value of true tells keepers to harvest
      *  our strategy
      */
-    function setForceHarvestTriggerOnce(bool _forceHarvestTriggerOnce) external onlyVaultManagers {
+    function setForceHarvestTriggerOnce(
+        bool _forceHarvestTriggerOnce
+    ) external onlyVaultManagers {
         forceHarvestTriggerOnce = _forceHarvestTriggerOnce;
         emit ForcedHarvestTrigger(_forceHarvestTriggerOnce);
     }
@@ -527,7 +534,9 @@ abstract contract BaseStrategy {
      *  This may only be called by governance or management.
      * @param _baseFeeOracle Address of our baseFeeOracle
      */
-    function setBaseFeeOracle(address _baseFeeOracle) external onlyVaultManagers {
+    function setBaseFeeOracle(
+        address _baseFeeOracle
+    ) external onlyVaultManagers {
         baseFeeOracle = _baseFeeOracle;
         emit UpdatedBaseFeeOracle(_baseFeeOracle);
     }
@@ -540,7 +549,9 @@ abstract contract BaseStrategy {
      *  This may only be called by governance or the strategist.
      * @param _metadataURI The URI that describe the strategy.
      */
-    function setMetadataURI(string calldata _metadataURI) external onlyAuthorized {
+    function setMetadataURI(
+        string calldata _metadataURI
+    ) external onlyAuthorized {
         metadataURI = _metadataURI;
         emit UpdatedMetadataURI(_metadataURI);
     }
@@ -604,7 +615,9 @@ abstract contract BaseStrategy {
      * @return True if the strategy is actively managing a position.
      */
     function isActive() public view returns (bool) {
-        return vault.strategies(address(this)).debtRatio > 0 || estimatedTotalAssets() > 0;
+        return
+            vault.strategies(address(this)).debtRatio > 0 ||
+            estimatedTotalAssets() > 0;
     }
 
     /**
@@ -631,14 +644,12 @@ abstract contract BaseStrategy {
      *
      * See `vault.debtOutstanding()`.
      */
-    function prepareReturn(uint256 _debtOutstanding)
+    function prepareReturn(
+        uint256 _debtOutstanding
+    )
         internal
         virtual
-        returns (
-            uint256 _profit,
-            uint256 _loss,
-            uint256 _debtPayment
-        );
+        returns (uint256 _profit, uint256 _loss, uint256 _debtPayment);
 
     /**
      * Perform any adjustments to the core position(s) of this Strategy given
@@ -661,7 +672,9 @@ abstract contract BaseStrategy {
      *
      * NOTE: The invariant `_liquidatedAmount + _loss <= _amountNeeded` should always be maintained
      */
-    function liquidatePosition(uint256 _amountNeeded) internal virtual returns (uint256 _liquidatedAmount, uint256 _loss);
+    function liquidatePosition(
+        uint256 _amountNeeded
+    ) internal virtual returns (uint256 _liquidatedAmount, uint256 _loss);
 
     /**
      * Liquidate everything and returns the amount that got freed.
@@ -669,7 +682,10 @@ abstract contract BaseStrategy {
      * liquidate all of the Strategy's positions back to the Vault.
      */
 
-    function liquidateAllPositions() internal virtual returns (uint256 _amountFreed);
+    function liquidateAllPositions()
+        internal
+        virtual
+        returns (uint256 _amountFreed);
 
     /**
      * @notice
@@ -689,7 +705,9 @@ abstract contract BaseStrategy {
      * @param callCostInWei The keeper's estimated gas cost to call `tend()` (in wei).
      * @return `true` if `tend()` should be called, `false` otherwise.
      */
-    function tendTrigger(uint256 callCostInWei) public view virtual returns (bool) {
+    function tendTrigger(
+        uint256 callCostInWei
+    ) public view virtual returns (bool) {
         // We usually don't need tend, but if there are positions that need
         // active maintainence, overriding this function is how you would
         // signal for that.
@@ -750,7 +768,9 @@ abstract contract BaseStrategy {
      * @param callCostInWei The keeper's estimated gas cost to call `harvest()` (in wei).
      * @return `true` if `harvest()` should be called, `false` otherwise.
      */
-    function harvestTrigger(uint256 callCostInWei) public view virtual returns (bool) {
+    function harvestTrigger(
+        uint256 callCostInWei
+    ) public view virtual returns (bool) {
         // Should not trigger if strategy is not active (no assets or no debtRatio)
         if (!isActive()) return false;
 
@@ -762,7 +782,8 @@ abstract contract BaseStrategy {
 
         // Should trigger if hasn't been called in a while
         StrategyParams memory params = vault.strategies(address(this));
-        if ((block.timestamp - params.lastReport) >= maxReportDelay) return true;
+        if ((block.timestamp - params.lastReport) >= maxReportDelay)
+            return true;
 
         // harvest our credit if it's above our threshold or return false
         return (vault.creditAvailable() > creditThreshold);
@@ -830,7 +851,16 @@ abstract contract BaseStrategy {
 
         // call healthCheck contract
         if (doHealthCheck && healthCheck != address(0)) {
-            require(HealthCheck(healthCheck).check(profit, loss, debtPayment, debtOutstanding, totalDebt), "!healthcheck");
+            require(
+                HealthCheck(healthCheck).check(
+                    profit,
+                    loss,
+                    debtPayment,
+                    debtOutstanding,
+                    totalDebt
+                ),
+                "!healthcheck"
+            );
         } else {
             emit SetDoHealthCheck(true);
             doHealthCheck = true;
@@ -944,9 +974,13 @@ abstract contract BaseStrategy {
         require(_token != address(vault), "!shares");
 
         address[] memory _protectedTokens = protectedTokens();
-        for (uint256 i; i < _protectedTokens.length; i++) require(_token != _protectedTokens[i], "!protected");
+        for (uint256 i; i < _protectedTokens.length; i++)
+            require(_token != _protectedTokens[i], "!protected");
 
-        IERC20(_token).safeTransfer(governance(), IERC20(_token).balanceOf(address(this)));
+        IERC20(_token).safeTransfer(
+            governance(),
+            IERC20(_token).balanceOf(address(this))
+        );
     }
 }
 
@@ -982,13 +1016,24 @@ abstract contract BaseStrategyInitializable is BaseStrategy {
         assembly {
             // EIP-1167 bytecode
             let clone_code := mload(0x40)
-            mstore(clone_code, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
+            mstore(
+                clone_code,
+                0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000
+            )
             mstore(add(clone_code, 0x14), addressBytes)
-            mstore(add(clone_code, 0x28), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)
+            mstore(
+                add(clone_code, 0x28),
+                0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000
+            )
             newStrategy := create(0, clone_code, 0x37)
         }
 
-        BaseStrategyInitializable(newStrategy).initialize(_vault, _strategist, _rewards, _keeper);
+        BaseStrategyInitializable(newStrategy).initialize(
+            _vault,
+            _strategist,
+            _rewards,
+            _keeper
+        );
 
         emit Cloned(newStrategy);
     }
