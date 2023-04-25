@@ -56,9 +56,9 @@ module.exports = {
         hardhat: {
             chainId: 43114,
             forking: {
-                url: `https://rpc.ankr.com/eth_sepolia`
+                url: ETH_NODE,
+                blockNumber: 17004100,
             },
-            accounts: [{privateKey: `0x${DEPLOYER_PRIVATE_KEY}`, balance: '10000000000000000000'}]
         },
         eth_mainnet: {
             url: ETH_NODE,
