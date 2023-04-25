@@ -1,10 +1,10 @@
-const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+const { loadFixture, mine } = require("@nomicfoundation/hardhat-network-helpers");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("BaseVault", function () {
     async function deployVaultAndSetVariables() {
-        const [deployer, whale, governance, treasury] = await ethers.getSigners();
+        const [deployer, whale, governance, treasury, user1, user2, user3] = await ethers.getSigners();
         
         const name = "ETH Vault";
         const symbol = "vETH";
@@ -13,6 +13,9 @@ describe("BaseVault", function () {
         const token = await Token.deploy();
         await token.deployed();
         await token.transfer(whale.address, ethers.utils.parseEther('10000'));
+        await token.connect(whale).transfer(user1.address, ethers.utils.parseEther('100'));
+        await token.connect(whale).transfer(user2.address, ethers.utils.parseEther('100'));
+        await token.connect(whale).transfer(user3.address, ethers.utils.parseEther('100'));
 
         const BaseVault = await ethers.getContractFactory('BaseVault');
         const vault = await BaseVault.deploy();
@@ -27,7 +30,7 @@ describe("BaseVault", function () {
         );
         await vault['setDepositLimit(uint256)'](ethers.utils.parseEther('10000'))
 
-        return { vault, deployer, symbol, name, whale, token, governance, treasury };
+        return { vault, deployer, symbol, name, whale, token, governance, treasury, user1, user2, user3 };
     }
 
     async function deployVaultAndStrategy() {
@@ -134,7 +137,7 @@ describe("BaseVault", function () {
         ).to.be.reverted;
     });
 
-    it('should not withdraw when no idle and withdrawl queue is empty', async function () {
+    it('should not withdraw when no idle and withdrawal queue is empty', async function () {
         const { vault, whale, deployer, token } = await loadFixture(deployVaultAndSetVariables);
 
         const amount = ethers.utils.parseEther('1');
@@ -349,5 +352,107 @@ describe("BaseVault", function () {
             totalLoss
         } = await vault.strategies(strategy.address));
         expect(totalLoss).to.equal(ethers.utils.parseEther('0.23'));
+    });
+
+    it('should give the same price to all depositors when strategy closing', async function () {
+        const { vault, deployer, token, whale, user1, user2, user3 } = await loadFixture(deployVaultAndSetVariables);
+        await vault['setPerformanceFee(uint256)'](0);
+        await vault['setManagementFee(uint256)'](0);
+        await vault.setLockedProfitDegradation(ethers.utils.parseEther('1'));
+
+        const oneEther = ethers.utils.parseEther('1');
+        await token.connect(user1).approve(vault.address, oneEther);
+
+        await expect(
+            () => vault.connect(user1)['deposit(uint256)'](oneEther)
+        ).to.changeTokenBalances(
+            token,
+            [user1, vault],
+            [ethers.utils.parseEther('-1'), oneEther]
+        );
+        expect(await vault.balanceOf(user1.address)).to.equal(oneEther);
+        expect(await vault.pricePerShare()).to.equal(ethers.utils.parseEther('1'));
+
+        const TestStrategy = await ethers.getContractFactory('TestStrategy');
+        const strategy = await TestStrategy.connect(deployer).deploy(vault.address);
+        await strategy.deployed();
+
+        await vault['addStrategy(address,uint256,uint256,uint256,uint256)'](
+            strategy.address,
+            10000,
+            ethers.utils.parseEther("0.000000000000000001"),
+            ethers.utils.parseEther("10000"),
+            0,
+        );
+       
+        await strategy.harvest();
+
+        // simulate profit
+        await token.connect(whale).transfer(strategy.address, oneEther);
+
+        await vault['revokeStrategy(address)'](strategy.address);
+        await strategy.harvest();
+
+        await token.connect(user2).approve(vault.address, oneEther);
+        await expect(
+            () => vault.connect(user2)['deposit(uint256)'](oneEther)
+        ).to.changeTokenBalances(
+            token,
+            [user2, vault],
+            [ethers.utils.parseEther('-1'), oneEther]
+        );
+        expect(await vault.balanceOf(user2.address)).to.equal(ethers.utils.parseEther('0.5'));
+        expect(await vault.pricePerShare()).to.equal(ethers.utils.parseEther('2'));
+
+        await expect(
+            () => vault.connect(user2)['withdraw()']()
+        ).to.changeTokenBalances(
+            token,
+            [vault, user2],
+            [ethers.utils.parseEther('-1'), oneEther]
+        );
+        expect(await vault.balanceOf(user2.address)).to.equal(ethers.utils.parseEther('0'));
+        expect(await vault.pricePerShare()).to.equal(ethers.utils.parseEther('2'));
+
+        await token.connect(user3).approve(vault.address, oneEther);
+        await expect(
+            () => vault.connect(user3)['deposit(uint256)'](oneEther)
+        ).to.changeTokenBalances(
+            token,
+            [user3, vault],
+            [ethers.utils.parseEther('-1'), oneEther]
+        );
+        expect(await vault.balanceOf(user3.address)).to.equal(ethers.utils.parseEther('0.5'));
+        expect(await vault.pricePerShare()).to.equal(ethers.utils.parseEther('2'));
+
+        await expect(
+            () => vault.connect(user1)['withdraw()']()
+        ).to.changeTokenBalances(
+            token,
+            [vault, user1],
+            [ethers.utils.parseEther('-2'), ethers.utils.parseEther('2')]
+        );
+        expect(await vault.balanceOf(user1.address)).to.equal(ethers.utils.parseEther('0'));
+        expect(await vault.pricePerShare()).to.equal(ethers.utils.parseEther('2'));
+
+        await expect(
+            () => vault.connect(user3)['withdraw()']()
+        ).to.changeTokenBalances(
+            token,
+            [vault, user3],
+            [ethers.utils.parseEther('-1'), oneEther]
+        );
+        expect(await vault.balanceOf(user3.address)).to.equal(ethers.utils.parseEther('0'));
+        expect(await vault.pricePerShare()).to.equal(ethers.utils.parseEther('1'));
+
+        // 1. user1 deposit 1 eth. Gets 1 token. Now share price is 1 
+        // 2. Add new strategy, do a harvest. Strategy gets 100% funds from vault
+        // 3. Simulate 1 eth profit on strategy
+        // 4. Revoke strategy, do a harvest. All funds moved from strategy to vault
+        // 5. user2 deposit 1 eth. Gets 0.5 token. Now share price is 2
+        // 6. user2 withdraw. 0.5 token burnt. Gets 1 eth. Share price is still 2
+        // 7. user3 deposit 1 eth. Gets 0.5 token. Share price is still 2
+        // 8. user1 withdraw. 1 token burnt. Gets 2 eth. Share price is still 2
+        // 9. user3 withdraw. 0.5 token burnt. Gets 1 eth. Share price is still 2
     });
 });
