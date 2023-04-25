@@ -1,5 +1,6 @@
 const { loadFixture, mine } = require("@nomicfoundation/hardhat-network-helpers");
 const { expect } = require("chai");
+const { BigNumber } = require("ethers");
 const { ethers } = require("hardhat");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
@@ -16,7 +17,6 @@ describe("RocketAuraStrategy", function () {
         const BaseVault = await ethers.getContractFactory('BaseVault');
         const vault = await BaseVault.deploy();
         await vault.deployed();
-        await hre.network.provider.send("evm_mine");
 
         await vault['initialize(address,address,address,string,string)'](
             want.address,
@@ -42,9 +42,8 @@ describe("RocketAuraStrategy", function () {
         return { vault, deployer, symbol, name, want, whale, governance, treasury, strategy, want };
     }
 
-    async function fakeRethPrice() {
+    async function fakeRethPrice(want, fakePrice) {
         const RocketNetworkBalances = await ethers.getContractAt("IRocketNetworkBalances", "0x07fcabcbe4ff0d80c2b1eb42855c0131b6cba2f4");
-        // console.log("RocketNetworkBalances.getTotalETHBalance()", await RocketNetworkBalances.getTotalETHBalance());
 
         await network.provider.send("evm_setAutomine", [false]);
         await network.provider.send("evm_setIntervalMining", [0]);
@@ -68,30 +67,46 @@ describe("RocketAuraStrategy", function () {
             });
 
             const { number } = await hre.ethers.provider.getBlock("latest");
-            // console.log("block number", number);
-            // console.log("RocketNetworkBalances submitBalances");
             const rocketOracle = await ethers.getSigner(oracleAddress);
-            // console.log(rocketOracle.address);
-            // console.log(await ethers.provider.getBalance(rocketOracle.address));
-            const res = await RocketNetworkBalances.connect(rocketOracle).submitBalances(
+            await RocketNetworkBalances.connect(rocketOracle).submitBalances(
                 number,
-                ethers.utils.parseUnits('215', "wei"), 
-                ethers.utils.parseUnits('205', "wei"), 
-                ethers.utils.parseUnits('200', "wei")
+                fakePrice, 
+                ethers.utils.parseEther('1'), 
+                ethers.utils.parseEther('1')
             );
-            // console.log(res);
-            // console.log("RocketNetworkBalances.getTotalETHBalance()", await RocketNetworkBalances.getTotalETHBalance());
         }
         
         mine(36000, 12);
-
-        // const { number } = await hre.ethers.provider.getBlock("latest");
-        // console.log("block number", number);
-        // console.log("RocketNetworkBalances.getTotalETHBalance()", await RocketNetworkBalances.getTotalETHBalance());
-
         await network.provider.send("evm_setAutomine", [true]);
 
-        return;
+        const wEthWhaleAddress = "0x8eb8a3b98659cce290402893d0123abb75e3ab28";
+        await network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [wEthWhaleAddress],
+        });
+
+        const wEthWhale = await ethers.getSigner(wEthWhaleAddress);
+        const balancerVault = await ethers.getContractAt("IBalancerV2Vault", "0xBA12222222228d8Ba445958a75a0704d566BF2C8");
+
+        await want.connect(wEthWhale).approve(balancerVault.address, ethers.utils.parseEther('35000'));
+        await balancerVault.connect(wEthWhale).swap(
+            {
+                kind: 0, // SwapKind.GivenIn
+                poolId: '0x1e19cf2d73a72ef1332c882f20534b6519be0276000200000000000000000112',
+                assetIn: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+                assetOut: '0xae78736Cd615f374D3085123A210448E74Fc6393',
+                amount: ethers.utils.parseEther('350'),
+                userData: '0x',
+            },
+            { 
+                sender: wEthWhale.address, 
+                recipient: wEthWhale.address, 
+                fromInternalBalance: false, 
+                toInternalBalance: false 
+            },
+            0,
+            ethers.constants.MaxUint256
+        );
     }
 
     it('should deploy strategy', async function () {
@@ -101,86 +116,23 @@ describe("RocketAuraStrategy", function () {
 
     it('should withdraw requested amount', async function () {
         const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
-        // console.log('keccak256(abi.encodePacked("contract.address", _contractName))');
-        // console.log(await strategy.testEncode());
 
         const balanceBefore = await want.balanceOf(whale.address);
         
         await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
         await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('10'));
-
         expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
 
-        console.log("1 estimatedTotalAssets(): ", await strategy.estimatedTotalAssets());
         await strategy.connect(deployer).harvest();
-
-        console.log("2 estimatedTotalAssets(): ");
         expect(await strategy.estimatedTotalAssets())
         .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.02'));
 
-        // console.log("await vault.balanceOf(whale.address)");
-        // console.log(await vault.balanceOf(whale.address));
-        // console.log("await want.balanceOf(whale.address)");
-        // console.log(await want.balanceOf(whale.address));
-        console.log("mine");
-        mine(36000, 12);
-
-        const RocketNetworkBalances = await ethers.getContractAt("IRocketNetworkBalances", "0x07fcabcbe4ff0d80c2b1eb42855c0131b6cba2f4");
         const RocketTokenRETH = await ethers.getContractAt("IRocketTokenRETH", "0xae78736Cd615f374D3085123A210448E74Fc6393");
-        const BalancerPool = await ethers.getContractAt("IBalancerPool", "0x1E19CF2D73a72Ef1332C882F20534B6519Be0276");
-
-        console.log("BalancerPool.getRate()", await BalancerPool.getRate());
-        await fakeRethPrice();
-        console.log("BalancerPool.getRate()", await BalancerPool.getRate());
-        
-        const wEthWhaleAddress = "0x8eb8a3b98659cce290402893d0123abb75e3ab28";
-        await network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [wEthWhaleAddress],
-        });
-
-        const wEthWhale = await ethers.getSigner(wEthWhaleAddress);
-
-        console.log("Swap");
-        const balancerVault = await ethers.getContractAt("IBalancerV2Vault", "0xBA12222222228d8Ba445958a75a0704d566BF2C8");
-
-        await want.connect(wEthWhale).approve(balancerVault.address, ethers.utils.parseEther('35000'));
-        await balancerVault.connect(wEthWhale).swap(
-        {
-            kind: 0, // SwapKind.GivenIn
-            poolId: '0x1e19cf2d73a72ef1332c882f20534b6519be0276000200000000000000000112',
-            assetIn: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-            assetOut: '0xae78736Cd615f374D3085123A210448E74Fc6393',
-            amount: ethers.utils.parseEther('350'),
-            userData: '0x',
-        },
-        { sender: wEthWhale.address, recipient: wEthWhale.address, fromInternalBalance: false, toInternalBalance: false },
-        0,
-        ethers.constants.MaxUint256
+        await fakeRethPrice(
+            want, 
+            BigNumber.from((await RocketTokenRETH.getExchangeRate()*1.02).toString())
         );
-
-        mine(500000, 12);
-        console.log("BalancerPool.getRate()", await BalancerPool.getRate());
-        console.log("RocketTokenRETH.getEthValue(1 ether)", await RocketTokenRETH.getEthValue(ethers.utils.parseEther('1')));
-        console.log("RocketNetworkBalances.getTotalETHBalance()", await RocketNetworkBalances.getTotalETHBalance());
-        console.log("RocketNetworkBalances.getTotalRETHSupply()", await RocketNetworkBalances.getTotalRETHSupply());
-        // console.log(res);
-
-        console.log("harvest");
         await strategy.connect(deployer).harvest();
-        console.log("3 estimatedTotalAssets(): ", await strategy.estimatedTotalAssets());
-
-        console.log("mine");
-        mine(72000, 12);
-        console.log("harvest");
-        await strategy.connect(deployer).harvest();
-        console.log("BalancerPool.getRate()", await BalancerPool.getRate());
-        console.log("RocketTokenRETH.getEthValue(1 ether)", await RocketTokenRETH.getEthValue(ethers.utils.parseEther('1')));
-        console.log("RocketNetworkBalances.getTotalETHBalance()", await RocketNetworkBalances.getTotalETHBalance());
-        console.log("RocketNetworkBalances.getTotalRETHSupply()", await RocketNetworkBalances.getTotalRETHSupply());
-
-        console.log("4 estimatedTotalAssets(): ", await strategy.estimatedTotalAssets());
-
         await vault.connect(whale)['withdraw(uint256)'](ethers.utils.parseEther('10'));
 
         expect(Number(await want.balanceOf(whale.address))).to.be.greaterThan(Number(balanceBefore));
@@ -239,6 +191,31 @@ describe("RocketAuraStrategy", function () {
         ).to.be.reverted;
 
         expect(await want.balanceOf(whale.address)).to.equal(balanceBefore);
+    });
+
+    it('should emergency exit', async function () {
+        const { vault, strategy, whale, want } = await loadFixture(deployContractAndSetVariables); 
+
+        const oneEther = ethers.utils.parseEther('1');
+        await want.connect(whale).approve(vault.address, oneEther);
+        await vault.connect(whale)['deposit(uint256)'](oneEther);
+        expect(await want.balanceOf(vault.address)).to.equal(oneEther);
+
+        await strategy.harvest();
+
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            oneEther, 
+            ethers.utils.parseEther('0.01')
+        );
+
+        await strategy.setEmergencyExit();
+        await strategy.harvest();
+
+        expect(await strategy.estimatedTotalAssets()).to.equal(0);
+        expect(await want.balanceOf(vault.address)).to.be.closeTo(
+            oneEther, 
+            ethers.utils.parseEther('0.02')
+        );
     });
 });
 

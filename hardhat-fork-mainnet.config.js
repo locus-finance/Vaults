@@ -56,7 +56,8 @@ module.exports = {
         hardhat: {
             chainId: 43114,
             forking: {
-                url: ETH_NODE
+                url: ETH_NODE,
+                blockNumber: 17004100,
             },
         },
         eth_mainnet: {
