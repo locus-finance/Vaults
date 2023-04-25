@@ -276,6 +276,40 @@ describe("RocketAuraStrategy", function () {
             [ethers.utils.parseEther('-10'), ethers.utils.parseEther('10')]
         );
     });
+
+    it('should change debt', async function () {
+        const { vault, strategy, deployer, whale, want } = await loadFixture(deployContractAndSetVariables); 
+        
+        const oneEther = ethers.utils.parseEther('1');
+        await want.connect(whale).approve(vault.address, oneEther);
+        await vault.connect(whale)['deposit(uint256)'](oneEther);
+        await vault.connect(deployer)['updateStrategyDebtRatio(address,uint256)'](strategy.address, 5000);
+        mine(1);
+        await strategy.harvest();
+
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            ethers.utils.parseEther('0.5'), 
+            ethers.utils.parseEther('0.02')
+        );
+
+        await vault.connect(deployer)['updateStrategyDebtRatio(address,uint256)'](strategy.address, 10000);
+        mine(1);
+        await strategy.harvest();
+
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            ethers.utils.parseEther('1'), 
+            ethers.utils.parseEther('0.02')
+        );
+
+        await vault.connect(deployer)['updateStrategyDebtRatio(address,uint256)'](strategy.address, 5000);
+        mine(1);
+        await strategy.harvest();
+
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            ethers.utils.parseEther('0.5'), 
+            ethers.utils.parseEther('0.02')
+        );
+    });
 });
 
 
