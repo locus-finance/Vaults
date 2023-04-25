@@ -217,6 +217,65 @@ describe("RocketAuraStrategy", function () {
             ethers.utils.parseEther('0.02')
         );
     });
+
+    it('should sweep', async function () {
+        const { vault, deployer, strategy, whale, want } = await loadFixture(deployContractAndSetVariables); 
+
+        const oneEther = ethers.utils.parseEther('1');
+        await want.connect(whale).transfer(strategy.address, oneEther);
+
+        expect(want.address).to.equal(await strategy.want());
+        expect(Number(await want.balanceOf(strategy.address))).to.greaterThan(Number(0));
+
+        await expect( 
+            strategy.connect(deployer)['sweep(address)'](want.address)
+        ).to.be.revertedWith("!want");
+
+        await expect( 
+            strategy.connect(deployer)['sweep(address)'](vault.address)
+        ).to.be.revertedWith("!shares");
+
+        const bRethStable = "0x1E19CF2D73a72Ef1332C882F20534B6519Be0276";
+        await expect( 
+            strategy.connect(deployer)['sweep(address)'](bRethStable)
+        ).to.be.revertedWith("!protected");
+
+        const auraBRethStable = "0x001B78CEC62DcFdc660E06A91Eb1bC966541d758";
+        await expect( 
+            strategy.connect(deployer)['sweep(address)'](auraBRethStable)
+        ).to.be.revertedWith("!protected");
+
+        const aura = "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF";
+        await expect( 
+            strategy.connect(deployer)['sweep(address)'](aura)
+        ).to.be.revertedWith("!protected");
+
+        const bal = "0xba100000625a3754423978a60c9317c58a424e3D";
+        await expect( 
+            strategy.connect(deployer)['sweep(address)'](bal)
+        ).to.be.revertedWith("!protected");
+
+        const dai = await hre.ethers.getContractAt(
+            IERC20_SOURCE, 
+            "0x6b175474e89094c44da98b954eedeac495271d0f"
+        );
+        const daiWhaleAddress = "0x60faae176336dab62e284fe19b885b095d29fb7f";
+        await network.provider.request({method:"hardhat_impersonateAccount",params:[daiWhaleAddress]});
+        const daiWhale = await ethers.getSigner(daiWhaleAddress);
+
+        await dai.connect(daiWhale).transfer(
+            strategy.address,
+            ethers.utils.parseEther("10")
+        );
+        expect(dai.address).not.to.be.equal(await strategy.want());
+        await expect( 
+            () => strategy.connect(deployer)['sweep(address)'](dai.address)
+        ).to.changeTokenBalances(
+            dai,
+            [strategy, deployer],
+            [ethers.utils.parseEther('-10'), ethers.utils.parseEther('10')]
+        );
+    });
 });
 
 
