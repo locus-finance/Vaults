@@ -136,10 +136,10 @@ module.exports = {
   abiExporter: {
     path: './abi',
     runOnCompile: true,
-    clear: true,
+    clear: false,
     flat: true,
     spacing: 2,
-    only: [':BaseVault$']
+    only: [':BaseVault$', ':TestStrategy$']
 
   }
 };
