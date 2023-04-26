@@ -5,6 +5,12 @@ const { ethers } = require("hardhat");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 
+const dai = "0x6b175474e89094c44da98b954eedeac495271d0f";
+const bal = "0xba100000625a3754423978a60c9317c58a424e3D";
+const aura = "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF";
+const bRethStable = "0x1E19CF2D73a72Ef1332C882F20534B6519Be0276";
+const auraBRethStable = "0x001B78CEC62DcFdc660E06A91Eb1bC966541d758";
+
 describe("RocketAuraStrategy", function () {
     async function deployContractAndSetVariables() {
         const [deployer, governance, treasury, whale] = await ethers.getSigners();
@@ -250,48 +256,39 @@ describe("RocketAuraStrategy", function () {
         await expect( 
             strategy.connect(deployer)['sweep(address)'](want.address)
         ).to.be.revertedWith("!want");
-
         await expect( 
             strategy.connect(deployer)['sweep(address)'](vault.address)
         ).to.be.revertedWith("!shares");
-
-        const bRethStable = "0x1E19CF2D73a72Ef1332C882F20534B6519Be0276";
         await expect( 
             strategy.connect(deployer)['sweep(address)'](bRethStable)
         ).to.be.revertedWith("!protected");
-
-        const auraBRethStable = "0x001B78CEC62DcFdc660E06A91Eb1bC966541d758";
         await expect( 
             strategy.connect(deployer)['sweep(address)'](auraBRethStable)
         ).to.be.revertedWith("!protected");
-
-        const aura = "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF";
         await expect( 
             strategy.connect(deployer)['sweep(address)'](aura)
         ).to.be.revertedWith("!protected");
-
-        const bal = "0xba100000625a3754423978a60c9317c58a424e3D";
         await expect( 
             strategy.connect(deployer)['sweep(address)'](bal)
         ).to.be.revertedWith("!protected");
 
-        const dai = await hre.ethers.getContractAt(
+        const daiToken = await hre.ethers.getContractAt(
             IERC20_SOURCE, 
-            "0x6b175474e89094c44da98b954eedeac495271d0f"
+            dai
         );
         const daiWhaleAddress = "0x60faae176336dab62e284fe19b885b095d29fb7f";
         await network.provider.request({method:"hardhat_impersonateAccount",params:[daiWhaleAddress]});
         const daiWhale = await ethers.getSigner(daiWhaleAddress);
 
-        await dai.connect(daiWhale).transfer(
+        await daiToken.connect(daiWhale).transfer(
             strategy.address,
             ethers.utils.parseEther("10")
         );
-        expect(dai.address).not.to.be.equal(await strategy.want());
+        expect(daiToken.address).not.to.be.equal(await strategy.want());
         await expect( 
-            () => strategy.connect(deployer)['sweep(address)'](dai.address)
+            () => strategy.connect(deployer)['sweep(address)'](daiToken.address)
         ).to.changeTokenBalances(
-            dai,
+            daiToken,
             [strategy, deployer],
             [ethers.utils.parseEther('-10'), ethers.utils.parseEther('10')]
         );
@@ -343,6 +340,55 @@ describe("RocketAuraStrategy", function () {
 
         await strategy.harvestTrigger(0);
         await strategy.tendTrigger(0);
+    });
+
+    it('should migrate', async function () {
+        const { vault, strategy, deployer, whale, want } = await loadFixture(deployContractAndSetVariables); 
+        
+        const oneEther = ethers.utils.parseEther('1');
+        await want.connect(whale).approve(vault.address, oneEther);
+        await vault.connect(whale)['deposit(uint256)'](oneEther);
+        mine(1);
+        await strategy.harvest();
+
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            ethers.utils.parseEther('1'), 
+            ethers.utils.parseEther('0.02')
+        );
+
+        const RocketAuraStrategy = await ethers.getContractFactory('RocketAuraStrategy');
+        const newStrategy = await RocketAuraStrategy.deploy(vault.address);
+        await newStrategy.deployed();
+
+        const auraToken = await hre.ethers.getContractAt(IERC20_SOURCE, aura);
+        const balToken = await hre.ethers.getContractAt(IERC20_SOURCE, bal);
+        const bRethStableToken = await hre.ethers.getContractAt(IERC20_SOURCE, bRethStable);
+        const auraBRethStableToken = await hre.ethers.getContractAt(IERC20_SOURCE, auraBRethStable);
+
+        await vault['migrateStrategy(address,address)'](strategy.address, newStrategy.address);
+
+        expect(await strategy.estimatedTotalAssets()).to.be.equal(0);
+        expect(await newStrategy.estimatedTotalAssets()).to.be.closeTo(
+            ethers.utils.parseEther('1'), 
+            ethers.utils.parseEther('0.02')
+        );
+        expect(Number(await auraToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
+        expect(Number(await balToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
+        expect(Number(await bRethStableToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
+        expect(Number(await auraBRethStableToken.balanceOf(newStrategy.address))).to.be.equal(0);
+
+        await newStrategy.harvest();
+
+        expect(Number(await auraToken.balanceOf(newStrategy.address))).to.be.equal(0);
+        expect(Number(await balToken.balanceOf(newStrategy.address))).to.be.equal(0);
+        expect(Number(await bRethStableToken.balanceOf(newStrategy.address))).to.be.equal(0);
+        expect(Number(await auraBRethStableToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
+
+        expect(await newStrategy.estimatedTotalAssets()).to.be.closeTo(
+            ethers.utils.parseEther('1'), 
+            ethers.utils.parseEther('0.02')
+        );
+
     });
 });
 

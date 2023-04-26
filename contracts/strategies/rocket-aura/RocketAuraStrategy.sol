@@ -276,6 +276,12 @@ contract RocketAuraStrategy is BaseStrategy {
         // NOTE: Try to adjust positions so that `_debtOutstanding` can be freed up on *next* harvest (not immediately)
 
         IAuraBooster(auraBooster).earmarkRewards(15);
+        uint256 balBal = IERC20(balToken).balanceOf(address(this));
+        uint256 auraBal = IERC20(auraToken).balanceOf(address(this));
+        if(balBal > 0 && auraBal > 0){
+            _sellBalAndAura(balBal, auraBal);
+        }
+
         uint256 _wethBal = want.balanceOf(address(this));
 
         if(_wethBal > _debtOutstanding){
@@ -485,23 +491,18 @@ contract RocketAuraStrategy is BaseStrategy {
     // NOTE: Can override `tendTrigger` and `harvestTrigger` if necessary
     // solhint-disable-next-line no-empty-blocks
     function prepareMigration(address _newStrategy) internal override {
-        // TODO: Transfer any non-`want` tokens to the new strategy
-        // NOTE: `migrate` will automatically forward all `want` in this strategy to the new one
+        // auraBRethStable do not allow to transfer so we just unwrap it
+        IConvexRewards auraPool = IConvexRewards(auraBRethStable);
+        auraPool.withdrawAndUnwrap(auraPool.balanceOf(address(this)), true);
+
         uint256 auraBal = IERC20(auraToken).balanceOf(address(this));
         if (auraBal > 0) {
             IERC20(auraToken).safeTransfer(_newStrategy, auraBal);
         } 
-
         uint256 balancerBal = IERC20(balToken).balanceOf(address(this));
         if (balancerBal > 0) {
             IERC20(balToken).safeTransfer(_newStrategy, balancerBal);
         } 
-
-        uint256 auraBptBal = IERC20(auraBRethStable).balanceOf(address(this));
-        if (auraBptBal > 0) {
-            IERC20(auraBRethStable).safeTransfer(_newStrategy, auraBptBal);
-        } 
-
         uint256 bptBal = IERC20(bRethStable).balanceOf(address(this));
         if (bptBal > 0) {
             IERC20(bRethStable).safeTransfer(_newStrategy, bptBal);
