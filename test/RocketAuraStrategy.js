@@ -113,7 +113,7 @@ describe("RocketAuraStrategy", function () {
         expect(await strategy.vault()).to.equal(vault.address);
     });
 
-    it('should withdraw requested amount', async function () {
+    it('should harvest with profit', async function () {
         const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
 
         const balanceBefore = await want.balanceOf(whale.address);
@@ -136,6 +136,26 @@ describe("RocketAuraStrategy", function () {
         await vault.connect(whale)['withdraw(uint256)'](ethers.utils.parseEther('10'));
 
         expect(Number(await want.balanceOf(whale.address))).to.be.greaterThan(Number(balanceBefore));
+    });
+
+    it('should withdraw requested amount', async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
+
+        const balanceBefore = await want.balanceOf(whale.address);
+        
+        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
+        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('10'));
+        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
+
+        await strategy.connect(deployer).harvest();
+        expect(await strategy.estimatedTotalAssets())
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.02'));
+
+        await strategy.connect(deployer).harvest();
+        await vault.connect(whale)['withdraw(uint256)'](ethers.utils.parseEther('10'));
+
+        expect(await want.balanceOf(whale.address))
+        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.02'));
     });
 
     it('should withdraw with loss', async function () {
