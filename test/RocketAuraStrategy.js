@@ -59,14 +59,13 @@ describe("RocketAuraStrategy", function () {
             "0x16222268bb682aa34ce60c73f4527f30aca1b788", 
             "0x2354628919e1d53d2a69cf700cc53c4093977b94", 
         ];
+        const { number } = await hre.ethers.provider.getBlock("latest");
         for (let index = 0; index < oracles.length; index++) {
             const oracleAddress = oracles[index];   
             await network.provider.request({
                 method: "hardhat_impersonateAccount",
                 params: [oracleAddress],
             });
-
-            const { number } = await hre.ethers.provider.getBlock("latest");
             const rocketOracle = await ethers.getSigner(oracleAddress);
             await RocketNetworkBalances.connect(rocketOracle).submitBalances(
                 number,
@@ -76,7 +75,7 @@ describe("RocketAuraStrategy", function () {
             );
         }
         
-        mine(36000, 12);
+        mine(10000);
         await network.provider.send("evm_setAutomine", [true]);
 
         const wEthWhaleAddress = "0x8eb8a3b98659cce290402893d0123abb75e3ab28";
@@ -132,6 +131,7 @@ describe("RocketAuraStrategy", function () {
             want, 
             BigNumber.from((await RocketTokenRETH.getExchangeRate()*1.02).toString())
         );
+        mine(36000); // get more rewards
         await strategy.connect(deployer).harvest();
         await vault.connect(whale)['withdraw(uint256)'](ethers.utils.parseEther('10'));
 
@@ -309,6 +309,20 @@ describe("RocketAuraStrategy", function () {
             ethers.utils.parseEther('0.5'), 
             ethers.utils.parseEther('0.02')
         );
+    });
+
+    it('should trigger', async function () {
+        const { vault, strategy, deployer, whale, want } = await loadFixture(deployContractAndSetVariables); 
+        
+        const oneEther = ethers.utils.parseEther('1');
+        await want.connect(whale).approve(vault.address, oneEther);
+        await vault.connect(whale)['deposit(uint256)'](oneEther);
+        await vault.connect(deployer)['updateStrategyDebtRatio(address,uint256)'](strategy.address, 5000);
+        mine(1);
+        await strategy.harvest();
+
+        await strategy.harvestTrigger(0);
+        await strategy.tendTrigger(0);
     });
 });
 

@@ -20,8 +20,8 @@ import "./interfaces/IBalancerPriceOracle.sol";
 import "./interfaces/IRocketTokenRETH.sol";
 import "./interfaces/IAuraBooster.sol";
 import "./interfaces/IAuraDeposit.sol";
-import "./interfaces/IAuraRewards.sol";
-import "./interfaces/IConvexRewards.sol";
+import "./interfaces/IAuraRewards.sol"; // @TODO is it the same?
+import "./interfaces/IConvexRewards.sol"; // @TODO is it the same?
 import "./interfaces/ICvx.sol";
 import "./interfaces/IAuraToken.sol";
 import "./interfaces/IAuraMinter.sol";
@@ -48,7 +48,12 @@ contract RocketAuraStrategy is BaseStrategy {
     bytes32 internal constant poolId = 0x1e19cf2d73a72ef1332c882f20534b6519be0276000200000000000000000112;
 
     //@TODO allow changing
-    bool public claimRewards = true; // claim rewards when withdrawAndUnwrap
+    uint256 public slippage = 9800; // 2%
+
+    bytes32 internal constant balEthPoolId = 
+        bytes32(0x5c6ee304399dbdb9c8ef030ab642b10820db8f56000200000000000000000014);
+    bytes32 internal constant auraEthPoolId = 
+        bytes32(0xc29562b045d80fd77c69bec09541f5c16fe20d9d000200000000000000000251);
 
     constructor(address _vault) BaseStrategy(_vault) {
         want.approve(address(balancerVault), type(uint256).max);
@@ -59,6 +64,11 @@ contract RocketAuraStrategy is BaseStrategy {
 
     function name() external view override returns (string memory) {
         return "StrategyRocketAura";
+    }
+
+    function setSlippage(uint256 _slippage) external onlyStrategist {
+        require(_slippage < 10_000, "!_slippage");
+        slippage = _slippage;
     }
 
     /// @notice Balance of want sitting in our strategy.
@@ -318,14 +328,61 @@ contract RocketAuraStrategy is BaseStrategy {
         }
     }
 
+    function _sellBalAndAura(uint256 _balAmount, uint256 _auraAmount)
+        internal
+    {
+        IBalancerV2Vault.BatchSwapStep[] memory swaps = new IBalancerV2Vault.BatchSwapStep[](2);
+
+        // bal to weth
+        swaps[0] = IBalancerV2Vault.BatchSwapStep({
+            poolId: balEthPoolId,
+            assetInIndex: 0,
+            assetOutIndex: 2,
+            amount: _balAmount,
+            userData: abi.encode(0)
+        });
+
+        // aura to Weth
+        swaps[1] = IBalancerV2Vault.BatchSwapStep({
+            poolId: auraEthPoolId,
+            assetInIndex: 1,
+            assetOutIndex: 2,
+            amount: _auraAmount,
+            userData: abi.encode(0)
+        });
+
+        address[] memory assets = new address[](3);
+        assets[0] = balToken;
+        assets[1] = auraToken;
+        assets[2] = address(want);
+        
+        int[] memory limits = new int[](3);
+        limits[0] = int(_balAmount);
+        limits[1] = int(_auraAmount);
+        
+        balancerVault.batchSwap(
+            IBalancerV2Vault.SwapKind.GIVEN_IN, 
+            swaps, 
+            assets, 
+            getFundManagement(), 
+            limits, 
+            block.timestamp
+        );
+    }
+
     function withdrawSome(uint256 _amountNeeded) internal {
         // @TODO better use queryExit
         // https://docs.balancer.fi/reference/joins-and-exits/pool-exits.html#minamountsout
-        uint256 wethToRethToBpt = wantToBpts(_amountNeeded);
-        uint256 bptToUnstake = Math.min(wethToRethToBpt, IERC20(auraBRethStable).balanceOf(address(this)));
+        uint256 wethToBpt = wantToBpts(_amountNeeded);
+        uint256 bptToUnstake = Math.min(wethToBpt, IERC20(auraBRethStable).balanceOf(address(this)));
 
         if(bptToUnstake > 0){
-            IConvexRewards(auraBRethStable).withdrawAndUnwrap(bptToUnstake, claimRewards);
+            IConvexRewards(auraBRethStable).withdrawAndUnwrap(bptToUnstake, true);
+
+            _sellBalAndAura(
+                IERC20(balToken).balanceOf(address(this)),
+                IERC20(auraToken).balanceOf(address(this))
+            );
 
             // exit entire position for single token. Could revert due to single exit limit enforced by balancer
             address[] memory _assets = new address[](2);
@@ -334,11 +391,11 @@ contract RocketAuraStrategy is BaseStrategy {
             
             uint256[] memory _minAmountsOut = new uint256[](2);
             _minAmountsOut[0] = 0;
-            _minAmountsOut[1] = _amountNeeded * 9900 / 10000; // 1% slippage @TODO use state variable
+            _minAmountsOut[1] = _amountNeeded * slippage / 10000;
             bytes memory userData = abi.encode(IBalancerV2Vault.ExitKind.EXACT_BPT_IN_FOR_ONE_TOKEN_OUT, bptToUnstake, 1);
             // @TODO set _minAmountsOut
             IBalancerV2Vault.ExitPoolRequest memory request = IBalancerV2Vault.ExitPoolRequest(_assets, _minAmountsOut, userData, false);
-            balancerVault.exitPool(poolId, address(this), payable(address(this)), request);    
+            balancerVault.exitPool(poolId, address(this), payable(address(this)), request);
         }
     }
 
@@ -416,92 +473,11 @@ contract RocketAuraStrategy is BaseStrategy {
         IBalancerV2Vault.ExitPoolRequest memory request = IBalancerV2Vault.ExitPoolRequest(_assets, _minAmountsOut, userData, false);
         balancerVault.exitPool(poolId, address(this), payable(address(this)), request);    
 
-        // console.log("\nauraBrETH tokens:", IERC20(auraBRethStable).balanceOf(address(this)));
-        // console.log("brEth tokens:", IERC20(bRethStable).balanceOf(address(this)));
-        // console.log("AURA tokens:", IERC20(auraToken).balanceOf(address(this)));
-        // console.log("BAL tokens:", IERC20(balToken).balanceOf(address(this)));
-        // console.log("want tokens:", want.balanceOf(address(this)));
-
-        // console.log("\nSell AURA rewards for wETH");
-        // 3. Sell AURA rewards
-        uint256 auraBal = IERC20(auraToken).balanceOf(address(this));
-        
-        address[] memory assets = new address[](2);
-        assets[0] = address(want);
-        assets[1] = auraToken;
-
-        IBalancerV2Vault.BatchSwapStep[] memory swaps = new IBalancerV2Vault.BatchSwapStep[](1);
-        swaps[0] = IBalancerV2Vault.BatchSwapStep({
-            poolId: 0xc29562b045d80fd77c69bec09541f5c16fe20d9d000200000000000000000251,
-            assetInIndex: 1,
-            assetOutIndex: 0,
-            amount: auraBal,
-            userData: abi.encode(0)
-        });
-
-        IBalancerV2Vault.FundManagement memory funds = IBalancerV2Vault.FundManagement({
-            sender: address(this),
-            fromInternalBalance: false,
-            recipient: payable(address(this)),
-            toInternalBalance: false
-        });
-
-        int256[] memory limits = new int256[](2);
-        limits[1] = int256(auraBal);
-
-        int256[] memory assetDeltas = balancerVault.batchSwap(
-            IBalancerV2Vault.SwapKind.GIVEN_IN, 
-            swaps, 
-            assets, 
-            funds,
-            limits,
-            type(uint256).max // @TODO set state variable deadline
+        // 3. Sell rewards
+        _sellBalAndAura(
+            IERC20(balToken).balanceOf(address(this)),
+            IERC20(auraToken).balanceOf(address(this))
         );
-
-        // console.log("\nauraBrETH tokens:", IERC20(auraBRethStable).balanceOf(address(this)));
-        // console.log("brEth tokens:", IERC20(bRethStable).balanceOf(address(this)));
-        // console.log("AURA tokens:", IERC20(auraToken).balanceOf(address(this)));
-        // console.log("BAL tokens:", IERC20(balToken).balanceOf(address(this)));
-        // console.log("want tokens:", want.balanceOf(address(this)));
-
-        // console.log("\nSell BAL rewards for wETH");
-        // 4. Sell BAL rewards
-        uint256 balBal = IERC20(balToken).balanceOf(address(this));
-        assets[0] = balToken;
-        assets[1] = address(want);
-
-        swaps[0] = IBalancerV2Vault.BatchSwapStep({
-            poolId: 0x5c6ee304399dbdb9c8ef030ab642b10820db8f56000200000000000000000014,
-            assetInIndex: 0,
-            assetOutIndex: 1,
-            amount: balBal,
-            userData: abi.encode(0)
-        });
-
-        funds = IBalancerV2Vault.FundManagement({
-            sender: address(this),
-            fromInternalBalance: false,
-            recipient: payable(address(this)),
-            toInternalBalance: false
-        });
-
-        limits[0] = int256(balBal);
-        limits[1] = 0;
-
-        assetDeltas = balancerVault.batchSwap(
-            IBalancerV2Vault.SwapKind.GIVEN_IN, 
-            swaps, 
-            assets, 
-            funds,
-            limits,
-            type(uint256).max // @TODO set state variable deadline
-        );
-
-        // console.log("\nauraBrETH tokens:", IERC20(auraBRethStable).balanceOf(address(this)));
-        // console.log("brEth tokens:", IERC20(bRethStable).balanceOf(address(this)));
-        // console.log("AURA tokens:", IERC20(auraToken).balanceOf(address(this)));
-        // console.log("BAL tokens:", IERC20(balToken).balanceOf(address(this)));
-        // console.log("want tokens:", want.balanceOf(address(this)));
 
         return want.balanceOf(address(this));
     }
@@ -519,6 +495,16 @@ contract RocketAuraStrategy is BaseStrategy {
         uint256 balancerBal = IERC20(balToken).balanceOf(address(this));
         if (balancerBal > 0) {
             IERC20(balToken).safeTransfer(_newStrategy, balancerBal);
+        } 
+
+        uint256 auraBptBal = IERC20(auraBRethStable).balanceOf(address(this));
+        if (auraBptBal > 0) {
+            IERC20(auraBRethStable).safeTransfer(_newStrategy, auraBptBal);
+        } 
+
+        uint256 bptBal = IERC20(bRethStable).balanceOf(address(this));
+        if (bptBal > 0) {
+            IERC20(bRethStable).safeTransfer(_newStrategy, bptBal);
         } 
     }
 
@@ -572,4 +558,19 @@ contract RocketAuraStrategy is BaseStrategy {
     {
         return _amtInWei;
     }
+
+    function getFundManagement() 
+        internal 
+        view 
+        returns (IBalancerV2Vault.FundManagement memory fundManagement) 
+    {
+        fundManagement = IBalancerV2Vault.FundManagement({
+            sender: address(this),
+            fromInternalBalance: false,
+            recipient: payable(address(this)),
+            toInternalBalance: false
+        }); 
+    }
+
+
 }
