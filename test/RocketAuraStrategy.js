@@ -1,4 +1,5 @@
 const { loadFixture, mine } = require("@nomicfoundation/hardhat-network-helpers");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
 const { ethers } = require("hardhat");
@@ -434,6 +435,31 @@ describe("RocketAuraStrategy", function () {
             oneEther, 
             ethers.utils.parseEther('0.01')
         );
+    });
+
+    it('should withdraw on vault shutdown', async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
+
+        const oneEther = ethers.utils.parseEther('1');
+        await want.connect(whale).approve(vault.address, oneEther);
+        await vault.connect(whale)['deposit(uint256)'](oneEther);
+        expect(await want.balanceOf(vault.address)).to.equal(oneEther);
+
+        if(await want.balanceOf(whale.address) > 0){
+            want.connect(whale).transfer(ZERO_ADDRESS, await want.balanceOf(whale.address));
+        }
+        await strategy.harvest();
+        mine(3600*7);
+
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            ethers.utils.parseEther('1'), 
+            ethers.utils.parseEther('0.01')
+        );
+
+        await vault['setEmergencyShutdown(bool)'](true);
+        mine(1);
+        await vault.connect(whale)['withdraw()']();
+        expect(await want.balanceOf(whale.address)).to.equal(oneEther);
     });
 });
 
