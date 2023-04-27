@@ -1,4 +1,5 @@
 const { loadFixture, mine } = require("@nomicfoundation/hardhat-network-helpers");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
@@ -112,8 +113,33 @@ describe("BaseVault", function () {
         await expect(
             vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('1'))
         ).to.be.reverted;
-        // @TODO test with active strategy
         expect(await vault.availableDepositLimit()).to.equal(ethers.utils.parseEther('0.01'));
+    });
+
+    it('should not receive deposit over limit when has active strategy', async function () {
+        const { vault, whale, deployer } = await loadFixture(deployVaultAndSetVariables);
+        const TestStrategy = await ethers.getContractFactory('TestStrategy');
+        const strategy = await TestStrategy.connect(deployer).deploy(vault.address);
+        await strategy.deployed();
+
+        await vault['addStrategy(address,uint256,uint256,uint256,uint256)'](
+            strategy.address,
+            8000,
+            ethers.utils.parseEther("0.001"),
+            ethers.utils.parseEther("10000"),
+            0,
+        );       
+        await strategy.harvest();
+
+        await vault['setDepositLimit(uint256)'](ethers.utils.parseEther('0.01'));
+        await expect(
+            vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('1'))
+        ).to.be.reverted;
+
+        expect(await vault.availableDepositLimit()).to.equal(ethers.utils.parseEther('0.01'));
+
+        await strategy.harvest();
+        expect(await strategy.estimatedTotalAssets()).to.equal(0);
     });
 
     it('should not receive any deposit when deposit limit is zero', async function () {
@@ -216,36 +242,16 @@ describe("BaseVault", function () {
             ethers.utils.parseEther("10000"),
             0,
         );
-        let {
-            performanceFee,
-            activation,
-            debtRatio,
-            minDebtPerHarvest,
-            maxDebtPerHarvest,
-            lastReport,
-            totalDebt,
-            totalGain,
-            totalLoss
-        } = await vault.strategies(strategy.address);
+        let { debtRatio } = await vault.strategies(strategy.address);
         expect(debtRatio).to.equal(80);
 
         await vault['revokeStrategy(address)'](strategy.address);
-        ({
-            performanceFee,
-            activation,
-            debtRatio,
-            minDebtPerHarvest,
-            maxDebtPerHarvest,
-            lastReport,
-            totalDebt,
-            totalGain,
-            totalLoss
-        } = await vault.strategies(strategy.address));
+        ({ debtRatio } = await vault.strategies(strategy.address));
         expect(debtRatio).to.equal(0);
     });
 
     it('should be able to withdraw all assets when no active strategy', async function () {
-        const { vault, deployer, whale, token } = await loadFixture(deployVaultAndSetVariables);
+        const { vault, whale, token } = await loadFixture(deployVaultAndSetVariables);
 
         const amount = ethers.utils.parseEther('1');
         await token.connect(whale).approve(vault.address, amount);
@@ -341,14 +347,6 @@ describe("BaseVault", function () {
         await strategy.connect(deployer)._takeFunds(ethers.utils.parseEther('0.23'));
         await strategy.harvest();
         ({
-            performanceFee,
-            activation,
-            debtRatio,
-            minDebtPerHarvest,
-            maxDebtPerHarvest,
-            lastReport,
-            totalDebt,
-            totalGain,
             totalLoss
         } = await vault.strategies(strategy.address));
         expect(totalLoss).to.equal(ethers.utils.parseEther('0.23'));
@@ -444,15 +442,31 @@ describe("BaseVault", function () {
         );
         expect(await vault.balanceOf(user3.address)).to.equal(ethers.utils.parseEther('0'));
         expect(await vault.pricePerShare()).to.equal(ethers.utils.parseEther('1'));
+    });
 
-        // 1. user1 deposit 1 eth. Gets 1 token. Now share price is 1 
-        // 2. Add new strategy, do a harvest. Strategy gets 100% funds from vault
-        // 3. Simulate 1 eth profit on strategy
-        // 4. Revoke strategy, do a harvest. All funds moved from strategy to vault
-        // 5. user2 deposit 1 eth. Gets 0.5 token. Now share price is 2
-        // 6. user2 withdraw. 0.5 token burnt. Gets 1 eth. Share price is still 2
-        // 7. user3 deposit 1 eth. Gets 0.5 token. Share price is still 2
-        // 8. user1 withdraw. 1 token burnt. Gets 2 eth. Share price is still 2
-        // 9. user3 withdraw. 0.5 token burnt. Gets 1 eth. Share price is still 2
+    it('should set withdrawal queue successfully with the same values', async function () {
+        const { vault, deployer, governance } = await loadFixture(deployVaultAndSetVariables);
+
+        const TestStrategy = await ethers.getContractFactory('TestStrategy');
+        const strategy = await TestStrategy.connect(deployer).deploy(vault.address);
+        await strategy.deployed();
+
+        await vault['addStrategy(address,uint256,uint256,uint256,uint256)'](
+            strategy.address,
+            8000,
+            ethers.utils.parseEther("1"),
+            ethers.utils.parseEther("10000"),
+            0,
+        );
+
+        expect(await vault.withdrawalQueue(0)).to.equal(strategy.address);
+        expect(await vault.withdrawalQueue(1)).to.equal(ZERO_ADDRESS);
+
+        await vault['setWithdrawalQueue(address[20])'](
+            [strategy.address].concat(Array(19).fill(ZERO_ADDRESS))
+        );
+
+        expect(await vault.withdrawalQueue(0)).to.equal(strategy.address);
+        expect(await vault.withdrawalQueue(1)).to.equal(ZERO_ADDRESS);
     });
 });
