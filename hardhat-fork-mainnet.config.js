@@ -57,8 +57,9 @@ module.exports = {
             chainId: 43114,
             forking: {
                 url: ETH_NODE,
-                blockNumber: 17004100,
+                blockNumber: 17125305,
             },
+            allowUnlimitedContractSize: true,
         },
         eth_mainnet: {
             url: ETH_NODE,
