@@ -4,7 +4,7 @@
 pragma solidity ^0.8.12;
 pragma experimental ABIEncoderV2;
 
-import {BaseStrategy, StrategyParams} from "../../BaseStrategy.sol";
+import {BaseStrategy, StrategyParams} from "../BaseStrategy.sol";
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
@@ -13,20 +13,20 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "hardhat/console.sol";
-import "./interfaces/ICToken.sol";
-import "./interfaces/IBalancerV2Vault.sol";
-import "./interfaces/IBalancerPool.sol";
-import "./interfaces/IBalancerPriceOracle.sol";
-import "./interfaces/IRocketTokenRETH.sol";
-import "./interfaces/IAuraBooster.sol";
-import "./interfaces/IAuraDeposit.sol";
-import "./interfaces/IAuraRewards.sol"; // @TODO is it the same?
-import "./interfaces/IConvexRewards.sol"; // @TODO is it the same?
-import "./interfaces/ICvx.sol";
-import "./interfaces/IAuraToken.sol";
-import "./interfaces/IAuraMinter.sol";
+import "../interfaces/ICToken.sol";
+import "../interfaces/IBalancerV2Vault.sol";
+import "../interfaces/IBalancerPool.sol";
+import "../interfaces/IBalancerPriceOracle.sol";
+import "../interfaces/IRocketTokenRETH.sol";
+import "../interfaces/IAuraBooster.sol";
+import "../interfaces/IAuraDeposit.sol";
+import "../interfaces/IAuraRewards.sol";
+import "../interfaces/IConvexRewards.sol";
+import "../interfaces/ICvx.sol";
+import "../interfaces/IAuraToken.sol";
+import "../interfaces/IAuraMinter.sol";
 
-import "./utils/AuraMath.sol";
+import "../utils/AuraMath.sol";
 
 contract RocketAuraStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
