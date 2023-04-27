@@ -1,0 +1,4 @@
+[submodule "lib/yearn-vaults"]
+	path = lib/yearn-vaults
+	url = https://github.com/yearn/yearn-vaults
+	branch = v0.4.6

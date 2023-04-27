@@ -1,7 +1,7 @@
 {
   "name": "hardhat-project",
   "devDependencies": {
-    "@nomicfoundation/hardhat-foundry": "^1.0.0",
+    "@nomicfoundation/hardhat-foundry": "^1.0.1",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "@nomiclabs/hardhat-ethers": "^2.2.2",
     "@nomiclabs/hardhat-vyper": "^3.0.3",
@@ -32,6 +32,7 @@
     "prompt-sync": "^4.2.0",
     "solhint": "^3.4.1",
     "solhint-plugin-prettier": "^0.0.5",
-    "solidity-coverage": "^0.8.2"
+    "solidity-coverage": "^0.8.2",
+    "yearn-protocol": "github:yearn/yearn-vaults#97ca1b2e4fcf20f4be0ff456dabd020bfeb6697b"
   }
 }

@@ -2,7 +2,7 @@ const { loadFixture, mine } = require("@nomicfoundation/hardhat-network-helpers"
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("BaseVault", function () {
+describe("Vault", function () {
     async function deployVaultAndSetVariables() {
         const [deployer, whale, governance, treasury, user1, user2, user3] = await ethers.getSigners();
         
@@ -17,8 +17,8 @@ describe("BaseVault", function () {
         await token.connect(whale).transfer(user2.address, ethers.utils.parseEther('100'));
         await token.connect(whale).transfer(user3.address, ethers.utils.parseEther('100'));
 
-        const BaseVault = await ethers.getContractFactory('BaseVault');
-        const vault = await BaseVault.deploy();
+        const Vault = await ethers.getContractFactory('Vault');
+        const vault = await Vault.deploy();
         await vault.deployed();
 
         await vault['initialize(address,address,address,string,string)'](
@@ -44,8 +44,8 @@ describe("BaseVault", function () {
         await token.deployed();
         await token.transfer(whale.address, ethers.utils.parseEther('10000'));
 
-        const BaseVault = await ethers.getContractFactory('BaseVault');
-        const vault = await BaseVault.deploy();
+        const Vault = await ethers.getContractFactory('Vault');
+        const vault = await Vault.deploy();
         await vault.deployed();
 
         await vault['initialize(address,address,address,string,string)'](

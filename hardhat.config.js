@@ -5,6 +5,7 @@ require("@nomiclabs/hardhat-etherscan");
 require('@nomiclabs/hardhat-truffle5');
 require('@nomiclabs/hardhat-ethers');
 require("@nomiclabs/hardhat-vyper");
+require("@nomicfoundation/hardhat-foundry");
 require('hardhat-gas-reporter');
 require('hardhat-log-remover');
 require('hardhat-abi-exporter');
