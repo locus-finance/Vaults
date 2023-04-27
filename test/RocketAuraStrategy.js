@@ -130,7 +130,7 @@ describe("RocketAuraStrategy", function () {
 
         await strategy.connect(deployer).harvest();
         expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.02'));
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.01'));
 
         const RocketTokenRETH = await ethers.getContractAt("IRocketTokenRETH", "0xae78736Cd615f374D3085123A210448E74Fc6393");
         await fakeRethPrice(
@@ -155,13 +155,13 @@ describe("RocketAuraStrategy", function () {
 
         await strategy.connect(deployer).harvest();
         expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.02'));
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.01'));
 
         await strategy.connect(deployer).harvest();
         await vault.connect(whale)['withdraw(uint256)'](ethers.utils.parseEther('10'));
 
         expect(await want.balanceOf(whale.address))
-        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.02'));
+        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.01'));
     });
 
     it('should withdraw with loss', async function () {
@@ -177,7 +177,7 @@ describe("RocketAuraStrategy", function () {
         await strategy.connect(deployer).harvest();
 
         expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.02'));
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.01'));
 
         await strategy.connect(deployer).tend();
 
@@ -188,7 +188,7 @@ describe("RocketAuraStrategy", function () {
         );
 
         expect(await want.balanceOf(whale.address))
-        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.02'));
+        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.01'));
     });
 
     it('should not withdraw with loss', async function () {
@@ -204,7 +204,7 @@ describe("RocketAuraStrategy", function () {
         await strategy.connect(deployer).harvest();
 
         expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.02'));
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.01'));
 
         await strategy.connect(deployer).tend();
 
@@ -240,7 +240,7 @@ describe("RocketAuraStrategy", function () {
         expect(await strategy.estimatedTotalAssets()).to.equal(0);
         expect(await want.balanceOf(vault.address)).to.be.closeTo(
             oneEther, 
-            ethers.utils.parseEther('0.02')
+            ethers.utils.parseEther('0.01')
         );
     });
 
@@ -306,7 +306,7 @@ describe("RocketAuraStrategy", function () {
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('0.5'), 
-            ethers.utils.parseEther('0.02')
+            ethers.utils.parseEther('0.01')
         );
 
         await vault.connect(deployer)['updateStrategyDebtRatio(address,uint256)'](strategy.address, 10000);
@@ -315,7 +315,7 @@ describe("RocketAuraStrategy", function () {
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('1'), 
-            ethers.utils.parseEther('0.02')
+            ethers.utils.parseEther('0.01')
         );
 
         await vault.connect(deployer)['updateStrategyDebtRatio(address,uint256)'](strategy.address, 5000);
@@ -324,7 +324,7 @@ describe("RocketAuraStrategy", function () {
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('0.5'), 
-            ethers.utils.parseEther('0.02')
+            ethers.utils.parseEther('0.01')
         );
     });
 
@@ -353,7 +353,7 @@ describe("RocketAuraStrategy", function () {
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('1'), 
-            ethers.utils.parseEther('0.02')
+            ethers.utils.parseEther('0.01')
         );
 
         const RocketAuraStrategy = await ethers.getContractFactory('RocketAuraStrategy');
@@ -370,7 +370,7 @@ describe("RocketAuraStrategy", function () {
         expect(await strategy.estimatedTotalAssets()).to.be.equal(0);
         expect(await newStrategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('1'), 
-            ethers.utils.parseEther('0.02')
+            ethers.utils.parseEther('0.01')
         );
         expect(Number(await auraToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
         expect(Number(await balToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
@@ -386,9 +386,31 @@ describe("RocketAuraStrategy", function () {
 
         expect(await newStrategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('1'), 
-            ethers.utils.parseEther('0.02')
+            ethers.utils.parseEther('0.01')
+        );
+    });
+
+    it('should revoke from vault', async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
+
+        const oneEther = ethers.utils.parseEther('1');
+        await want.connect(whale).approve(vault.address, oneEther);
+        await vault.connect(whale)['deposit(uint256)'](oneEther);
+        mine(1);
+        await strategy.harvest();
+
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            ethers.utils.parseEther('1'), 
+            ethers.utils.parseEther('0.01')
         );
 
+        await vault['revokeStrategy(address)'](strategy.address);
+        mine(1);
+        await strategy.harvest();
+        expect(await want.balanceOf(vault.address)).to.be.closeTo(
+            oneEther, 
+            ethers.utils.parseEther('0.01')
+        );
     });
 });
 
