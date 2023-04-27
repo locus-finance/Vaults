@@ -412,6 +412,29 @@ describe("RocketAuraStrategy", function () {
             ethers.utils.parseEther('0.01')
         );
     });
+
+    it('should emergency exit', async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
+
+        const oneEther = ethers.utils.parseEther('1');
+        await want.connect(whale).approve(vault.address, oneEther);
+        await vault.connect(whale)['deposit(uint256)'](oneEther);
+        mine(1);
+        await strategy.harvest();
+
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            ethers.utils.parseEther('1'), 
+            ethers.utils.parseEther('0.01')
+        );
+
+        await strategy['setEmergencyExit()']();
+        mine(1);
+        await strategy.harvest();
+        expect(await want.balanceOf(vault.address)).to.be.closeTo(
+            oneEther, 
+            ethers.utils.parseEther('0.01')
+        );
+    });
 });
 
 
