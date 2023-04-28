@@ -139,7 +139,7 @@ module.exports = {
     clear: false,
     flat: true,
     spacing: 2,
-    only: [':BaseVault$', ':TestStrategy$']
+    only: [':BaseVault$', ':TestStrategy$', ':ArbitrumDeFiStrategy$']
 
   }
 };

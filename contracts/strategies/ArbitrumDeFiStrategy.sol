@@ -1,53 +1,85 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.18;
 
+import {DexSwapper, IERC20} from "./DexSwapper.sol";
 import {BaseStrategyInitializable, StrategyParams} from "./../BaseStrategy.sol";
-
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {Address} from "@openzeppelin/contracts/utils/Address.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-// import "./interfaces/ "
+//import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+//import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
-contract ArbitrumDeFiStrategy is BaseStrategyInitializable {
+contract ArbitrumDeFiStrategy is BaseStrategyInitializable, DexSwapper {
     using SafeERC20 for IERC20;
-    using Address for address;
 
     bool public claimRewards = true; // claim rewards when withdrawAndUnwrap
 
+    uint256 public slippage = 9800; // 2%
+
     constructor(address _vault) BaseStrategyInitializable(_vault) {
+        // todo
         //want.approve(address(...), type(uint256).max);
         //IGMX(gmx).approve(..., type(uint256).max);
         //ICamelot(glp).approve(address(...), type(uint256).max);
         //IERC20(camelot).approve(address(...), type(uint256).max);
+        // IERC20(WETH).approve(address(amm), type(uint256).max);
+        // amm = IV3SwapRouter("0x0");
+        // WETH = "0x0";
+        // factory = IUniswapV3Factory("0x0");
+        //fees = [0, 100, 300, 3000];
     }
 
-    function name() external view override returns (string memory) {
+    function name() external pure override returns (string memory) {
         return "ArbitrumDeFi";
+    }
+
+    function setSlippage(uint256 _slippage) external onlyStrategist {
+        require(_slippage < 10_000, "!_slippage");
+        slippage = _slippage;
+    }
+
+    function buyTokens(
+        address baseToken,
+        address[] memory tokens,
+        uint256[] memory amount
+    ) external payable onlyStrategist {
+        for (uint256 i = 0; i < tokens.length; i++) {
+            _swap(baseToken, tokens[i], amount[i], address(this));
+        }
+    }
+
+    function buyToken(
+        address baseToken,
+        address token,
+        uint256 amount
+    ) external payable onlyStrategist {
+        _swap(baseToken, token, amount, address(this));
+    }
+
+    function setDex(
+        address newFactory,
+        address newAmm
+    ) external onlyStrategist {
+        _setDex(newFactory, newAmm);
+    }
+
+    function setFeesLevels(uint24[] memory newFees) external onlyStrategist {
+        _setFeesLevels(newFees);
+    }
+
+    /// @notice Balance of want sitting in our strategy.
+    function balanceOfWant() public view returns (uint256) {
+        return want.balanceOf(address(this));
     }
 
     function estimatedTotalAssets()
         public
-        view
+        pure
         override
         returns (uint256 _wants)
     {
         return _wants;
     }
-
-    function prepareReturn(
-        uint256 _debtOutstanding
-    )
-        internal
-        override
-        returns (uint256 _profit, uint256 _loss, uint256 _debtPayment)
-    {}
-
-    function adjustPosition(uint256 _debtOutstanding) internal override {}
-
-    function withdrawSome(uint256 _amountNeeded) internal {}
 
     /**
      * @notice
@@ -69,6 +101,18 @@ contract ArbitrumDeFiStrategy is BaseStrategyInitializable {
         return _amtInWei;
     }
 
+    function prepareReturn(
+        uint256 _debtOutstanding
+    )
+        internal
+        override
+        returns (uint256 _profit, uint256 _loss, uint256 _debtPayment)
+    {}
+
+    function adjustPosition(uint256 _debtOutstanding) internal override {}
+
+    function withdrawSome(uint256 _amountNeeded) internal {}
+
     function liquidateAllPositions() internal override returns (uint256) {}
 
     function liquidatePosition(
@@ -81,7 +125,7 @@ contract ArbitrumDeFiStrategy is BaseStrategyInitializable {
 
     function protectedTokens()
         internal
-        view
+        pure
         override
         returns (address[] memory)
     {
