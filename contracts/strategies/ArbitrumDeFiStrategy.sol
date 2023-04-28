@@ -5,11 +5,16 @@ import {DexSwapper, IERC20} from "./DexSwapper.sol";
 import {BaseStrategyInitializable, StrategyParams} from "./../BaseStrategy.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../interfaces/IArbitrumDeFiStrategy.sol";
 
 //import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 //import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
-contract ArbitrumDeFiStrategy is BaseStrategyInitializable, DexSwapper {
+contract ArbitrumDeFiStrategy is
+    BaseStrategyInitializable,
+    DexSwapper,
+    IArbitrumDeFiStrategy
+{
     using SafeERC20 for IERC20;
 
     bool public claimRewards = true; // claim rewards when withdrawAndUnwrap
@@ -42,7 +47,7 @@ contract ArbitrumDeFiStrategy is BaseStrategyInitializable, DexSwapper {
         address baseToken,
         address[] memory tokens,
         uint256[] memory amount
-    ) external payable onlyStrategist {
+    ) external payable override onlyStrategist {
         for (uint256 i = 0; i < tokens.length; i++) {
             _swap(baseToken, tokens[i], amount[i], address(this));
         }
@@ -52,23 +57,25 @@ contract ArbitrumDeFiStrategy is BaseStrategyInitializable, DexSwapper {
         address baseToken,
         address token,
         uint256 amount
-    ) external payable onlyStrategist {
+    ) external payable override onlyStrategist {
         _swap(baseToken, token, amount, address(this));
     }
 
     function setDex(
         address newFactory,
         address newAmm
-    ) external onlyStrategist {
+    ) external override onlyStrategist {
         _setDex(newFactory, newAmm);
     }
 
-    function setFeesLevels(uint24[] memory newFees) external onlyStrategist {
+    function setFeesLevels(
+        uint24[] memory newFees
+    ) external override onlyStrategist {
         _setFeesLevels(newFees);
     }
 
     /// @notice Balance of want sitting in our strategy.
-    function balanceOfWant() public view returns (uint256) {
+    function balanceOfWant() public view override returns (uint256) {
         return want.balanceOf(address(this));
     }
 
