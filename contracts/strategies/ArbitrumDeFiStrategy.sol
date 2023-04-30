@@ -7,9 +7,6 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/IArbitrumDeFiStrategy.sol";
 
-//import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-//import {Address} from "@openzeppelin/contracts/utils/Address.sol";
-
 contract ArbitrumDeFiStrategy is
     BaseStrategyInitializable,
     DexSwapper,
@@ -20,6 +17,15 @@ contract ArbitrumDeFiStrategy is
     bool public claimRewards = true; // claim rewards when withdrawAndUnwrap
 
     uint256 public slippage = 9800; // 2%
+
+    IRewardRouterV2 public mintRouter;
+
+    // IRewardRouterV2 public rewardRouter;
+    IGlpManager public glpManager;
+    //IVault public gmxVault;
+    IERC20 public glpToken;
+
+    IERC20 public glpTrackerToken;
 
     constructor(address _vault) BaseStrategyInitializable(_vault) {
         // todo
@@ -32,6 +38,9 @@ contract ArbitrumDeFiStrategy is
         // WETH = "0x0";
         // factory = IUniswapV3Factory("0x0");
         //fees = [0, 100, 300, 3000];
+        // glpManager =
+        // glpToken =
+        // glpTrackerToken =
     }
 
     function name() external pure override returns (string memory) {
@@ -108,6 +117,13 @@ contract ArbitrumDeFiStrategy is
         return _amtInWei;
     }
 
+    function getGMXTvl() public view override returns (uint256) {
+        uint256 glpPrice = (glpManager.getAumInUsdg(true) * 1e18) /
+            glpToken.totalSupply();
+        uint256 fsGlpAmount = glpTrackerToken.balanceOf(address(this));
+        return (fsGlpAmount * glpPrice) / 1e18;
+    }
+
     function prepareReturn(
         uint256 _debtOutstanding
     )
@@ -116,7 +132,10 @@ contract ArbitrumDeFiStrategy is
         returns (uint256 _profit, uint256 _loss, uint256 _debtPayment)
     {}
 
-    function adjustPosition(uint256 _debtOutstanding) internal override {}
+    function adjustPosition(uint256 _debtOutstanding) internal override {
+        // IPositionHelper(camelotHelperAddress).addLiquidityAndCreatePosition();
+        //IGNSStakingV6_2(gnsStakingAddress).stakeTokens();
+    }
 
     function withdrawSome(uint256 _amountNeeded) internal {}
 
@@ -139,5 +158,49 @@ contract ArbitrumDeFiStrategy is
         address[] memory protected = new address[](4);
         ///
         return protected;
+    }
+
+    function _buyGLP(
+        IERC20 token,
+        uint256 amount,
+        uint256 minUsdg,
+        uint256 minGlp
+    ) internal returns (uint256 glpBoughtAmount) {
+        require(amount > 0, "ArbitrumDeFiStrategy::buyGLP::zero amount");
+        if (address(token) == address(0x0)) {
+            require(
+                address(this).balance >= amount,
+                "ArbitrumDeFiStrategy::buyGLP::bridge or deposit native currency"
+            );
+            glpBoughtAmount = mintRouter.mintAndStakeGlpETH{value: amount}(
+                minUsdg,
+                minGlp
+            );
+        } else {
+            require(
+                token.balanceOf(address(this)) >= amount,
+                "GMX Vault::buyGLP::bridge or deposit assets"
+            );
+
+            token.approve(address(mintRouter), amount);
+            token.approve(address(glpManager), amount);
+
+            uint256 glpBalanceBefore = glpTrackerToken.balanceOf(address(this));
+            // // buy Glp
+            glpBoughtAmount = mintRouter.mintAndStakeGlp(
+                address(token), // the token to buy GLP with
+                amount, // the amount of token to use for the purchase
+                minUsdg, // the minimum acceptable USD value of the GLP purchased
+                minGlp // minimum acceptable GLP amount
+            );
+            // check glp balance after buying
+            uint256 glpBalanceAfter = glpTrackerToken.balanceOf(address(this));
+
+            require(
+                glpBalanceBefore + glpBoughtAmount <= glpBalanceAfter,
+                "ArbitrumDeFiStrategy::buyGLP::glp buying failed"
+            );
+        }
+        //  emit BuyingGMX(token, amount, glpBoughtAmount);
     }
 }
