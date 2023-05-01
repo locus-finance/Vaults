@@ -32,7 +32,6 @@
     "prompt-sync": "^4.2.0",
     "solhint": "^3.4.1",
     "solhint-plugin-prettier": "^0.0.5",
-    "solidity-coverage": "^0.8.2",
-    "yearn-protocol": "github:yearn/yearn-vaults#97ca1b2e4fcf20f4be0ff456dabd020bfeb6697b"
+    "solidity-coverage": "^0.8.2"
   }
 }
