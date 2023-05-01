@@ -54,16 +54,6 @@ module.exports = {
         localhost: {
         },
         hardhat: {
-            chainId: 43114,
-            forking: {
-                url: `https://rpc.ankr.com/eth_sepolia`
-            },
-            accounts: [{privateKey: `0x${DEPLOYER_PRIVATE_KEY}`, balance: '10000000000000000000'}]
-        },
-        eth_mainnet: {
-            url: ETH_NODE,
-            chainId: 1,
-            accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`]
         },
         optimismgoerli: {
             url: `https://rpc.ankr.com/optimism_testnet`,
@@ -139,7 +129,7 @@ module.exports = {
     clear: true,
     flat: true,
     spacing: 2,
-    only: [':BaseVault$']
+    only: [':BaseVault$', ':TestStrategy$']
 
   }
 };

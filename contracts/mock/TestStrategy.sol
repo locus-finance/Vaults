@@ -27,7 +27,7 @@ contract TestStrategy is BaseStrategyInitializable {
     }
 
     // NOTE: This is a test-only function to simulate delegation
-    function _toggleDelegation() public {
+    function _toggleDelegation() public onlyStrategist {
         delegateEverything = !delegateEverything;
     }
 
@@ -40,17 +40,17 @@ contract TestStrategy is BaseStrategyInitializable {
     }
 
     // NOTE: This is a test-only function to simulate losses
-    function _takeFunds(uint256 amount) public {
+    function _takeFunds(uint256 amount) public onlyStrategist {
         SafeERC20.safeTransfer(want, msg.sender, amount);
     }
 
     // NOTE: This is a test-only function to enable reentrancy on withdraw
-    function _toggleReentrancyExploit() public {
+    function _toggleReentrancyExploit() public onlyStrategist {
         doReentrancy = !doReentrancy;
     }
 
     // NOTE: This is a test-only function to simulate a wrong want token
-    function _setWant(IERC20 _want) public {
+    function _setWant(IERC20 _want) public onlyStrategist {
         want = _want;
     }
 
