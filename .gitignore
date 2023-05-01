@@ -8,5 +8,6 @@ typechain
 
 #Hardhat files
 cache
+cache_hardhat
 artifacts
 process.env
