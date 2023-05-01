@@ -10,8 +10,8 @@ async function main() {
     const vaultName = "ETH Vault";
     const vaultSymbol = "vETH";
 
-    const BaseVault = await hre.ethers.getContractFactory("BaseVault");
-    const vault = await BaseVault.deploy();
+    const Vault = await hre.ethers.getContractFactory("Vault");
+    const vault = await Vault.deploy();
 
     await vault.deployed();
 

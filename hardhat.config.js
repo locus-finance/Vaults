@@ -127,7 +127,7 @@ module.exports = {
     clear: true,
     flat: true,
     spacing: 2,
-    only: [':BaseVault$', ':TestStrategy$']
+    only: [':Vault$', ':TestStrategy$']
 
   }
 };
@@ -231,3 +231,9 @@ task("flat", "Flattens and prints contracts and their dependencies")
             })
         )
     })
+
+subtask("compile:vyper:get-source-names").setAction(async (_, __, runSuper) => {
+    const paths = await runSuper();
+    paths.push("lib/yearn-vaults/contracts/Vault.vy");
+    return paths;
+});    

@@ -10,6 +10,6 @@ npx hardhat compile
 npx hardhat clean
 npx hardhat test
 npx hardhat node
-node scripts/BaseVault.js
+node scripts/Vault.js
 npx hardhat help
 ```
