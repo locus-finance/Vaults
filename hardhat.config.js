@@ -5,7 +5,6 @@ require("@nomiclabs/hardhat-etherscan");
 require('@nomiclabs/hardhat-truffle5');
 require('@nomiclabs/hardhat-ethers');
 require("@nomiclabs/hardhat-vyper");
-require("@nomicfoundation/hardhat-foundry");
 require('hardhat-gas-reporter');
 require('hardhat-log-remover');
 require('hardhat-abi-exporter');
@@ -236,4 +235,28 @@ subtask("compile:vyper:get-source-names").setAction(async (_, __, runSuper) => {
     const paths = await runSuper();
     paths.push("lib/yearn-vaults/contracts/Vault.vy");
     return paths;
-});    
+});
+
+subtask("compile:solidity:transform-import-name").setAction(
+    async ({ importName }, _hre, runSuper) => {
+        const remappings = {"@yearn-protocol/":"lib/yearn-vaults/"};
+        for (const [from, to] of Object.entries(remappings)) {
+            if (importName.startsWith(from) && !importName.startsWith(".")) {
+                return importName.replace(from, to);
+            }
+        }
+        return importName;
+    }
+);
+
+subtask("compile:solidity:get-compilation-job-for-file").setAction(
+    async ({ dependencyGraph, file }, _hre, runSuper) => {
+        const job = await runSuper({ dependencyGraph, file });
+        if ("reason" in job) return job;
+        const remappings = {"@yearn-protocol/":"lib/yearn-vaults/"};
+        job.getSolcConfig().settings.remappings = Object.entries(remappings).map(
+            ([from, to]) => `${from}=${to}`
+        );
+        return job;
+    }
+);
