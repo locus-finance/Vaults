@@ -1,15 +1,10 @@
-# Basic Sample Hardhat Project
+# Locus Finance Vault smart contracts
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
-
-Try running some of the following tasks:
+This project is a fork of Yearn Vault with custom strategies.
 
 ```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
+git submodule update --init --recursive
+npm install
 npx hardhat test
-npx hardhat node
 node scripts/Vault.js
-npx hardhat help
 ```
