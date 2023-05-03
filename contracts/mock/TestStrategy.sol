@@ -3,7 +3,8 @@ pragma solidity ^0.8.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {BaseStrategyInitializable, StrategyParams, VaultAPI} from "../BaseStrategy.sol";
+import {BaseStrategyInitializable, StrategyParams, VaultAPI} from "@yearn-protocol/contracts/BaseStrategy.sol";
+
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /*

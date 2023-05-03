@@ -8,8 +8,8 @@ async function main() {
     const ratio = prompt('Debt ratio (10000 = 100%): ') || '1000';
     const minDebtHarvest = prompt('Minimal debt harvest (ether): ') || '0';
     const maxDebtHarvest = prompt('Maximum debt harvest (ether): ') || '10000';
-    const BaseVault = await hre.ethers.getContractFactory("BaseVault");
-    const vault = await BaseVault.attach(vaultAddr);
+    const Vault = await hre.ethers.getContractFactory("Vault");
+    const vault = await Vault.attach(vaultAddr);
 
     console.log("Current account: ", owner.address);
     console.log("Vault gov account: ", await vault.governance());
