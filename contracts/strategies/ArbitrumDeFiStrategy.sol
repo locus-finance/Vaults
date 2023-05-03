@@ -2,7 +2,8 @@
 pragma solidity ^0.8.18;
 
 import {DexSwapper, IERC20} from "./DexSwapper.sol";
-import {BaseStrategyInitializable, StrategyParams} from "./../BaseStrategy.sol";
+import {BaseStrategyInitializable, StrategyParams} from "@yearn-protocol/contracts/BaseStrategy.sol";
+
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/IArbitrumDeFiStrategy.sol";
