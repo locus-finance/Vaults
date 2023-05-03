@@ -21,8 +21,8 @@ describe("RocketAuraStrategy", function () {
 
         const name = "ETH Vault";
         const symbol = "vETH";
-        const BaseVault = await ethers.getContractFactory('BaseVault');
-        const vault = await BaseVault.deploy();
+        const Vault = await ethers.getContractFactory('Vault');
+        const vault = await Vault.deploy();
         await vault.deployed();
 
         await vault['initialize(address,address,address,string,string)'](

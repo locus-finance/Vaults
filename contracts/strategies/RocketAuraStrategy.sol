@@ -4,7 +4,7 @@
 pragma solidity ^0.8.12;
 pragma experimental ABIEncoderV2;
 
-import {BaseStrategy, StrategyParams} from "../BaseStrategy.sol";
+import {BaseStrategy, StrategyParams} from "@yearn-protocol/contracts/BaseStrategy.sol";
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
