@@ -26,6 +26,9 @@ task("fork_reset", "Reset to local fork", async (taskArgs) => {
 });
 
 module.exports = {
+    mocha: {
+        timeout: 100000000
+    },
     solidity: {
         compilers: [
         {
@@ -53,26 +56,26 @@ module.exports = {
         hardhat: {
         },
         optimismgoerli: {
-             url: `https://rpc.ankr.com/optimism_testnet`,
-          accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
-         },
-      sepolia: {
-        url: `https://rpc.ankr.com/eth_sepolia`,
-        accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
-      },
-      optimism:{
-        url: `https://rpc.ankr.com/optimism`,
-        accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`]
-      },
-         bsctestnet: {
-             url: `https://rpc.ankr.com/bsc_testnet_chapel`,
-             chainId: 97,
-             accounts: [`${DEPLOYER_PRIVATE_KEY}`]
-         },
-         polygonmumbai: {
-             url: `https://rpc.ankr.com/polygon_mumbai`,
-             accounts: [`${DEPLOYER_PRIVATE_KEY}`]
-         },
+            url: `https://rpc.ankr.com/optimism_testnet`,
+            accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
+        },
+        sepolia: {
+            url: `https://rpc.ankr.com/eth_sepolia`,
+            accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
+        },
+        optimism:{
+            url: `https://rpc.ankr.com/optimism`,
+            accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`]
+        },
+        bsctestnet: {
+            url: `https://rpc.ankr.com/bsc_testnet_chapel`,
+            chainId: 97,
+            accounts: [`${DEPLOYER_PRIVATE_KEY}`]
+        },
+        polygonmumbai: {
+            url: `https://rpc.ankr.com/polygon_mumbai`,
+            accounts: [`${DEPLOYER_PRIVATE_KEY}`]
+        },
         bsc_mainnet: {
             url: `https://bsc-dataseed.binance.org/`,
             chainId: 56,
@@ -86,7 +89,7 @@ module.exports = {
         avalanche: {
             url: `https://api.avax.network/ext/bc/C/rpc`,
             chainId: 43114,
-          accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`]
+            accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`]
         },
         polygon: {
             url: `https://rpc.ankr.com/polygon`,
@@ -167,8 +170,7 @@ subtask("flat:get-flattened-sources", "Returns all contracts and their dependenc
     .addOptionalParam("output", undefined, undefined, types.string)
     .setAction(async ({ files, output }, { run }) => {
         const dependencyGraph = await run("flat:get-dependency-graph", { files })
-        console.log(dependencyGraph)
-
+        
         let flattened = ""
 
         if (dependencyGraph.getResolvedFiles().length === 0) {
