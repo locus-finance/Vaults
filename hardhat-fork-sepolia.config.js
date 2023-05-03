@@ -51,7 +51,19 @@ module.exports = {
         localhost: {
         },
         hardhat: {
-        },
+            chainId: 43114,
+            forking: {
+                url: `https://rpc.ankr.com/eth_sepolia`
+            },
+            accounts: [{privateKey: `0x${DEPLOYER_PRIVATE_KEY}`, balance: '10000000000000000000'}]
+         },
+         custom: {
+             chainId: 43114,
+             forking: {
+                 url: `https://rpc.ankr.com/eth_sepolia`
+             },
+             accounts: [{privateKey: `0x${DEPLOYER_PRIVATE_KEY}`, balance: '10000000000000000000'}]
+          },
         optimismgoerli: {
              url: `https://rpc.ankr.com/optimism_testnet`,
           accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
@@ -126,7 +138,7 @@ module.exports = {
     clear: true,
     flat: true,
     spacing: 2,
-    only: [':Vault$', ':TestStrategy$']
+    only: [':Vault$']
 
   }
 };
@@ -230,33 +242,3 @@ task("flat", "Flattens and prints contracts and their dependencies")
             })
         )
     })
-
-subtask("compile:vyper:get-source-names").setAction(async (_, __, runSuper) => {
-    const paths = await runSuper();
-    paths.push("lib/yearn-vaults/contracts/Vault.vy");
-    return paths;
-});
-
-subtask("compile:solidity:transform-import-name").setAction(
-    async ({ importName }, _hre, runSuper) => {
-        const remappings = {"@yearn-protocol/":"lib/yearn-vaults/"};
-        for (const [from, to] of Object.entries(remappings)) {
-            if (importName.startsWith(from) && !importName.startsWith(".")) {
-                return importName.replace(from, to);
-            }
-        }
-        return importName;
-    }
-);
-
-subtask("compile:solidity:get-compilation-job-for-file").setAction(
-    async ({ dependencyGraph, file }, _hre, runSuper) => {
-        const job = await runSuper({ dependencyGraph, file });
-        if ("reason" in job) return job;
-        const remappings = {"@yearn-protocol/":"lib/yearn-vaults/"};
-        job.getSolcConfig().settings.remappings = Object.entries(remappings).map(
-            ([from, to]) => `${from}=${to}`
-        );
-        return job;
-    }
-);
