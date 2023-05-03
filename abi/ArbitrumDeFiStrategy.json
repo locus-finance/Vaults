@@ -916,6 +916,19 @@
   },
   {
     "inputs": [],
+    "name": "rewardRouter",
+    "outputs": [
+      {
+        "internalType": "contract IRewardRouterV2",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "rewards",
     "outputs": [
       {

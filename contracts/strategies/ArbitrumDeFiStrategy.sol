@@ -20,7 +20,7 @@ contract ArbitrumDeFiStrategy is
 
     IRewardRouterV2 public mintRouter;
 
-    // IRewardRouterV2 public rewardRouter;
+    IRewardRouterV2 public rewardRouter;
     IGlpManager public glpManager;
     //IVault public gmxVault;
     IERC20 public glpToken;
@@ -41,6 +41,7 @@ contract ArbitrumDeFiStrategy is
         // glpManager =
         // glpToken =
         // glpTrackerToken =
+        // rewardRouter
     }
 
     function name() external pure override returns (string memory) {
@@ -195,12 +196,89 @@ contract ArbitrumDeFiStrategy is
             );
             // check glp balance after buying
             uint256 glpBalanceAfter = glpTrackerToken.balanceOf(address(this));
-
             require(
                 glpBalanceBefore + glpBoughtAmount <= glpBalanceAfter,
                 "ArbitrumDeFiStrategy::buyGLP::glp buying failed"
             );
         }
         //  emit BuyingGMX(token, amount, glpBoughtAmount);
+    }
+
+    /**
+     *   @notice Sell / unstake and redeem GLP
+     *   @dev tokenOut : the token to sell GLP for
+     *   @dev glpAmount : the amount of GLP to sell
+     *   @dev minOut : the minimum acceptable amount of tokenOut to be received
+     *   @return amountPayed payed for the sell
+     *   @dev access restricted to only self base building block call
+     * */
+    function _sellGLP(
+        IERC20 tokenOut,
+        uint256 glpAmount,
+        uint256 minOut
+    ) internal returns (uint256 amountPayed) {
+        if (address(tokenOut) == address(0x0)) {
+            amountPayed = mintRouter.unstakeAndRedeemGlpETH(
+                glpAmount,
+                minOut,
+                payable(address(this))
+            );
+        } else {
+            // unstake And Redeem Glp
+            uint256 tokenOutBalanceBefore = tokenOut.balanceOf(address(this));
+            amountPayed = mintRouter.unstakeAndRedeemGlp(
+                address(tokenOut),
+                glpAmount,
+                minOut,
+                address(this)
+            );
+            // get contract balance after selling
+            uint256 tokenOutBalanceAfter = tokenOut.balanceOf(address(this));
+
+            // get balance change
+            uint256 balanceChange = tokenOutBalanceAfter -
+                tokenOutBalanceBefore;
+
+            // check if vault balance reflects the sale
+            require(
+                balanceChange >= amountPayed,
+                "ArbitrumDeFiStrategy::sellGLP::glp selling failed"
+            );
+        }
+        //        emit SellingEvent(tokenOut, glpAmount, amountPayed);
+        return amountPayed;
+    }
+
+    /**
+     *  @notice  rewards compounding and claims them
+     *  @dev _shouldClaimGmx boolean yes/no
+     *  @dev _shouldStakeGmx boolean yes/no
+     *  @dev _shouldClaimEsGmx boolean yes/no
+     *  @dev _shouldStakeEsGmx boolean yes/no
+     *  @dev _shouldStakeMultiplierPoints boolean yes/no
+     *  @dev _shouldClaimWeth boolean yes/no
+     *  @dev _shouldConvertWethToEth boolean yes/no
+     *  @dev 15 average min cool down time
+     *  @dev access restricted to only self base building block call
+     */
+    function _claimGMXRewards(
+        bool shouldClaimGmx,
+        bool shouldStakeGmx,
+        bool shouldClaimEsGmx,
+        bool shouldStakeEsGmx,
+        bool shouldStakeMultiplierPoints,
+        bool shouldClaimWeth,
+        bool shouldConvertWethToEth
+    ) internal returns (bool) {
+        rewardRouter.handleRewards(
+            shouldClaimGmx,
+            shouldStakeGmx,
+            shouldClaimEsGmx,
+            shouldStakeEsGmx,
+            shouldStakeMultiplierPoints,
+            shouldClaimWeth,
+            shouldConvertWethToEth
+        );
+        return true;
     }
 }
