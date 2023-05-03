@@ -140,8 +140,7 @@ module.exports = {
     clear: true,
     flat: true,
     spacing: 2,
-    only: [':BaseVault$']
-
+    only: [':Vault$', ':TestStrategy$']
   }
 };
 
@@ -181,7 +180,6 @@ subtask("flat:get-flattened-sources", "Returns all contracts and their dependenc
     .addOptionalParam("output", undefined, undefined, types.string)
     .setAction(async ({ files, output }, { run }) => {
         const dependencyGraph = await run("flat:get-dependency-graph", { files })
-        console.log(dependencyGraph)
 
         let flattened = ""
 
@@ -234,13 +232,43 @@ subtask("flat:get-dependency-graph")
     })
 
 task("flat", "Flattens and prints contracts and their dependencies")
-    .addOptionalVariadicPositionalParam("files", "The files to flatten", undefined, types.inputFile)
-    .addOptionalParam("output", "Specify the output file", undefined, types.string)
-    .setAction(async ({ files, output }, { run }) => {
-        console.log(
-            await run("flat:get-flattened-sources", {
-                files,
-                output,
-            })
-        )
-    })
+.addOptionalVariadicPositionalParam("files", "The files to flatten", undefined, types.inputFile)
+.addOptionalParam("output", "Specify the output file", undefined, types.string)
+.setAction(async ({ files, output }, { run }) => {
+    console.log(
+        await run("flat:get-flattened-sources", {
+            files,
+            output,
+        })
+    )
+});
+
+subtask("compile:vyper:get-source-names").setAction(async (_, __, runSuper) => {
+    const paths = await runSuper();
+    paths.push("lib/yearn-vaults/contracts/Vault.vy");
+    return paths;
+});
+
+subtask("compile:solidity:transform-import-name").setAction(
+    async ({ importName }, _hre, runSuper) => {
+        const remappings = {"@yearn-protocol/":"lib/yearn-vaults/"};
+        for (const [from, to] of Object.entries(remappings)) {
+            if (importName.startsWith(from) && !importName.startsWith(".")) {
+                return importName.replace(from, to);
+            }
+        }
+        return importName;
+    }
+);
+
+subtask("compile:solidity:get-compilation-job-for-file").setAction(
+    async ({ dependencyGraph, file }, _hre, runSuper) => {
+        const job = await runSuper({ dependencyGraph, file });
+        if ("reason" in job) return job;
+        const remappings = {"@yearn-protocol/":"lib/yearn-vaults/"};
+        job.getSolcConfig().settings.remappings = Object.entries(remappings).map(
+            ([from, to]) => `${from}=${to}`
+        );
+        return job;
+    }
+);
