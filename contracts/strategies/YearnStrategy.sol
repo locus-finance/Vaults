@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.18;
 
-import { BaseStrategyInitializable, StrategyParams } from "../BaseStrategy.sol";
+import {BaseStrategy, StrategyParams} from "@yearn-protocol/contracts/BaseStrategy.sol";
 
-contract YearnStrategy is BaseStrategyInitializable {
-    constructor(address _vault) BaseStrategyInitializable(_vault) {}
+contract YearnStrategy is BaseStrategy {
+    constructor(address _vault) BaseStrategy(_vault) {}
 
     function name() external pure override returns (string memory) {
-        return "YearnStrategy";
+        return "StrategyYearn";
     }
 
     function ethToWant(
