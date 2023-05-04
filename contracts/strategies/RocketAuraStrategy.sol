@@ -13,16 +13,16 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "hardhat/console.sol";
-import "../interfaces/IBalancerV2Vault.sol";
-import "../interfaces/IBalancerPool.sol";
-import "../interfaces/IBalancerPriceOracle.sol";
-import "../interfaces/IAuraBooster.sol";
-import "../interfaces/IAuraDeposit.sol";
-import "../interfaces/IAuraRewards.sol";
-import "../interfaces/IConvexRewards.sol";
-import "../interfaces/ICvx.sol";
-import "../interfaces/IAuraToken.sol";
-import "../interfaces/IAuraMinter.sol";
+import "../integrations/balancer/IBalancerV2Vault.sol";
+import "../integrations/balancer/IBalancerPool.sol";
+import "../integrations/balancer/IBalancerPriceOracle.sol";
+import "../integrations/aura/IAuraBooster.sol";
+import "../integrations/aura/IAuraDeposit.sol";
+import "../integrations/aura/IAuraRewards.sol";
+import "../integrations/aura/IConvexRewards.sol";
+import "../integrations/aura/ICvx.sol";
+import "../integrations/aura/IAuraToken.sol";
+import "../integrations/aura/IAuraMinter.sol";
 
 import "../utils/AuraMath.sol";
 
@@ -111,7 +111,6 @@ contract RocketAuraStrategy is BaseStrategy {
         uint256 bptTokens = balanceOfUnstakedBpt() +
             auraBptToBpt(balanceOfAuraBpt());
         _wants += bptToWant(bptTokens);
-
         uint256 balTokens = balRewards();
         if (balTokens > 0) {
             _wants += balToWant(balTokens);
