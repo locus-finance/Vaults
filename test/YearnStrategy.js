@@ -4,20 +4,17 @@ const {
 } = require("@nomicfoundation/hardhat-network-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
-const { BigNumber } = require("ethers");
+const { BigNumber, utils } = require("ethers");
 const { ethers } = require("hardhat");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 
-describe("YearnStrategy", function () {
+describe.only("YearnStrategy", function () {
     async function deployContractAndSetVariables() {
         const [deployer, governance, treasury, whale] =
             await ethers.getSigners();
-        const WETH_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-        const want = await ethers.getContractAt("IWETH", WETH_ADDRESS);
-        await want
-            .connect(whale)
-            .deposit({ value: ethers.utils.parseEther("10") });
+        const USDC_ADDRESS = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
+        const want = await ethers.getContractAt(IERC20_SOURCE, USDC_ADDRESS);
 
         const name = "USDC Vault";
         const symbol = "vUSDC";
@@ -67,5 +64,14 @@ describe("YearnStrategy", function () {
             deployContractAndSetVariables
         );
         expect(await strategy.vault()).to.equal(vault.address);
+
+        const ethToWant = await strategy.ethToWant(utils.parseEther("0.5"));
+        console.log("ethToWant", utils.formatUnits(ethToWant, 6));
+
+        const crvToWant = await strategy.crvToWant(utils.parseEther("1.0"));
+        console.log("crvToWant", utils.formatUnits(crvToWant, 6));
+
+        const yCrvToWant = await strategy.yCrvToWant(utils.parseEther("1.0"));
+        console.log("yCrvToWant", utils.formatUnits(yCrvToWant, 6));
     });
 });

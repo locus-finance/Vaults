@@ -37,7 +37,7 @@
     "@openzeppelin/contracts-upgradeable": "^4.8.2",
     "@openzeppelin/hardhat-upgrades": "^1.22.1",
     "@openzeppelin/test-helpers": "^0.5.16",
-    "@uniswap/v3-core": "1.0.1",
+    "@uniswap/v3-periphery": "github:Uniswap/v3-periphery#0.8",
     "dotenv": "^16.0.3",
     "eslint": "^8.37.0",
     "eslint-config-prettier": "^8.5.0",
