@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.18;
 
-import {DexSwapper, IERC20} from "./DexSwapper.sol";
+import {DexSwapper, IERC20, IV3SwapRouter, IWETH, IUniswapV3Factory} from "./DexSwapper.sol";
 import {BaseStrategyInitializable, StrategyParams} from "@yearn-protocol/contracts/BaseStrategy.sol";
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -16,33 +16,54 @@ contract ArbitrumDeFiStrategy is
     using SafeERC20 for IERC20;
 
     bool public claimRewards = true; // claim rewards when withdrawAndUnwrap
-
     uint256 public slippage = 9800; // 2%
 
+    IERC20 public constant ARB_TOKEN =
+        IERC20(0x912CE59144191C1204E64559FE8253a0e49E6548);
+    IERC20 public constant GNS_TOKEN =
+        IERC20(0x18c11FD286C5EC11c3b683Caa813B77f5163A122);
+    IERC20 public constant USDT_TOKEN =
+        IERC20(0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9);
+    IERC20 public constant GMX_TOKEN =
+        IERC20(0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a);
+    IERC20 public constant GRAIL_TOKEN =
+        IERC20(0x3d9907F9a368ad0a51Be60f7Da3b97cf940982D8);
+
     IRewardRouterV2 public mintRouter;
-
     IRewardRouterV2 public rewardRouter;
+    IPositionHelper public camelotRouter;
     IGlpManager public glpManager;
-    //IVault public gmxVault;
-    IERC20 public glpToken;
-
     IERC20 public glpTrackerToken;
+    IGNSStakingV6_2 public gnsStackingContract;
+    uint256 private constant _DEAD_LINE = 90000;
 
-    constructor(address _vault) BaseStrategyInitializable(_vault) {
-        // todo
-        //want.approve(address(...), type(uint256).max);
-        //IGMX(gmx).approve(..., type(uint256).max);
-        //ICamelot(glp).approve(address(...), type(uint256).max);
-        //IERC20(camelot).approve(address(...), type(uint256).max);
-        // IERC20(WETH).approve(address(amm), type(uint256).max);
-        // amm = IV3SwapRouter("0x0");
-        // WETH = "0x0";
-        // factory = IUniswapV3Factory("0x0");
-        //fees = [0, 100, 300, 3000];
-        // glpManager =
-        // glpToken =
-        // glpTrackerToken =
-        // rewardRouter
+    constructor(
+        address _vault,
+        address _weth,
+        address _amm,
+        address _uniFactory,
+        address _gmxRewardRouter,
+        address _camelotRouter,
+        address _gnsStackingContract
+    ) BaseStrategyInitializable(_vault) {
+        amm = IV3SwapRouter(_amm);
+        WETH = _weth;
+        factory = IUniswapV3Factory(_uniFactory);
+        fees = [0, 100, 300, 3000];
+        rewardRouter = IRewardRouterV2(_gmxRewardRouter);
+        glpManager = IGlpManager(rewardRouter.glpManager());
+        glpTrackerToken = IERC20(rewardRouter.stakedGlpTracker());
+        camelotRouter = IPositionHelper(_camelotRouter);
+        gnsStackingContract = IGNSStakingV6_2(_gnsStackingContract);
+
+        ARB_TOKEN.approve(address(gnsStackingContract), type(uint256).max);
+        GMX_TOKEN.approve(
+            address(rewardRouter.stakedGmxTracker()),
+            type(uint256).max
+        );
+        GRAIL_TOKEN.approve(address(camelotRouter), type(uint256).max);
+        GNS_TOKEN.approve(address(gnsStackingContract), type(uint256).max);
+        IERC20(_weth).approve(address(amm), type(uint256).max);
     }
 
     function name() external pure override returns (string memory) {
@@ -121,7 +142,7 @@ contract ArbitrumDeFiStrategy is
 
     function getGMXTvl() public view override returns (uint256) {
         uint256 glpPrice = (glpManager.getAumInUsdg(true) * 1e18) /
-            glpToken.totalSupply();
+            IERC20(glpManager.glp()).totalSupply();
         uint256 fsGlpAmount = glpTrackerToken.balanceOf(address(this));
         return (fsGlpAmount * glpPrice) / 1e18;
     }
@@ -168,11 +189,11 @@ contract ArbitrumDeFiStrategy is
         uint256 minUsdg,
         uint256 minGlp
     ) internal returns (uint256 glpBoughtAmount) {
-        require(amount > 0, "ArbitrumDeFiStrategy::buyGLP::zero amount");
+        require(amount > 0, "buyGLP:zero amount");
         if (address(token) == address(0x0)) {
             require(
                 address(this).balance >= amount,
-                "ArbitrumDeFiStrategy::buyGLP::bridge or deposit native currency"
+                "buyGLP:bridge or deposit native currency"
             );
             glpBoughtAmount = mintRouter.mintAndStakeGlpETH{value: amount}(
                 minUsdg,
@@ -181,7 +202,7 @@ contract ArbitrumDeFiStrategy is
         } else {
             require(
                 token.balanceOf(address(this)) >= amount,
-                "GMX Vault::buyGLP::bridge or deposit assets"
+                "buyGLP:bridge or deposit assets"
             );
 
             token.approve(address(mintRouter), amount);
@@ -199,10 +220,9 @@ contract ArbitrumDeFiStrategy is
             uint256 glpBalanceAfter = glpTrackerToken.balanceOf(address(this));
             require(
                 glpBalanceBefore + glpBoughtAmount <= glpBalanceAfter,
-                "ArbitrumDeFiStrategy::buyGLP::glp buying failed"
+                "buyGLP:glp buying failed"
             );
         }
-        //  emit BuyingGMX(token, amount, glpBoughtAmount);
     }
 
     /**
@@ -241,12 +261,8 @@ contract ArbitrumDeFiStrategy is
                 tokenOutBalanceBefore;
 
             // check if vault balance reflects the sale
-            require(
-                balanceChange >= amountPayed,
-                "ArbitrumDeFiStrategy::sellGLP::glp selling failed"
-            );
+            require(balanceChange >= amountPayed, "sellGLP:glp selling failed");
         }
-        //        emit SellingEvent(tokenOut, glpAmount, amountPayed);
         return amountPayed;
     }
 
@@ -281,5 +297,28 @@ contract ArbitrumDeFiStrategy is
             shouldConvertWethToEth
         );
         return true;
+    }
+
+    function _depositToCamelot(
+        address _token,
+        uint256 _amount,
+        address _camelotNFTStackingPool,
+        uint256 _value
+    ) internal {
+        uint256 amountETHMin = 0; // todo
+        camelotRouter.addLiquidityETHAndCreatePosition(
+            _token,
+            _amount,
+            _amount,
+            amountETHMin,
+            block.timestamp + _DEAD_LINE, // todo
+            msg.sender,
+            INFTPool(_camelotNFTStackingPool),
+            0
+        );
+    }
+
+    function _depositToGNS(uint256 _amount) internal {
+        gnsStackingContract.stakeTokens(_amount);
     }
 }

@@ -3,6 +3,8 @@ pragma solidity ^0.8.0;
 
 import "../integrations/gmx/IRewardRouterV2.sol";
 import "../integrations/gmx/IGlpManager.sol";
+import "../integrations/camelot/IPositionHelper.sol";
+import "../integrations/gainsnetwork/IGNSStakingV6_2.sol";
 
 interface IArbitrumDeFiStrategy {
     function claimRewards() external view returns (bool);
