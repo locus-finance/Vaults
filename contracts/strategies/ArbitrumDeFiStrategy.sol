@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0
+// Feel free to change the license, but this is what we use
 pragma solidity ^0.8.18;
 
 import {DexSwapper, IERC20, IV3SwapRouter, IWETH, IUniswapV3Factory} from "./DexSwapper.sol";
@@ -70,10 +71,6 @@ contract ArbitrumDeFiStrategy is
         IERC20(_weth).approve(address(amm), type(uint256).max);
     }
 
-    function name() external pure override returns (string memory) {
-        return "ArbitrumDeFi";
-    }
-
     function setSlippage(uint256 _slippage) external onlyStrategist {
         require(_slippage < 10_000, "!_slippage");
         slippage = _slippage;
@@ -110,6 +107,10 @@ contract ArbitrumDeFiStrategy is
         _setFeesLevels(newFees);
     }
 
+    function name() external pure override returns (string memory) {
+        return "StrategyArbitrumDeFi";
+    }
+
     /// @notice Balance of want sitting in our strategy.
     function balanceOfWant() public view override returns (uint256) {
         return want.balanceOf(address(this));
@@ -117,11 +118,17 @@ contract ArbitrumDeFiStrategy is
 
     function estimatedTotalAssets()
         public
-        pure
+        view
         override
         returns (uint256 _wants)
     {
-        return _wants;
+        _wants = balanceOfWant();
+        uint256 gnsTokens;
+        uint256 gmxTokens;
+        uint256 arbTokens;
+        uint256 grailTokens;
+        // todo
+        return _wants + gnsTokens + gmxTokens + arbTokens + grailTokens;
     }
 
     /**
@@ -188,26 +195,26 @@ contract ArbitrumDeFiStrategy is
     }
 
     function _depositToCamelot(
-        address _token,
-        uint256 _amount,
-        address _camelotNFTStackingPool,
-        uint256 _value
+        address _tokenA,
+        address _tokenB,
+        address _camelotNFTStackingPool
     ) internal {
-        uint256 amountETHMin = 0; // todo
-        camelotPositionHelper.addLiquidityETHAndCreatePosition(
-            _token,
-            _amount,
-            _amount,
-            amountETHMin,
-            block.timestamp + _DEAD_LINE, // todo
-            msg.sender,
+        camelotPositionHelper.addLiquidityAndCreatePosition(
+            _tokenA,
+            _tokenB,
+            IERC20(_tokenA).balanceOf(address(this)),
+            IERC20(_tokenB).balanceOf(address(this)),
+            IERC20(_tokenA).balanceOf(address(this)),
+            IERC20(_tokenB).balanceOf(address(this)),
+            block.timestamp + _DEAD_LINE,
+            address(this),
             INFTPool(_camelotNFTStackingPool),
             0
         );
     }
 
-    function _depositToGNS(uint256 _amount) internal {
-        gnsStackingContract.stakeTokens(_amount);
+    function _depositToGNS() internal {
+        gnsStackingContract.stakeTokens(GNS_TOKEN.balanceOf(address(this)));
     }
 
     function _depositToGMX() internal {
@@ -215,18 +222,19 @@ contract ArbitrumDeFiStrategy is
     }
 
     function _withdrawFromPositionFromCamelot(
-        address lpToken,
         address _nftPool,
-        uint256 _nftId,
-        uint256 _nftAmount
+        uint256 _nftId
     ) internal {
         uint amountTokenMin;
         uint amountETHMin;
         uint8 v;
         bytes32 r;
         bytes32 s;
-
-        INFTPool(_nftPool).withdrawFromPosition(_nftId, _nftAmount);
+        (address lpToken, , , , , , , ) = INFTPool(_nftPool).getPoolInfo();
+        INFTPool(_nftPool).withdrawFromPosition(
+            _nftId,
+            INFTPool(_nftPool).balanceOf(address(this))
+        );
         ICamelotRouter(camelotRouter)
             .removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
                 lpToken,
@@ -242,8 +250,8 @@ contract ArbitrumDeFiStrategy is
             );
     }
 
-    function _withdrawalFromGNS(uint256 _amount) internal {
-        gnsStackingContract.unstakeTokens(_amount);
+    function _withdrawalFromGNS() internal {
+        gnsStackingContract.unstakeTokens(GNS_TOKEN.balanceOf(address(this))); //todo
     }
 
     function _withdrawalFromGMX() internal {
