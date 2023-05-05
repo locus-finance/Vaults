@@ -9,7 +9,7 @@ const { ethers } = require("hardhat");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 
-describe.only("YearnStrategy", function () {
+describe("YCRVStrategy", function () {
     async function deployContractAndSetVariables() {
         const [deployer, governance, treasury, whale] =
             await ethers.getSigners();
@@ -33,8 +33,8 @@ describe.only("YearnStrategy", function () {
             ethers.utils.parseEther("10000")
         );
 
-        const YearnStrategy = await ethers.getContractFactory("YearnStrategy");
-        const strategy = await YearnStrategy.deploy(vault.address);
+        const YCRVStrategy = await ethers.getContractFactory("YCRVStrategy");
+        const strategy = await YCRVStrategy.deploy(vault.address);
         await strategy.deployed();
 
         await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
@@ -106,15 +106,6 @@ describe.only("YearnStrategy", function () {
             utils.parseEther("10000.0")
         );
         console.log("stYCrvToWant", utils.formatUnits(stYCrvToWant, 6));
-    });
-
-    it("test buying tokens", async function () {
-        const { whale, want, strategy } = await loadFixture(
-            deployContractAndSetVariables
-        );
-        await dealWantToAddress(strategy.address, want, "1000000");
-        await strategy.connect(whale).testPosition(0);
-        await strategy.connect(whale).exitPosition(0);
     });
 
     it("should harvest with profit", async function () {

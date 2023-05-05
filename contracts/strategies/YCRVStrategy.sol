@@ -13,7 +13,7 @@ import "hardhat/console.sol";
 import "../integrations/balancer/IBalancerPriceOracle.sol";
 import "../integrations/curve/ICurve.sol";
 
-contract YearnStrategy is BaseStrategy {
+contract YCRVStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
 
     address internal constant yCRVVault =
@@ -122,53 +122,6 @@ contract YearnStrategy is BaseStrategy {
         }
     }
 
-    function exitPosition(uint256 stYCrvAmount) public {
-        stYCrvAmount = balanceOfStakedYCrv();
-        console.log("stYCrvAmount", stYCrvAmount);
-        console.log("yCRVBalanceBefore", balanceOfYCrv());
-        VaultAPI(yCRVVault).withdraw(stYCrvAmount);
-        uint256 yCrvBalance = balanceOfYCrv();
-        console.log("yCRVBalanceAfter", balanceOfYCrv());
-        console.log("Want after", balanceOfWant());
-        console.log("stYCrvAmount after", balanceOfStakedYCrv());
-
-        address[9] memory _route = [
-            yCRV,
-            0x453D92C7d4263201C69aACfaf589Ed14202d83a4, // yCRV pool
-            0xD533a949740bb3306d119CC777fa900bA034cd52, // CRV
-            0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511, // crveth pool
-            0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE, // ETH
-            0xD51a44d3FaE010294C616388b506AcdA1bfAAE46, // tricrypto2 pool
-            0xdAC17F958D2ee523a2206206994597C13D831ec7, // USDT
-            0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7, // 3pool
-            address(want) // USDC
-        ];
-        uint256[3][4] memory _swap_params = [
-            [uint256(1), uint256(0), uint256(1)], // yCRV -> CRV, stable swap exchange
-            [uint256(1), uint256(0), uint256(3)], // CRV -> ETH, cryptoswap exchange
-            [uint256(2), uint256(0), uint256(3)], // ETH -> USDT, cryptoswap exchange
-            [uint256(2), uint256(1), uint256(1)] // USDT -> USDC, stable swap exchange
-        ];
-        uint256 _expected = (yCrvToWant(yCrvBalance) * slippage) / 10000;
-        address[4] memory _pools = [
-            address(0),
-            address(0),
-            address(0),
-            address(0)
-        ];
-
-        ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
-            _route,
-            _swap_params,
-            yCrvBalance,
-            _expected,
-            _pools
-        );
-
-        console.log("yCRVBalanceAfter 2", balanceOfYCrv());
-        console.log("Want after 2", balanceOfWant());
-    }
-
     function _exitPosition(uint256 stYCrvAmount) internal {
         VaultAPI(yCRVVault).withdraw(stYCrvAmount);
         uint256 yCrvBalance = balanceOfYCrv();
@@ -237,7 +190,6 @@ contract YearnStrategy is BaseStrategy {
         returns (uint256 _wants)
     {
         _wants = balanceOfWant();
-        console.log("Balance of want: ", _wants);
         _wants += yCrvToWant(balanceOfYCrv());
         _wants += stYCRVToWant(balanceOfStakedYCrv());
     }
@@ -271,50 +223,6 @@ contract YearnStrategy is BaseStrategy {
             // enough to pay for all profit and _debtOutstanding (partial or full)
         } else {
             _debtPayment = Math.min(_liquidWant - _profit, _debtOutstanding);
-        }
-    }
-
-    function testPosition(uint256 _debtOutstanding) external {
-        uint256 _wantBal = balanceOfWant();
-
-        if (_wantBal > _debtOutstanding) {
-            uint256 _excessWant = _wantBal - _debtOutstanding;
-
-            address[9] memory _route = [
-                address(want),
-                0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7, // 3pool
-                0xdAC17F958D2ee523a2206206994597C13D831ec7, // USDT
-                0xD51a44d3FaE010294C616388b506AcdA1bfAAE46, // tricrypto2 pool
-                0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE, // ETH
-                0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511, // crveth pool
-                0xD533a949740bb3306d119CC777fa900bA034cd52, // CRV
-                0x453D92C7d4263201C69aACfaf589Ed14202d83a4, // yCRV pool
-                yCRV // yCRV
-            ];
-            uint256[3][4] memory _swap_params = [
-                [uint256(1), uint256(2), uint256(1)], // USDC -> USDT, stable swap exchange
-                [uint256(0), uint256(2), uint256(3)], // USDT -> ETH, cryptoswap exchange
-                [uint256(0), uint256(1), uint256(3)], // ETH -> CRV, cryptoswap exchange
-                [uint256(0), uint256(1), uint256(1)] // CRV -> yCRV, stable swap exchange
-            ];
-            uint256 _expected = (wantToYCrv(_excessWant) * slippage) / 10000;
-            address[4] memory _pools = [
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            ];
-
-            ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
-                _route,
-                _swap_params,
-                _excessWant,
-                _expected,
-                _pools
-            );
-
-            uint256 _yCrvBal = IERC20(yCRV).balanceOf(address(this));
-            VaultAPI(yCRVVault).deposit(_yCrvBal, address(this));
         }
     }
 
