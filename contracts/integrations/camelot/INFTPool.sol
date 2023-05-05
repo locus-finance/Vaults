@@ -42,6 +42,11 @@ interface INFTPool is IERC721 {
 
     function createPosition(uint256 amount, uint256 lockDuration) external;
 
+    function withdrawFromPosition(
+        uint256 tokenId,
+        uint256 amountToWithdraw
+    ) external;
+
     function boost(uint256 userAddress, uint256 amount) external;
 
     function unboost(uint256 userAddress, uint256 amount) external;
