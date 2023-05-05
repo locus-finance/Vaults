@@ -59,7 +59,7 @@ describe.only("YearnStrategy", function () {
         };
     }
 
-    async function dealWantToAddress(address, want) {
+    async function dealWantToAddress(address, want, amountUnscaled = "100") {
         const ethWhaleAddress = "0x00000000219ab540356cbb839cbe05303d7705fa";
         const usdcWhaleAddress = "0xf646d9B7d20BABE204a89235774248BA18086dae";
 
@@ -82,7 +82,7 @@ describe.only("YearnStrategy", function () {
 
         await want
             .connect(usdcWhale)
-            .transfer(address, utils.parseUnits("1000000", 6));
+            .transfer(address, utils.parseUnits(amountUnscaled, 6));
     }
 
     it("should deploy strategy", async function () {
@@ -112,8 +112,55 @@ describe.only("YearnStrategy", function () {
         const { whale, want, strategy } = await loadFixture(
             deployContractAndSetVariables
         );
-        await dealWantToAddress(strategy.address, want);
+        await dealWantToAddress(strategy.address, want, "1000000");
         await strategy.connect(whale).testPosition(0);
         await strategy.connect(whale).exitPosition(0);
+    });
+
+    it("should harvest with profit", async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(
+            deployContractAndSetVariables
+        );
+        await dealWantToAddress(whale.address, want, "1000");
+
+        const balanceBefore = await want.balanceOf(whale.address);
+
+        await want
+            .connect(whale)
+            ["approve(address,uint256)"](vault.address, balanceBefore);
+        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
+        expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
+
+        await strategy.connect(deployer).harvest();
+        console.log(
+            "estimatedTotalAssets",
+            utils.formatUnits(await strategy.estimatedTotalAssets(), 6)
+        );
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            balanceBefore,
+            ethers.utils.parseUnits("100", 6)
+        );
+
+        // await strategy.connect(deployer).harvest();
+
+        mine(36000); // get more rewards
+        console.log(
+            "estimatedTotalAssets",
+            utils.formatUnits(await strategy.estimatedTotalAssets(), 6)
+        );
+        await strategy.connect(deployer).harvest();
+        // await strategy.connect(deployer).harvest();
+        // await vault
+        //     .connect(whale)
+        //     ["withdraw(uint256,address,uint256)"](
+        //         await vault.balanceOf(whale.address),
+        //         whale.address,
+        //         1000
+        //     );
+        // console.log(utils.formatUnits(await want.balanceOf(whale.address), 6));
+
+        // expect(Number(await want.balanceOf(whale.address))).to.be.greaterThan(
+        //     Number(balanceBefore)
+        // );
     });
 });

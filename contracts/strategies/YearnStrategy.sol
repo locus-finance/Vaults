@@ -31,7 +31,7 @@ contract YearnStrategy is BaseStrategy {
         0x99a58482BD75cbab83b27EC03CA68fF489b5788f;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
-    uint256 public slippage = 9900; // 1%
+    uint256 public slippage = 9500; // 5%
 
     constructor(address _vault) BaseStrategy(_vault) {
         want.approve(CURVE_SWAP_ROUTER, type(uint256).max);
@@ -237,6 +237,7 @@ contract YearnStrategy is BaseStrategy {
         returns (uint256 _wants)
     {
         _wants = balanceOfWant();
+        console.log("Balance of want: ", _wants);
         _wants += yCrvToWant(balanceOfYCrv());
         _wants += stYCRVToWant(balanceOfStakedYCrv());
     }
