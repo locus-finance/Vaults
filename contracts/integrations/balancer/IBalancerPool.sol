@@ -5,7 +5,10 @@ pragma experimental ABIEncoderV2;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IBalancerPool is IERC20 {
-    enum SwapKind {GIVEN_IN, GIVEN_OUT}
+    enum SwapKind {
+        GIVEN_IN,
+        GIVEN_OUT
+    }
 
     struct SwapRequest {
         SwapKind kind;
@@ -34,6 +37,19 @@ interface IBalancerPool is IERC20 {
         uint256 indexOut
     ) external view returns (uint256 amount);
 
-    function swapExactAmountIn(address, uint, address, uint, uint) external returns (uint, uint);
-    function swapExactAmountOut(address, uint, address, uint, uint) external returns (uint, uint);
+    function swapExactAmountIn(
+        address,
+        uint,
+        address,
+        uint,
+        uint
+    ) external returns (uint, uint);
+
+    function swapExactAmountOut(
+        address,
+        uint,
+        address,
+        uint,
+        uint
+    ) external returns (uint, uint);
 }

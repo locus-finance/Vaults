@@ -55,7 +55,9 @@ contract TestStrategy is BaseStrategyInitializable {
         want = _want;
     }
 
-    function ethToWant(uint256 amtInWei) public view override returns (uint256) {
+    function ethToWant(
+        uint256 amtInWei
+    ) public view override returns (uint256) {
         return amtInWei; // 1:1 conversion for testing
     }
 
@@ -64,14 +66,12 @@ contract TestStrategy is BaseStrategyInitializable {
         return want.balanceOf(address(this));
     }
 
-    function prepareReturn(uint256 _debtOutstanding)
+    function prepareReturn(
+        uint256 _debtOutstanding
+    )
         internal
         override
-        returns (
-            uint256 _profit,
-            uint256 _loss,
-            uint256 _debtPayment
-        )
+        returns (uint256 _profit, uint256 _loss, uint256 _debtPayment)
     {
         // During testing, send this contract some tokens to simulate "Rewards"
         uint256 totalAssets = want.balanceOf(address(this));
@@ -96,10 +96,14 @@ contract TestStrategy is BaseStrategyInitializable {
         // Whatever we have "free", consider it "invested" now
     }
 
-    function liquidatePosition(uint256 _amountNeeded) internal override returns (uint256 _liquidatedAmount, uint256 _loss) {
+    function liquidatePosition(
+        uint256 _amountNeeded
+    ) internal override returns (uint256 _liquidatedAmount, uint256 _loss) {
         if (doReentrancy) {
             // simulate a malicious protocol or reentrancy situation triggered by strategy withdraw interactions
-            uint256 stratBalance = VaultAPI(address(vault)).balanceOf(address(this));
+            uint256 stratBalance = VaultAPI(address(vault)).balanceOf(
+                address(this)
+            );
             VaultAPI(address(vault)).withdraw(stratBalance, address(this));
         }
 
@@ -122,13 +126,22 @@ contract TestStrategy is BaseStrategyInitializable {
         // Nothing needed here because no additional tokens/tokenized positions for mock
     }
 
-    function protectedTokens() internal view override returns (address[] memory) {
+    function protectedTokens()
+        internal
+        view
+        override
+        returns (address[] memory)
+    {
         address[] memory protected = new address[](1);
         protected[0] = protectedToken;
         return protected;
     }
 
-    function liquidateAllPositions() internal override returns (uint256 amountFreed) {
+    function liquidateAllPositions()
+        internal
+        override
+        returns (uint256 amountFreed)
+    {
         uint256 totalAssets = want.balanceOf(address(this));
         amountFreed = totalAssets;
     }

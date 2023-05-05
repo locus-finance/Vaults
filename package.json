@@ -1,5 +1,23 @@
 {
   "name": "hardhat-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "solhint:all": "npx solhint -c .solhint.json contracts/*.sol contracts/**/*.sol contracts/**/**/*.sol contracts/**/**/**/*.sol",
+    "prettier:solidity": "./node_modules/.bin/prettier --write contracts/*.sol contracts/**/*.sol contracts/**/**/*.sol",
+    "eslint:all": "npx eslint test/*.js test/**/*.js scripts/*.js",
+    "eslint:all-fix": "npx eslint --fix test/*.js test/**/*.js scripts/*.js",
+    "prettier:js": "./node_modules/.bin/prettier --write test/*.js test/**/*.js scripts/*.js",
+    "lint": "npm run prettier:solidity && npm run prettier:js && npm run eslint:all-fix && npm run solhint:all",
+    "update-addresses": "npx hardhat update"
+  },
+  "engines": {
+    "node": ">=8.3.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
   "devDependencies": {
     "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "@nomiclabs/hardhat-ethers": "^2.2.2",
@@ -19,8 +37,17 @@
     "@openzeppelin/contracts-upgradeable": "^4.8.2",
     "@openzeppelin/hardhat-upgrades": "^1.22.1",
     "@openzeppelin/test-helpers": "^0.5.16",
+    "@uniswap/v3-core": "1.0.1",
     "dotenv": "^16.0.3",
     "eslint": "^8.37.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-mocha": "^10.1.0",
+    "eslint-plugin-n": "^15.3.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-promise": "^6.1.0",
     "hardhat-etherscan": "^1.0.1",
     "hardhat-gas-reporter": "^1.0.9",
     "hardhat-log-remover": "^2.0.2",
@@ -33,6 +60,7 @@
     "prompt-sync": "^4.2.0",
     "solhint": "^3.4.1",
     "solhint-plugin-prettier": "^0.0.5",
+    "solidity-code-metrics": "^0.0.23",
     "solidity-coverage": "^0.8.2"
   }
 }
