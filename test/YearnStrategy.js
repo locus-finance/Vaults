@@ -59,19 +59,61 @@ describe.only("YearnStrategy", function () {
         };
     }
 
+    async function dealWantToAddress(address, want) {
+        const ethWhaleAddress = "0x00000000219ab540356cbb839cbe05303d7705fa";
+        const usdcWhaleAddress = "0xf646d9B7d20BABE204a89235774248BA18086dae";
+
+        await network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [usdcWhaleAddress],
+        });
+        const usdcWhale = await ethers.getSigner(usdcWhaleAddress);
+
+        await network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [ethWhaleAddress],
+        });
+        const ethWhale = await ethers.getSigner(ethWhaleAddress);
+
+        await ethWhale.sendTransaction({
+            to: usdcWhale.address,
+            value: utils.parseEther("1"),
+        });
+
+        await want
+            .connect(usdcWhale)
+            .transfer(address, utils.parseUnits("1000000", 6));
+    }
+
     it("should deploy strategy", async function () {
         const { vault, strategy } = await loadFixture(
             deployContractAndSetVariables
         );
         expect(await strategy.vault()).to.equal(vault.address);
 
-        const ethToWant = await strategy.ethToWant(utils.parseEther("0.5"));
+        const ethToWant = await strategy.ethToWant(utils.parseEther("1.0"));
         console.log("ethToWant", utils.formatUnits(ethToWant, 6));
 
         const crvToWant = await strategy.crvToWant(utils.parseEther("1.0"));
         console.log("crvToWant", utils.formatUnits(crvToWant, 6));
 
-        const yCrvToWant = await strategy.yCrvToWant(utils.parseEther("1.0"));
+        const yCrvToWant = await strategy.yCrvToWant(
+            utils.parseEther("10000.0")
+        );
         console.log("yCrvToWant", utils.formatUnits(yCrvToWant, 6));
+
+        const stYCrvToWant = await strategy.stYCRVToWant(
+            utils.parseEther("10000.0")
+        );
+        console.log("stYCrvToWant", utils.formatUnits(stYCrvToWant, 6));
+    });
+
+    it("test buying tokens", async function () {
+        const { whale, want, strategy } = await loadFixture(
+            deployContractAndSetVariables
+        );
+        await dealWantToAddress(strategy.address, want);
+        await strategy.connect(whale).testPosition(0);
+        await strategy.connect(whale).exitPosition(0);
     });
 });
