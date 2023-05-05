@@ -38,3 +38,13 @@ interface ICurve {
 
     function get_virtual_price() external view returns (uint256);
 }
+
+interface ICurveSwapRouter {
+    function exchange_multiple(
+        address[9] memory _route,
+        uint256[3][4] memory _swap_params,
+        uint256 _amount,
+        uint256 _expected,
+        address[4] memory _pools
+    ) external payable;
+}
