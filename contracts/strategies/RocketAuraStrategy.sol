@@ -48,8 +48,8 @@ contract RocketAuraStrategy is BaseStrategy {
     bytes32 internal constant auraEthPoolId = 
         bytes32(0xc29562b045d80fd77c69bec09541f5c16fe20d9d000200000000000000000251);
 
-    uint256 public slippage = 9900; // 1%
-    bool public earmark = true;
+    uint256 public bptSlippage = 9900; // 1%
+    uint256 public rewardsSlippage = 9700; // 3%
 
     constructor(address _vault) BaseStrategy(_vault) {
         want.approve(address(balancerVault), type(uint256).max);
@@ -213,12 +213,13 @@ contract RocketAuraStrategy is BaseStrategy {
         internal 
         override 
     {
-        if(earmark) IAuraBooster(auraBooster).earmarkRewards(15);
-        uint256 balBal = IERC20(balToken).balanceOf(address(this));
-        uint256 auraBal = IERC20(auraToken).balanceOf(address(this));
-        if(balBal > 0 && auraBal > 0) {
-            _sellBalAndAura(balBal, auraBal);
+        if(balRewards() > 0) {
+            IConvexRewards(auraBRethStable).getReward(address(this), true);
         }
+        _sellBalAndAura(
+            IERC20(balToken).balanceOf(address(this)), 
+            IERC20(auraToken).balanceOf(address(this))
+        ); 
 
         uint256 _wethBal = want.balanceOf(address(this));
         if(_wethBal > _debtOutstanding){
@@ -236,7 +237,7 @@ contract RocketAuraStrategy is BaseStrategy {
             _maxAmountsIn[0] = 0;
             _maxAmountsIn[1] = _excessWeth;
 
-            uint256 _minimumBPT = wantToBpt(_excessWeth) * slippage / 10000; 
+            uint256 _minimumBPT = wantToBpt(_excessWeth) * bptSlippage / 10000; 
 
             bytes memory _userData = abi.encode(
                 IBalancerV2Vault.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT, 
@@ -258,7 +259,8 @@ contract RocketAuraStrategy is BaseStrategy {
                 recipient: payable(address(this)),
                 request: _request
             });
-
+        }
+        if(_wethBal > _debtOutstanding || balanceOfUnstakedBpt() > 0){
             bool auraSuccess = IAuraDeposit(auraBooster).deposit(
                 15, // PID
                 IBalancerPool(bRethStable).balanceOf(address(this)),
@@ -271,6 +273,8 @@ contract RocketAuraStrategy is BaseStrategy {
     function _sellBalAndAura(uint256 _balAmount, uint256 _auraAmount)
         internal
     {
+        if(_balAmount == 0 || _auraAmount == 0) return;
+
         IBalancerV2Vault.BatchSwapStep[] memory swaps = new IBalancerV2Vault.BatchSwapStep[](2);
 
         // bal to weth
@@ -296,10 +300,13 @@ contract RocketAuraStrategy is BaseStrategy {
         assets[1] = auraToken;
         assets[2] = address(want);
         
+        int estimatedRewards = int(balToWant(_balAmount) + auraToWant(_auraAmount));
         int[] memory limits = new int[](3);
         limits[0] = int(_balAmount);
         limits[1] = int(_auraAmount);
-        
+        limits[2] = (-1)*(estimatedRewards * int(rewardsSlippage) / 10000);
+
+        uint256 balBef = want.balanceOf(address(this));
         balancerVault.batchSwap(
             IBalancerV2Vault.SwapKind.GIVEN_IN, 
             swaps, 
@@ -331,7 +338,6 @@ contract RocketAuraStrategy is BaseStrategy {
             return (_amountNeeded, 0);
         }
 
-        if(earmark) IAuraBooster(auraBooster).earmarkRewards(15);
         withdrawSome(_amountNeeded);
 
         _wethBal = want.balanceOf(address(this));
@@ -344,6 +350,11 @@ contract RocketAuraStrategy is BaseStrategy {
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
+        IConvexRewards(auraBRethStable).getReward(address(this), true);
+        _sellBalAndAura(
+            IERC20(balToken).balanceOf(address(this)), 
+            IERC20(auraToken).balanceOf(address(this))
+        );
         _exitPosition(IERC20(auraBRethStable).balanceOf(address(this)));
         return want.balanceOf(address(this));
     }
@@ -351,12 +362,7 @@ contract RocketAuraStrategy is BaseStrategy {
     function _exitPosition(uint256 bptAmount) internal {
         IConvexRewards(auraBRethStable).withdrawAndUnwrap(
             bptAmount, 
-            true
-        );
-
-        _sellBalAndAura(
-            IERC20(balToken).balanceOf(address(this)),
-            IERC20(auraToken).balanceOf(address(this))
+            false
         );
 
         address[] memory _assets = new address[](2);
@@ -365,7 +371,7 @@ contract RocketAuraStrategy is BaseStrategy {
         
         uint256[] memory _minAmountsOut = new uint256[](2);
         _minAmountsOut[0] = 0;
-        _minAmountsOut[1] = bptToWant(bptAmount) * slippage / 10000;
+        _minAmountsOut[1] = bptToWant(bptAmount) * bptSlippage / 10000;
 
         bytes memory userData = abi.encode(
             IBalancerV2Vault.ExitKind.EXACT_BPT_IN_FOR_ONE_TOKEN_OUT, 
@@ -435,13 +441,14 @@ contract RocketAuraStrategy is BaseStrategy {
         return _amtInWei;
     }
 
-    function setSlippage(uint256 _slippage) external onlyStrategist {
+    function setBptSlippage(uint256 _slippage) external onlyStrategist {
         require(_slippage < 10_000, "!_slippage");
-        slippage = _slippage;
+        bptSlippage = _slippage;
     }
 
-    function setEarmark(bool _earmark) external onlyStrategist {
-        earmark = _earmark;
+    function setRewardsSlippage(uint256 _slippage) external onlyStrategist {
+        require(_slippage < 10_000, "!_slippage");
+        rewardsSlippage = _slippage;
     }
 
     function getFundManagement() 
