@@ -38,16 +38,19 @@ interface IBalancerPriceOracle {
     //   USDC in which BPT is worth $5 will be 5.0, despite the BPT having 18 decimals and USDC 6.
     //
     // - INVARIANT: the value of the Pool's invariant, which serves as a measure of its liquidity.
-    enum Variable { PAIR_PRICE, BPT_PRICE, INVARIANT }
+    enum Variable {
+        PAIR_PRICE,
+        BPT_PRICE,
+        INVARIANT
+    }
 
     /**
      * @dev Returns the time average weighted price corresponding to each of `queries`. Prices are represented as 18
      * decimal fixed point values.
      */
-    function getTimeWeightedAverage(OracleAverageQuery[] memory queries)
-        external
-        view
-        returns (uint256[] memory results);
+    function getTimeWeightedAverage(
+        OracleAverageQuery[] memory queries
+    ) external view returns (uint256[] memory results);
 
     /**
      * @dev Returns latest sample of `variable`. Prices are represented as 18 decimal fixed point values.
@@ -79,10 +82,9 @@ interface IBalancerPriceOracle {
     /**
      * @dev Returns the accumulators corresponding to each of `queries`.
      */
-    function getPastAccumulators(OracleAccumulatorQuery[] memory queries)
-        external
-        view
-        returns (int256[] memory results);
+    function getPastAccumulators(
+        OracleAccumulatorQuery[] memory queries
+    ) external view returns (int256[] memory results);
 
     /**
      * @dev Information for an Accumulator query.

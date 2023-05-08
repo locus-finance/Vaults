@@ -1,0 +1,4 @@
+{
+    "filter_paths": "/mocks/", "/integrations/"
+    "detectors_to_exclude": "naming-convention", "unused-state", "unchecked-transfer", "unused-return", "events-access", "events-maths", "missing-zero-check", "assembly", "pragma", "solc-version", "similar-names", "too-many-digits", "external-function"
+}

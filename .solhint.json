@@ -25,6 +25,7 @@
         "reentrancy": "error",
         "state-visibility": "warn",
         "max-line-length": ["error", 150],
-        "not-rely-on-time": "off"
+        "not-rely-on-time": "off",
+        "no-console": "off"
     }
 }
