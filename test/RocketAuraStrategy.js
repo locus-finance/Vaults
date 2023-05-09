@@ -1,4 +1,4 @@
-const { loadFixture, mine } = require("@nomicfoundation/hardhat-network-helpers");
+const { loadFixture, mine, time } = require("@nomicfoundation/hardhat-network-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
@@ -521,6 +521,24 @@ describe("RocketAuraStrategy", function () {
             dai
         )).to.be.equal(BigNumber.from('1000000000000000000'));
     });
+
+    it('should not get aura rewards after inflation protection time', async function () {
+        const { strategy } = await loadFixture(deployContractAndSetVariables); 
+
+        expect(
+            await strategy.auraRewards(ethers.utils.parseEther('1'))
+        ).to.be.equal(ethers.utils.parseEther('3.4'));
+
+        const iAuraToken = await ethers.getContractAt("IAuraToken", aura);
+        const minter = await iAuraToken.minter();
+        const iAuraMinter = await ethers.getContractAt("IAuraMinter", minter);
+        const inflationProtectionTime = await iAuraMinter.inflationProtectionTime();
+
+        await time.setNextBlockTimestamp(inflationProtectionTime);
+        mine(2);
+
+        expect(
+            await strategy.auraRewards(ethers.utils.parseEther('1'))
+        ).to.be.equal(0);
+    });
 });
-
-
