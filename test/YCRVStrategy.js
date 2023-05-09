@@ -134,6 +134,18 @@ describe("YCRVStrategy", function () {
             deployContractAndSetVariables
         );
         expect(await strategy.vault()).to.equal(vault.address);
+        expect(await strategy.name()).to.equal("StrategyYearn");
+    });
+
+    it("should get reasonable prices from oracle", async function () {
+        const { strategy } = await loadFixture(deployContractAndSetVariables);
+        const ethPrice = await strategy.ethToWant(ethers.utils.parseEther("1"));
+        expect(Number(ethPrice)).to.be.greaterThan(0);
+
+        const stYCRVPrice = await strategy.stYCRVToWant(
+            ethers.utils.parseEther("1")
+        );
+        expect(Number(stYCRVPrice)).to.be.greaterThan(0);
     });
 
     it("should harvest with a profit", async function () {
@@ -207,6 +219,22 @@ describe("YCRVStrategy", function () {
             balanceBefore,
             ethers.utils.parseUnits("100", 6)
         );
+
+        const newWhaleBalance = await want.balanceOf(whale.address);
+        await vault.connect(whale)["deposit(uint256)"](newWhaleBalance);
+
+        await dealTokensToAddress(strategy.address, TOKENS.USDC, "1000");
+        await vault
+            .connect(whale)
+            ["withdraw(uint256,address,uint256)"](
+                await vault.balanceOf(whale.address),
+                whale.address,
+                1000
+            );
+        expect(Number(await want.balanceOf(whale.address))).to.be.closeTo(
+            newWhaleBalance,
+            ethers.utils.parseUnits("100", 6)
+        );
     });
 
     it("should withdraw with loss", async function () {
@@ -268,6 +296,16 @@ describe("YCRVStrategy", function () {
                     0
                 )
         ).to.be.reverted;
+    });
+
+    it("should change slippage", async function () {
+        const { strategy, whale, deployer } = await loadFixture(
+            deployContractAndSetVariables
+        );
+
+        await expect(strategy.connect(whale).setSlippage(0)).to.be.reverted;
+        await strategy.connect(deployer).setSlippage(100);
+        expect(await strategy.slippage()).to.equal(100);
     });
 
     it("should emergency exit", async function () {
