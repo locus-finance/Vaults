@@ -6,6 +6,7 @@ const { ethers } = require("hardhat");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 
+const usdt = "0xdac17f958d2ee523a2206206994597c13d831ec7";
 const dai = "0x6b175474e89094c44da98b954eedeac495271d0f";
 const bal = "0xba100000625a3754423978a60c9317c58a424e3D";
 const aura = "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF";
@@ -146,6 +147,45 @@ describe("RocketAuraStrategy", function () {
         );
 
         expect(Number(await want.balanceOf(whale.address))).to.be.greaterThan(Number(balanceBefore));
+    });
+
+    it('should fail harvest with small bpt slippage', async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
+
+        const balanceBefore = await want.balanceOf(whale.address);
+        
+        await strategy.connect(deployer)['setBptSlippage(uint256)'](9999);
+        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
+        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('10'));
+        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
+        await expect(strategy.connect(deployer).harvest()).to.be.reverted;
+
+        await strategy.connect(deployer)['setBptSlippage(uint256)'](9900);
+        await strategy.connect(deployer).harvest();
+        expect(await strategy.estimatedTotalAssets())
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.0025'));
+    });
+
+
+    it('should fail harvest with small rewards slippage', async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
+
+        const balanceBefore = await want.balanceOf(whale.address);
+        
+        await strategy.connect(deployer)['setRewardsSlippage(uint256)'](9999);
+        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
+        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('10'));
+        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
+
+        await strategy.connect(deployer).harvest();
+        mine(38000); // get more rewards
+
+        await expect(strategy.connect(deployer).harvest()).to.be.reverted;
+
+        await strategy.connect(deployer)['setRewardsSlippage(uint256)'](9700);
+        await strategy.connect(deployer).harvest();
+        expect(await strategy.estimatedTotalAssets())
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.0025'));
     });
 
     it('should withdraw requested amount', async function () {
@@ -454,6 +494,32 @@ describe("RocketAuraStrategy", function () {
             oneEther, 
             ethers.utils.parseEther('0.0025')
         );
+    });
+
+    it('should scale decimals', async function () {
+        const { vault } = await loadFixture(deployContractAndSetVariables); 
+
+        const TestScaler = await ethers.getContractFactory('TestScaler');
+        const testScaler = await TestScaler.deploy(vault.address);
+        await testScaler.deployed();
+
+        expect(await testScaler.scaleDecimals(
+            ethers.utils.parseEther('1'),
+            usdt,
+            bal
+        )).to.be.equal(BigNumber.from('1000000000000000000000000000000'));
+
+        expect(await testScaler.scaleDecimals(
+            ethers.utils.parseEther('1'),
+            bal,
+            usdt
+        )).to.be.equal(BigNumber.from('1000000'));
+
+        expect(await testScaler.scaleDecimals(
+            ethers.utils.parseEther('1'),
+            bal,
+            dai
+        )).to.be.equal(BigNumber.from('1000000000000000000'));
     });
 });
 
