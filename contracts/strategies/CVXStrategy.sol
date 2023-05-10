@@ -10,11 +10,31 @@ import {OracleLibrary} from "@uniswap/v3-periphery/contracts/libraries/OracleLib
 
 import "hardhat/console.sol";
 
+import {Utils} from "../utils/Utils.sol";
 import "../integrations/balancer/IBalancerPriceOracle.sol";
 import "../integrations/curve/ICurve.sol";
+import "../integrations/convex/IConvexRewards.sol";
 
 contract CVXStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
+
+    address internal constant USDC_ETH_UNI_V3_POOL =
+        0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640;
+    address internal constant CRV_USDC_UNI_V3_POOL =
+        0x9445bd19767F73DCaE6f2De90e6cd31192F62589;
+    address internal constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address internal constant CRV = 0xD533a949740bb3306d119CC777fa900bA034cd52;
+
+    address internal constant CURVE_CVX_ETH_POOL =
+        0xB576491F1E6e5E62f1d8F26062Ee822B40B0E0d4;
+    address internal constant CURVE_CVX_ETH_LP =
+        0x3A283D9c08E8b55966afb64C515f5143cf907611;
+    address internal constant ETH_CVX_CONVEX_DEPOSIT =
+        0xF403C135812408BFbE8713b5A23a04b3D48AAE31;
+    address internal constant ETH_CVX_CONVEX_CRV_REWARDS =
+        0xb1Fb0BA0676A1fFA83882c7F4805408bA232C1fA;
+    address internal constant CONVEX_CVX_REWARD_POOL =
+        0x834B9147Fd23bF131644aBC6e557Daf99C5cDa15;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
     uint256 public slippage = 9500; // 5%
@@ -34,6 +54,27 @@ contract CVXStrategy is BaseStrategy {
         return want.balanceOf(address(this));
     }
 
+    function balanceOfCurveLPStaked() public view returns (uint256) {
+        return
+            IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).balanceOf(address(this));
+    }
+
+    function balanceOfCrvRewards() public view returns (uint256) {
+        return IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).earned(address(this));
+    }
+
+    function balanceOfCvxRewards() public view returns (uint256) {
+        return IConvexRewards(CONVEX_CVX_REWARD_POOL).earned(address(this));
+    }
+
+    function curveLPToWant(uint256 _lpTokens) public view returns (uint256) {
+        uint256 ethAmount = ICurve(CURVE_CVX_ETH_POOL).calc_withdraw_one_coin(
+            _lpTokens,
+            0
+        );
+        return ethToWant(ethAmount);
+    }
+
     function _withdrawSome(uint256 _amountNeeded) internal {}
 
     function _exitPosition(uint256) internal {}
@@ -41,23 +82,30 @@ contract CVXStrategy is BaseStrategy {
     function ethToWant(
         uint256 _amtInWei
     ) public view override returns (uint256) {
-        IBalancerPriceOracle.OracleAverageQuery[] memory queries;
-        queries = new IBalancerPriceOracle.OracleAverageQuery[](1);
-        queries[0] = IBalancerPriceOracle.OracleAverageQuery({
-            variable: IBalancerPriceOracle.Variable.PAIR_PRICE,
-            secs: TWAP_RANGE_SECS,
-            ago: 0
-        });
-
-        uint256[] memory results;
-        results = IBalancerPriceOracle(USDC_WETH_BALANCER_POOL)
-            .getTimeWeightedAverage(queries);
-
+        (int24 meanTick, ) = OracleLibrary.consult(
+            USDC_ETH_UNI_V3_POOL,
+            TWAP_RANGE_SECS
+        );
         return
-            Utils.scaleDecimals(
-                (_amtInWei * results[0]) / 1e18,
-                ERC20(WETH),
-                ERC20(address(want))
+            OracleLibrary.getQuoteAtTick(
+                meanTick,
+                uint128(_amtInWei),
+                WETH,
+                address(want)
+            );
+    }
+
+    function crvToWant(uint256 crvTokens) public view returns (uint256) {
+        (int24 meanTick, ) = OracleLibrary.consult(
+            CRV_USDC_UNI_V3_POOL,
+            TWAP_RANGE_SECS
+        );
+        return
+            OracleLibrary.getQuoteAtTick(
+                meanTick,
+                uint128(crvTokens),
+                CRV,
+                address(want)
             );
     }
 
@@ -68,6 +116,7 @@ contract CVXStrategy is BaseStrategy {
         returns (uint256 _wants)
     {
         _wants = balanceOfWant();
+        _wants += curveLPToWant(balanceOfCurveLPStaked());
     }
 
     function prepareReturn(

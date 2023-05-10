@@ -37,6 +37,11 @@ interface ICurve {
     ) external view returns (uint256);
 
     function get_virtual_price() external view returns (uint256);
+
+    function calc_withdraw_one_coin(
+        uint256 token_amount,
+        uint256 i
+    ) external view returns (uint256);
 }
 
 interface ICurveSwapRouter {
