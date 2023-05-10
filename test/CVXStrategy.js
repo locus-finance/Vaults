@@ -10,7 +10,7 @@ const { ethers } = require("hardhat");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 
-describe.only("CVXStrategy", function () {
+describe("CVXStrategy", function () {
     const TOKENS = {
         USDC: {
             address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
@@ -135,5 +135,33 @@ describe.only("CVXStrategy", function () {
         );
         expect(await strategy.vault()).to.equal(vault.address);
         console.log(await strategy.ethToWant(utils.parseEther("3")));
+    });
+
+    it("should get reasonable prices from oracle", async function () {
+        const { strategy } = await loadFixture(deployContractAndSetVariables);
+
+        console.log(await strategy.crvToWant(ethers.utils.parseEther("1")));
+        console.log(await strategy.ethToWant(ethers.utils.parseEther("1")));
+    });
+
+    it.only("sanity check", async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(
+            deployContractAndSetVariables
+        );
+
+        const balanceBefore = await want.balanceOf(whale.address);
+        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
+        expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
+
+        await strategy.connect(deployer).harvest();
+
+        console.log("CVX rewards:", await strategy.balanceOfCvxRewards());
+        console.log("CRV rewards:", await strategy.balanceOfCrvRewards());
+
+        await mine(36000);
+        await time.increase(36000);
+
+        console.log("CVX rewards:", await strategy.balanceOfCvxRewards());
+        console.log("CRV rewards:", await strategy.balanceOfCrvRewards());
     });
 });

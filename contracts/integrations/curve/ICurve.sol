@@ -42,6 +42,12 @@ interface ICurve {
         uint256 token_amount,
         uint256 i
     ) external view returns (uint256);
+
+    function add_liquidity(
+        uint256[2] memory amounts,
+        uint256 min_mint_amount,
+        bool use_eth
+    ) external payable returns (uint256);
 }
 
 interface ICurveSwapRouter {
