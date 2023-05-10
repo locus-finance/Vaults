@@ -44,6 +44,10 @@ describe("YCRVStrategy", function () {
             await ethers.getSigners();
         const USDC_ADDRESS = TOKENS.USDC.address;
         const want = await ethers.getContractAt(IERC20_SOURCE, USDC_ADDRESS);
+        const stYCRV = await ethers.getContractAt(
+            IERC20_SOURCE,
+            TOKENS.ST_YCRV.address
+        );
 
         const name = "YCRV Vault";
         const symbol = "vYCRV";
@@ -62,7 +66,9 @@ describe("YCRVStrategy", function () {
             ethers.utils.parseEther("10000")
         );
 
-        const YCRVStrategy = await ethers.getContractFactory("YCRVStrategy");
+        const YCRVStrategy = await ethers.getContractFactory(
+            "MockYCRVStrategy"
+        );
         const strategy = await YCRVStrategy.deploy(vault.address);
         await strategy.deployed();
 
@@ -86,6 +92,7 @@ describe("YCRVStrategy", function () {
             vault,
             deployer,
             want,
+            stYCRV,
             whale,
             governance,
             treasury,
@@ -298,12 +305,74 @@ describe("YCRVStrategy", function () {
         ).to.be.reverted;
     });
 
+    it("should withdraw without loss", async function () {
+        const { vault, stYCRV, strategy, whale, deployer, want } =
+            await loadFixture(deployContractAndSetVariables);
+
+        const balanceBefore = await want.balanceOf(whale.address);
+        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
+        expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
+
+        await strategy.connect(deployer).harvest();
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            balanceBefore,
+            ethers.utils.parseUnits("100", 6)
+        );
+
+        // Dropping some USDC to strategy for accodomating loss
+        await dealTokensToAddress(strategy.address, TOKENS.USDC, "500");
+        // Force to sell all stYCRV to fulfill withdraw request for 100%
+        await strategy.overrideWantToStYCRV(
+            await stYCRV.balanceOf(strategy.address)
+        );
+
+        await vault
+            .connect(whale)
+            ["withdraw(uint256,address,uint256)"](
+                await vault.balanceOf(whale.address),
+                whale.address,
+                0
+            );
+        expect(Number(await want.balanceOf(whale.address))).to.be.equal(
+            balanceBefore
+        );
+    });
+
+    it("should report loss without withdrawing funds", async function () {
+        const { vault, stYCRV, strategy, whale, deployer, want } =
+            await loadFixture(deployContractAndSetVariables);
+
+        const balanceBefore = await want.balanceOf(whale.address);
+        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
+        expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
+
+        await strategy.connect(deployer).harvest();
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            balanceBefore,
+            ethers.utils.parseUnits("100", 6)
+        );
+
+        const stYCRVBalanceBefore = await stYCRV.balanceOf(strategy.address);
+
+        expect(Number(await strategy.estimatedTotalAssets())).to.be.greaterThan(
+            0
+        );
+        await strategy.overrideEstimatedTotalAssets(0);
+        expect(Number(await strategy.estimatedTotalAssets())).to.be.equal(0);
+        await strategy.connect(deployer).harvest();
+
+        const stYCRVBalanceAfter = await stYCRV.balanceOf(strategy.address);
+        expect(stYCRVBalanceBefore).to.be.equal(stYCRVBalanceAfter);
+    });
+
     it("should change slippage", async function () {
         const { strategy, whale, deployer } = await loadFixture(
             deployContractAndSetVariables
         );
 
         await expect(strategy.connect(whale).setSlippage(0)).to.be.reverted;
+        await expect(strategy.connect(deployer).setSlippage(10_000)).to.be
+            .reverted;
         await strategy.connect(deployer).setSlippage(100);
         expect(await strategy.slippage()).to.equal(100);
     });
@@ -565,5 +634,25 @@ describe("YCRVStrategy", function () {
             balanceBefore,
             ethers.utils.parseUnits("100", 6)
         );
+    });
+
+    it("should scale decimals", async function () {
+        const { strategy } = await loadFixture(deployContractAndSetVariables);
+
+        expect(
+            await strategy.scaleDecimals(
+                ethers.utils.parseUnits("100", 6),
+                TOKENS.USDC.address,
+                TOKENS.DAI.address
+            )
+        ).to.be.equal(ethers.utils.parseEther("100"));
+
+        expect(
+            await strategy.scaleDecimals(
+                ethers.utils.parseEther("100"),
+                TOKENS.DAI.address,
+                TOKENS.USDC.address
+            )
+        ).to.be.equal(ethers.utils.parseUnits("100", 6));
     });
 });

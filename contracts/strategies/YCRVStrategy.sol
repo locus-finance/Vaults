@@ -91,7 +91,7 @@ contract YCRVStrategy is ICRVStrategy, BaseStrategy {
 
     function wantToStYCrv(
         uint256 wantTokens
-    ) public view override returns (uint256) {
+    ) public view virtual override returns (uint256) {
         uint256 stYCrvRate = 1e36 / stYCRVToWant(1e18);
         return (wantTokens * stYCrvRate) / 1e18;
     }
@@ -193,6 +193,7 @@ contract YCRVStrategy is ICRVStrategy, BaseStrategy {
     function estimatedTotalAssets()
         public
         view
+        virtual
         override
         returns (uint256 _wants)
     {
