@@ -5,15 +5,10 @@ const {
 } = require("@nomicfoundation/hardhat-network-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
-const { utils, BigNumber } = require("ethers");
+const { utils } = require("ethers");
 const { ethers } = require("hardhat");
-const { smock } = require("@defi-wonderland/smock");
-const chai = require("chai");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
-
-chai.should();
-chai.use(smock.matchers);
 
 describe("YCRVStrategy", function () {
     const TOKENS = {
@@ -67,7 +62,7 @@ describe("YCRVStrategy", function () {
             ethers.utils.parseEther("10000")
         );
 
-        const YCRVStrategy = await smock.mock("YCRVStrategy");
+        const YCRVStrategy = await ethers.getContractFactory("YCRVStrategy");
         const strategy = await YCRVStrategy.deploy(vault.address);
         await strategy.deployed();
 
@@ -301,25 +296,6 @@ describe("YCRVStrategy", function () {
                     0
                 )
         ).to.be.reverted;
-    });
-
-    it.only("should report loss without withdrawing funds", async function () {
-        const { vault, strategy, whale, deployer, want } = await loadFixture(
-            deployContractAndSetVariables
-        );
-
-        const balanceBefore = await want.balanceOf(whale.address);
-        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
-        expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
-
-        await strategy.connect(deployer).harvest();
-        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
-            balanceBefore,
-            ethers.utils.parseUnits("100", 6)
-        );
-
-        strategy.estimatedTotalAssets.returns(BigNumber.from(10));
-        console.log("total assets:", await strategy.estimatedTotalAssets());
     });
 
     it("should change slippage", async function () {
