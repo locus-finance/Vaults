@@ -37,6 +37,16 @@ describe("CVXStrategy", function () {
             whale: "0x60faae176336dab62e284fe19b885b095d29fb7f",
             decimals: 18,
         },
+        CRV: {
+            address: "0xD533a949740bb3306d119CC777fa900bA034cd52",
+            whale: "0xF977814e90dA44bFA03b6295A0616a897441aceC",
+            decimals: 18,
+        },
+        CVX: {
+            address: "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B",
+            whale: "0xcba0074a77A3aD623A80492Bb1D8d932C62a8bab",
+            decimals: 18,
+        },
     };
 
     async function deployContractAndSetVariables() {
@@ -118,7 +128,7 @@ describe("CVXStrategy", function () {
 
         await ethWhale.sendTransaction({
             to: tokenWhale.address,
-            value: utils.parseEther("0.5"),
+            value: utils.parseEther("50"),
         });
 
         await token
@@ -144,7 +154,7 @@ describe("CVXStrategy", function () {
         console.log(await strategy.ethToWant(ethers.utils.parseEther("1")));
     });
 
-    it.only("sanity check", async function () {
+    it("sanity check", async function () {
         const { vault, strategy, whale, deployer, want } = await loadFixture(
             deployContractAndSetVariables
         );
@@ -163,5 +173,37 @@ describe("CVXStrategy", function () {
 
         console.log("CVX rewards:", await strategy.balanceOfCvxRewards());
         console.log("CRV rewards:", await strategy.balanceOfCrvRewards());
+    });
+
+    it.only("deposit and withdraw", async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(
+            deployContractAndSetVariables
+        );
+
+        const balanceBefore = await want.balanceOf(whale.address);
+        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
+        expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
+
+        await strategy.connect(deployer).harvest();
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            balanceBefore,
+            ethers.utils.parseUnits("100", 6)
+        );
+
+        await vault
+            .connect(whale)
+            ["withdraw(uint256,address,uint256)"](
+                await vault.balanceOf(whale.address),
+                whale.address,
+                1000
+            );
+        // expect(await want.balanceOf(whale.address)).to.be.closeTo(
+        //     balanceBefore,
+        //     ethers.utils.parseUnits("100", 6)
+        // );
+        console.log(utils.formatUnits(await want.balanceOf(whale.address), 6));
+        console.log(
+            utils.formatUnits(await strategy.estimatedTotalAssets(), 6)
+        );
     });
 });
