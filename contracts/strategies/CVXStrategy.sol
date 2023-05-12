@@ -8,7 +8,6 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {OracleLibrary} from "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
 
-import "../utils/Utils.sol";
 import "../integrations/balancer/IBalancerPriceOracle.sol";
 import "../integrations/curve/ICurve.sol";
 import "../integrations/convex/IConvexRewards.sol";
@@ -41,7 +40,7 @@ contract CVXStrategy is BaseStrategy {
         0x834B9147Fd23bF131644aBC6e557Daf99C5cDa15;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
-    uint256 public slippage = 9900; // 5%
+    uint256 public slippage = 9500; // 5%
 
     constructor(address _vault) BaseStrategy(_vault) {
         want.approve(CURVE_SWAP_ROUTER, type(uint256).max);
@@ -72,12 +71,16 @@ contract CVXStrategy is BaseStrategy {
             IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).balanceOf(address(this));
     }
 
-    function balanceOfCrvRewards() public view returns (uint256) {
-        return IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).earned(address(this));
+    function balanceOfCrvRewards() public view virtual returns (uint256) {
+        return
+            ERC20(CRV).balanceOf(address(this)) +
+            IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).earned(address(this));
     }
 
-    function balanceOfCvxRewards() public view returns (uint256) {
-        return IConvexRewards(CONVEX_CVX_REWARD_POOL).earned(address(this));
+    function balanceOfCvxRewards() public view virtual returns (uint256) {
+        return
+            ERC20(CVX).balanceOf(address(this)) +
+            IConvexRewards(CONVEX_CVX_REWARD_POOL).earned(address(this));
     }
 
     function curveLPToWant(uint256 _lpTokens) public view returns (uint256) {
@@ -92,12 +95,17 @@ contract CVXStrategy is BaseStrategy {
         return ethToWant(ethAmount);
     }
 
-    function wantToCurveLP(uint256 _want) public view returns (uint256) {
+    function wantToCurveLP(
+        uint256 _want
+    ) public view virtual returns (uint256) {
         uint256 oneCurveLPPrice = curveLPToWant(1e18);
         return (_want * 1e18) / oneCurveLPPrice;
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {
+        if (_amountNeeded == 0) {
+            return;
+        }
         uint256 earnedCrv = balanceOfCrvRewards();
         uint256 earnedCvx = balanceOfCvxRewards();
         uint256 rewardsTotal = crvToWant(earnedCrv) + cvxToWant(earnedCvx);
@@ -167,6 +175,7 @@ contract CVXStrategy is BaseStrategy {
     function estimatedTotalAssets()
         public
         view
+        virtual
         override
         returns (uint256 _wants)
     {
