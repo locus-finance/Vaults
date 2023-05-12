@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0
 
-pragma solidity ^0.8.12;
+pragma solidity ^0.8.18;
 
 import {YCRVStrategy, ERC20} from "../strategies/YCRVStrategy.sol";
 
