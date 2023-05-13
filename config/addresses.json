@@ -42,11 +42,11 @@
     }
   },
   "STRATEGIES": {
-    "ROCKET_POOL_Strategy": {
+    "rETH_Mock_Strategy": {
       "SEPOLIA": "0x66633600383A279B46f81bd69b79E8D9d9215073"
     },
-    "LIDO_Strategy": {
-      "SEPOLIA": "0x66633600383A279B46f81bd69b79E8D9d9215073"
+    "wstETH_Mock_Strategy": {
+      "SEPOLIA": "0x44552Bc0B6ea5BB23716843cD4924CAbABaBde99"
     }
   },
 
