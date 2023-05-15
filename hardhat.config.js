@@ -54,6 +54,17 @@ module.exports = {
         localhost: {
         },
         hardhat: {
+            chainId: 43114,
+            forking: {
+                url: ETH_NODE,
+                blockNumber: 17125305,
+            },
+            allowUnlimitedContractSize: true,
+        },
+        eth_mainnet: {
+            url: ETH_NODE,
+            chainId: 1,
+            accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`]
         },
         optimismgoerli: {
             url: `https://rpc.ankr.com/optimism_testnet`,
@@ -130,7 +141,6 @@ module.exports = {
     flat: true,
     spacing: 2,
     only: [':Vault$', ':TestStrategy$']
-
   }
 };
 
@@ -170,7 +180,7 @@ subtask("flat:get-flattened-sources", "Returns all contracts and their dependenc
     .addOptionalParam("output", undefined, undefined, types.string)
     .setAction(async ({ files, output }, { run }) => {
         const dependencyGraph = await run("flat:get-dependency-graph", { files })
-        
+
         let flattened = ""
 
         if (dependencyGraph.getResolvedFiles().length === 0) {
@@ -222,16 +232,16 @@ subtask("flat:get-dependency-graph")
     })
 
 task("flat", "Flattens and prints contracts and their dependencies")
-    .addOptionalVariadicPositionalParam("files", "The files to flatten", undefined, types.inputFile)
-    .addOptionalParam("output", "Specify the output file", undefined, types.string)
-    .setAction(async ({ files, output }, { run }) => {
-        console.log(
-            await run("flat:get-flattened-sources", {
-                files,
-                output,
-            })
-        )
-    })
+.addOptionalVariadicPositionalParam("files", "The files to flatten", undefined, types.inputFile)
+.addOptionalParam("output", "Specify the output file", undefined, types.string)
+.setAction(async ({ files, output }, { run }) => {
+    console.log(
+        await run("flat:get-flattened-sources", {
+            files,
+            output,
+        })
+    )
+});
 
 subtask("compile:vyper:get-source-names").setAction(async (_, __, runSuper) => {
     const paths = await runSuper();

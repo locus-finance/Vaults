@@ -37,6 +37,24 @@ interface ICurve {
     ) external view returns (uint256);
 
     function get_virtual_price() external view returns (uint256);
+
+    function calc_withdraw_one_coin(
+        uint256 token_amount,
+        uint256 i
+    ) external view returns (uint256);
+
+    function add_liquidity(
+        uint256[2] memory amounts,
+        uint256 min_mint_amount,
+        bool use_eth
+    ) external payable returns (uint256);
+
+    function remove_liquidity_one_coin(
+        uint256 _token_amount,
+        uint256 i,
+        uint256 min_amount,
+        bool use_eth
+    ) external returns (uint256);
 }
 
 interface ICurveSwapRouter {
@@ -46,5 +64,5 @@ interface ICurveSwapRouter {
         uint256 _amount,
         uint256 _expected,
         address[4] memory _pools
-    ) external payable;
+    ) external payable returns (uint256);
 }

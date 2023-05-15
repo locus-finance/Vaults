@@ -1,19 +1,62 @@
 {
   "VAULTS": {
-      "ETHEREUM": " ",
-      "AVAX": " ",
-      "OPTIMISM": " ",
-      "ARBITRUM": " ",
-      "OPTIMISM_GOERLI": "0x4FAbCac711eA90B2025462034824C5eb102B8B7a",
-      "SEPOLIA": "0xD8647A1018B9b2edAaf3bDD3482621798AB4C2e4",
-      "GOERLI": " ",
-      "FUJI_AVAX": " "
+    "MAINNET" : {
+        "vETHVault" : {
+          "network" : "ETHEREUM",
+          "chainId" : "1",
+          "address": "",
+          "nativeToken": "ETH"
+        },
+        "dVault" : {
+          "network" : "ETHEREUM",
+          "chainId" : "1",
+          "address": "",
+          "nativeToken": "ETH"
+        },
+        "daVault" : {
+          "network" : "ARBITRUM ONE",
+          "chainId" : "42161",
+          "address": "",
+          "nativeToken": "ETH"
+        }
+      },
+    "TESTNET" : {
+      "vETHVault" : {
+        "network" : "SEPOLIA",
+        "chainId" : "11155111",
+        "address": "0xD8647A1018B9b2edAaf3bDD3482621798AB4C2e4",
+        "nativeToken": "ETH"
+      },
+      "dVault" : {
+        "network" : "SEPOLIA",
+        "chainId" : "11155111",
+        "address": "",
+        "nativeToken": "ETH"
+      },
+      "daVault" : {
+        "network" : "ARBITRUM GOERLI",
+        "chainId" : "421613",
+        "address": "",
+        "nativeToken": "ETH"
+      }
+    }
   },
-  "vETH_Strategy": {
-    "SEPOLIA": "0x66633600383A279B46f81bd69b79E8D9d9215073"
-  },
-  "vETH_Strategy": {
-    "SEPOLIA": "0x66633600383A279B46f81bd69b79E8D9d9215073"
+  "STRATEGIES": {
+    "MAINNET" : {},
+    "TESTNET" : {
+      "rETH_Mock_Strategy": {
+        "network" : "SEPOLIA",
+        "chainId" : "11155111",
+        "address": "0x66633600383A279B46f81bd69b79E8D9d9215073",
+        "nativeToken": "ETH"
+      },
+      "wstETH_Mock_Strategy": {
+        "network" : "SEPOLIA",
+        "chainId" : "11155111",
+        "address": "0x44552Bc0B6ea5BB23716843cD4924CAbABaBde99",
+        "nativeToken": "ETH"
+      }
+    }
   },
   "BALANCER": {
     "ethereum" : "0x"
