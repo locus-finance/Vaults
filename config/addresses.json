@@ -42,14 +42,22 @@
     }
   },
   "STRATEGIES": {
-    "rETH_Mock_Strategy": {
-      "SEPOLIA": "0x66633600383A279B46f81bd69b79E8D9d9215073"
-    },
-    "wstETH_Mock_Strategy": {
-      "SEPOLIA": "0x44552Bc0B6ea5BB23716843cD4924CAbABaBde99"
+    "MAINNET" : {},
+    "TESTNET" : {
+      "rETH_Mock_Strategy": {
+        "network" : "SEPOLIA",
+        "chainId" : "11155111",
+        "address": "0x66633600383A279B46f81bd69b79E8D9d9215073",
+        "nativeToken": "ETH"
+      },
+      "wstETH_Mock_Strategy": {
+        "network" : "SEPOLIA",
+        "chainId" : "11155111",
+        "address": "0x44552Bc0B6ea5BB23716843cD4924CAbABaBde99",
+        "nativeToken": "ETH"
+      }
     }
   },
-
   "BALANCER": {
     "ethereum" : "0x"
   },
