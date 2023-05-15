@@ -15,7 +15,7 @@ require('solidity-coverage');
 const fs = require("fs");
 
 
-const {   DEPLOYER_PRIVATE_KEY, PROD_DEPLOYER_PRIVATE_KEY, ETH_NODE
+const {   DEPLOYER_PRIVATE_KEY, PROD_DEPLOYER_PRIVATE_KEY, ETH_NODE, ARBITRUM_NODE, IS_ARB
     } = process.env;
 
 task("fork_reset", "Reset to local fork", async (taskArgs) => {
@@ -56,7 +56,7 @@ module.exports = {
         hardhat: {
             chainId: 43114,
             forking: {
-                url: ETH_NODE,
+                url: IS_ARB ? ARBITRUM_NODE : ETH_NODE,
                 blockNumber: 17293210,
             },
             allowUnlimitedContractSize: true,
