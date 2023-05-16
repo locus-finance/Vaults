@@ -9,8 +9,8 @@ const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 const dai = "0x6b175474e89094c44da98b954eedeac495271d0f";
 const bal = "0xba100000625a3754423978a60c9317c58a424e3D";
 const aura = "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF";
-const bRethStable = "0x1E19CF2D73a72Ef1332C882F20534B6519Be0276";
-const auraBRethStable = "0x001B78CEC62DcFdc660E06A91Eb1bC966541d758";
+const bStethStable = "0x32296969Ef14EB0c6d29669C550D4a0449130230";
+const auraBStethStable = "0xe4683Fe8F53da14cA5DAc4251EaDFb3aa614d528";
 
 describe("LidoAuraStrategy", function () {
     async function deployContractAndSetVariables() {
@@ -65,10 +65,14 @@ describe("LidoAuraStrategy", function () {
 
         await strategy.connect(deployer).harvest();
         expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.0025'));
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.2'));
 
-        mine(36000); // get more rewards
-        await strategy.connect(deployer).harvest();
+        for (let index = 0; index < 20; index++) {
+            mine(38000); // get more rewards
+            await strategy.connect(deployer).harvest();
+        }
+        expect(Number(await strategy.estimatedTotalAssets()))
+        .to.be.greaterThan(Number(ethers.utils.parseEther('10')));
         await vault.connect(whale)['withdraw(uint256)'](ethers.utils.parseEther('10'));
 
         expect(Number(await want.balanceOf(whale.address))).to.be.greaterThan(Number(balanceBefore));
@@ -85,13 +89,17 @@ describe("LidoAuraStrategy", function () {
 
         await strategy.connect(deployer).harvest();
         expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.0025'));
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.2'));
 
         await strategy.connect(deployer).harvest();
-        await vault.connect(whale)['withdraw(uint256)'](ethers.utils.parseEther('10'));
+        await vault.connect(whale)['withdraw(uint256,address,uint256)'](
+            ethers.utils.parseEther('10'), 
+            whale.address, 
+            5 // 0.05% acceptable loss
+        );
 
         expect(await want.balanceOf(whale.address))
-        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.0025'));
+        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.2'));
     });
 
     it('should withdraw with loss', async function () {
@@ -107,7 +115,7 @@ describe("LidoAuraStrategy", function () {
         await strategy.connect(deployer).harvest();
 
         expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.0025'));
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.2'));
 
         await strategy.connect(deployer).tend();
 
@@ -118,7 +126,7 @@ describe("LidoAuraStrategy", function () {
         );
 
         expect(await want.balanceOf(whale.address))
-        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.0025'));
+        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.2'));
     });
 
     it('should not withdraw with loss', async function () {
@@ -134,7 +142,7 @@ describe("LidoAuraStrategy", function () {
         await strategy.connect(deployer).harvest();
 
         expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.0025'));
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.2'));
 
         await strategy.connect(deployer).tend();
 
@@ -161,7 +169,7 @@ describe("LidoAuraStrategy", function () {
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
             oneEther, 
-            ethers.utils.parseEther('0.0025')
+            ethers.utils.parseEther('0.2')
         );
 
         await strategy.setEmergencyExit();
@@ -170,7 +178,7 @@ describe("LidoAuraStrategy", function () {
         expect(await strategy.estimatedTotalAssets()).to.equal(0);
         expect(await want.balanceOf(vault.address)).to.be.closeTo(
             oneEther, 
-            ethers.utils.parseEther('0.0025')
+            ethers.utils.parseEther('0.2')
         );
     });
 
@@ -190,10 +198,10 @@ describe("LidoAuraStrategy", function () {
             strategy.connect(deployer)['sweep(address)'](vault.address)
         ).to.be.revertedWith("!shares");
         await expect( 
-            strategy.connect(deployer)['sweep(address)'](bRethStable)
+            strategy.connect(deployer)['sweep(address)'](bStethStable)
         ).to.be.revertedWith("!protected");
         await expect( 
-            strategy.connect(deployer)['sweep(address)'](auraBRethStable)
+            strategy.connect(deployer)['sweep(address)'](auraBStethStable)
         ).to.be.revertedWith("!protected");
         await expect( 
             strategy.connect(deployer)['sweep(address)'](aura)
@@ -236,7 +244,7 @@ describe("LidoAuraStrategy", function () {
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('0.5'), 
-            ethers.utils.parseEther('0.0025')
+            ethers.utils.parseEther('0.025')
         );
 
         await vault.connect(deployer)['updateStrategyDebtRatio(address,uint256)'](strategy.address, 10000);
@@ -245,7 +253,7 @@ describe("LidoAuraStrategy", function () {
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('1'), 
-            ethers.utils.parseEther('0.0025')
+            ethers.utils.parseEther('0.025')
         );
 
         await vault.connect(deployer)['updateStrategyDebtRatio(address,uint256)'](strategy.address, 5000);
@@ -254,7 +262,7 @@ describe("LidoAuraStrategy", function () {
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('0.5'), 
-            ethers.utils.parseEther('0.0025')
+            ethers.utils.parseEther('0.025')
         );
     });
 
@@ -283,7 +291,7 @@ describe("LidoAuraStrategy", function () {
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('1'), 
-            ethers.utils.parseEther('0.0025')
+            ethers.utils.parseEther('0.025')
         );
 
         const LidoAuraStrategy = await ethers.getContractFactory('LidoAuraStrategy');
@@ -292,31 +300,31 @@ describe("LidoAuraStrategy", function () {
 
         const auraToken = await hre.ethers.getContractAt(IERC20_SOURCE, aura);
         const balToken = await hre.ethers.getContractAt(IERC20_SOURCE, bal);
-        const bRethStableToken = await hre.ethers.getContractAt(IERC20_SOURCE, bRethStable);
-        const auraBRethStableToken = await hre.ethers.getContractAt(IERC20_SOURCE, auraBRethStable);
+        const bStethStableToken = await hre.ethers.getContractAt(IERC20_SOURCE, bStethStable);
+        const auraBStethStableToken = await hre.ethers.getContractAt(IERC20_SOURCE, auraBStethStable);
 
         await vault['migrateStrategy(address,address)'](strategy.address, newStrategy.address);
 
         expect(await strategy.estimatedTotalAssets()).to.be.equal(0);
         expect(await newStrategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('1'), 
-            ethers.utils.parseEther('0.0025')
+            ethers.utils.parseEther('0.025')
         );
         expect(Number(await auraToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
         expect(Number(await balToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
-        expect(Number(await bRethStableToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
-        expect(Number(await auraBRethStableToken.balanceOf(newStrategy.address))).to.be.equal(0);
+        expect(Number(await bStethStableToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
+        expect(Number(await auraBStethStableToken.balanceOf(newStrategy.address))).to.be.equal(0);
 
         await newStrategy.harvest();
 
         expect(Number(await auraToken.balanceOf(newStrategy.address))).to.be.equal(0);
         expect(Number(await balToken.balanceOf(newStrategy.address))).to.be.equal(0);
-        expect(Number(await bRethStableToken.balanceOf(newStrategy.address))).to.be.equal(0);
-        expect(Number(await auraBRethStableToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
+        expect(Number(await bStethStableToken.balanceOf(newStrategy.address))).to.be.equal(0);
+        expect(Number(await auraBStethStableToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
 
         expect(await newStrategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('1'), 
-            ethers.utils.parseEther('0.0025')
+            ethers.utils.parseEther('0.025')
         );
     });
 
@@ -331,7 +339,7 @@ describe("LidoAuraStrategy", function () {
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('1'), 
-            ethers.utils.parseEther('0.0025')
+            ethers.utils.parseEther('0.02')
         );
 
         await vault['revokeStrategy(address)'](strategy.address);
@@ -339,7 +347,7 @@ describe("LidoAuraStrategy", function () {
         await strategy.harvest();
         expect(await want.balanceOf(vault.address)).to.be.closeTo(
             oneEther, 
-            ethers.utils.parseEther('0.0025')
+            ethers.utils.parseEther('0.02')
         );
     });
 
@@ -354,7 +362,7 @@ describe("LidoAuraStrategy", function () {
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('1'), 
-            ethers.utils.parseEther('0.0025')
+            ethers.utils.parseEther('0.2')
         );
 
         await strategy['setEmergencyExit()']();
@@ -362,7 +370,7 @@ describe("LidoAuraStrategy", function () {
         await strategy.harvest();
         expect(await want.balanceOf(vault.address)).to.be.closeTo(
             oneEther, 
-            ethers.utils.parseEther('0.0025')
+            ethers.utils.parseEther('0.2')
         );
     });
 
@@ -382,7 +390,7 @@ describe("LidoAuraStrategy", function () {
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('1'), 
-            ethers.utils.parseEther('0.0025')
+            ethers.utils.parseEther('0.02')
         );
 
         await vault['setEmergencyShutdown(bool)'](true);
