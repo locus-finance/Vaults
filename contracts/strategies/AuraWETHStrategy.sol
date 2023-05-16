@@ -48,7 +48,7 @@ contract AuraWETHStrategy is BaseStrategy {
     bytes32 internal constant STABLE_POOL_BALANCER_POOL_ID =
         0x79c58f70905f734641735bc61e45c19dd9ad60bc0000000000000000000004e7;
     bytes32 internal constant WETH_AURA_BALANCER_POOL_ID =
-        0x79c58f70905f734641735bc61e45c19dd9ad60bc0000000000000000000004e7;
+        0xcfca23ca9ca720b6e98e3eb9b6aa0ffc4a5c08b9000200000000000000000274;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
     uint256 public slippage = 9500; // 5%
@@ -56,6 +56,7 @@ contract AuraWETHStrategy is BaseStrategy {
     constructor(address _vault) BaseStrategy(_vault) {
         want.approve(address(balancerVault), type(uint256).max);
         ERC20(AURA).approve(address(balancerVault), type(uint256).max);
+        ERC20(WETH).approve(address(balancerVault), type(uint256).max);
     }
 
     function name() external pure override returns (string memory) {
@@ -65,6 +66,10 @@ contract AuraWETHStrategy is BaseStrategy {
     /// @notice Balance of want sitting in our strategy.
     function balanceOfWant() public view returns (uint256) {
         return want.balanceOf(address(this));
+    }
+
+    function balanceOfUnstakedBpt() public view returns (uint256) {
+        return IERC20(WETH_AURA_BALANCER_POOL).balanceOf(address(this));
     }
 
     function estimatedTotalAssets()
@@ -206,7 +211,7 @@ contract AuraWETHStrategy is BaseStrategy {
             bytes memory _userData = abi.encode(
                 IBalancerV2Vault.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT,
                 _amountsIn,
-                uint256(100)
+                0
             );
 
             IBalancerV2Vault.JoinPoolRequest memory _request;
@@ -224,10 +229,7 @@ contract AuraWETHStrategy is BaseStrategy {
                 request: _request
             });
 
-            console.log(
-                "Got LP",
-                ERC20(WETH_AURA_BALANCER_POOL).balanceOf(address(this))
-            );
+            console.log("Got LP", balanceOfUnstakedBpt());
         }
     }
 
