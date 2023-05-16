@@ -2,6 +2,7 @@ import "../strategies/RocketAuraStrategy.sol";
 
 contract TestScaler is RocketAuraStrategy {
     constructor(address _vault) RocketAuraStrategy(_vault) {}
+
     function scaleDecimals(
         uint _amount,
         ERC20 _fromToken,

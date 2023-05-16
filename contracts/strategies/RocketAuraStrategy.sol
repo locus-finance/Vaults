@@ -225,17 +225,14 @@ contract RocketAuraStrategy is BaseStrategy {
         }
     }
 
-    function adjustPosition(uint256 _debtOutstanding) 
-        internal 
-        override 
-    {
-        if(balRewards() > 0) {
+    function adjustPosition(uint256 _debtOutstanding) internal override {
+        if (balRewards() > 0) {
             IConvexRewards(auraBRethStable).getReward(address(this), true);
         }
         _sellBalAndAura(
-            IERC20(balToken).balanceOf(address(this)), 
+            IERC20(balToken).balanceOf(address(this)),
             IERC20(auraToken).balanceOf(address(this))
-        ); 
+        );
 
         uint256 _wethBal = want.balanceOf(address(this));
         if (_wethBal > _debtOutstanding) {
@@ -253,7 +250,8 @@ contract RocketAuraStrategy is BaseStrategy {
             _maxAmountsIn[0] = 0;
             _maxAmountsIn[1] = _excessWeth;
 
-            uint256 _minimumBPT = wantToBpt(_excessWeth) * bptSlippage / 10000; 
+            uint256 _minimumBPT = (wantToBpt(_excessWeth) * bptSlippage) /
+                10000;
 
             bytes memory _userData = abi.encode(
                 IBalancerV2Vault.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT,
@@ -276,7 +274,7 @@ contract RocketAuraStrategy is BaseStrategy {
                 request: _request
             });
         }
-        if(_wethBal > _debtOutstanding || balanceOfUnstakedBpt() > 0){
+        if (_wethBal > _debtOutstanding || balanceOfUnstakedBpt() > 0) {
             bool auraSuccess = IAuraDeposit(auraBooster).deposit(
                 15, // PID
                 IBalancerPool(bRethStable).balanceOf(address(this)),
@@ -286,12 +284,11 @@ contract RocketAuraStrategy is BaseStrategy {
         }
     }
 
-    function _sellBalAndAura(uint256 _balAmount, uint256 _auraAmount)
-        internal
-    {
-        if(_balAmount == 0 || _auraAmount == 0) return;
+    function _sellBalAndAura(uint256 _balAmount, uint256 _auraAmount) internal {
+        if (_balAmount == 0 || _auraAmount == 0) return;
 
-        IBalancerV2Vault.BatchSwapStep[] memory swaps = new IBalancerV2Vault.BatchSwapStep[](2);
+        IBalancerV2Vault.BatchSwapStep[]
+            memory swaps = new IBalancerV2Vault.BatchSwapStep[](2);
 
         // bal to weth
         swaps[0] = IBalancerV2Vault.BatchSwapStep({
@@ -315,12 +312,14 @@ contract RocketAuraStrategy is BaseStrategy {
         assets[0] = balToken;
         assets[1] = auraToken;
         assets[2] = address(want);
-        
-        int estimatedRewards = int(balToWant(_balAmount) + auraToWant(_auraAmount));
+
+        int estimatedRewards = int(
+            balToWant(_balAmount) + auraToWant(_auraAmount)
+        );
         int[] memory limits = new int[](3);
         limits[0] = int(_balAmount);
         limits[1] = int(_auraAmount);
-        limits[2] = (-1)*(estimatedRewards * int(rewardsSlippage) / 10000);
+        limits[2] = (-1) * ((estimatedRewards * int(rewardsSlippage)) / 10000);
 
         balancerVault.batchSwap(
             IBalancerV2Vault.SwapKind.GIVEN_IN,
@@ -365,7 +364,7 @@ contract RocketAuraStrategy is BaseStrategy {
     function liquidateAllPositions() internal override returns (uint256) {
         IConvexRewards(auraBRethStable).getReward(address(this), true);
         _sellBalAndAura(
-            IERC20(balToken).balanceOf(address(this)), 
+            IERC20(balToken).balanceOf(address(this)),
             IERC20(auraToken).balanceOf(address(this))
         );
         _exitPosition(IERC20(auraBRethStable).balanceOf(address(this)));
@@ -373,10 +372,7 @@ contract RocketAuraStrategy is BaseStrategy {
     }
 
     function _exitPosition(uint256 bptAmount) internal {
-        IConvexRewards(auraBRethStable).withdrawAndUnwrap(
-            bptAmount, 
-            false
-        );
+        IConvexRewards(auraBRethStable).withdrawAndUnwrap(bptAmount, false);
 
         address[] memory _assets = new address[](2);
         _assets[0] = rETH;
@@ -384,7 +380,7 @@ contract RocketAuraStrategy is BaseStrategy {
 
         uint256[] memory _minAmountsOut = new uint256[](2);
         _minAmountsOut[0] = 0;
-        _minAmountsOut[1] = bptToWant(bptAmount) * bptSlippage / 10000;
+        _minAmountsOut[1] = (bptToWant(bptAmount) * bptSlippage) / 10000;
 
         bytes memory userData = abi.encode(
             IBalancerV2Vault.ExitKind.EXACT_BPT_IN_FOR_ONE_TOKEN_OUT,

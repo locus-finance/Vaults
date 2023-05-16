@@ -2,7 +2,7 @@
 // Feel free to change the license, but this is what we use
 pragma solidity ^0.8.18;
 
-import {DexSwapper, IERC20, IV3SwapRouter, IWETH, IUniswapV3Factory} from "./DexSwapper.sol";
+import {DexSwapper, IERC20, IV3SwapRouter, IWETH, IUniswapV3Factory} from "../utils/DexSwapper.sol";
 import {BaseStrategyInitializable, StrategyParams} from "@yearn-protocol/contracts/BaseStrategy.sol";
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
