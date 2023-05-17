@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0
 // Feel free to change the license, but this is what we use
 
-pragma solidity ^0.8.12;
+pragma solidity ^0.8.18;
 pragma experimental ABIEncoderV2;
 
 import {BaseStrategy, StrategyParams} from "@yearn-protocol/contracts/BaseStrategy.sol";
@@ -24,6 +24,7 @@ import "../integrations/aura/IAuraToken.sol";
 import "../integrations/aura/IAuraMinter.sol";
 
 import "../utils/AuraMath.sol";
+import "../utils/Utils.sol";
 
 contract LidoAuraStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
@@ -128,23 +129,23 @@ contract LidoAuraStrategy is BaseStrategy {
             IBalancerPool(bStethStable).getRate()
         );
         return
-            _scaleDecimals(unscaled, ERC20(address(want)), ERC20(bStethStable));
+            Utils.scaleDecimals(unscaled, ERC20(address(want)), ERC20(bStethStable));
     }
 
     function bptToWant(uint _amountBpt) public view returns (uint _amount) {
         uint unscaled = _amountBpt.mul(getBptPrice()).div(1e18);
         return
-            _scaleDecimals(unscaled, ERC20(bStethStable), ERC20(address(want)));
+            Utils.scaleDecimals(unscaled, ERC20(bStethStable), ERC20(address(want)));
     }
 
     function auraToWant(uint256 auraTokens) public view returns (uint256) {
         uint unscaled = auraTokens.mul(getAuraPrice()).div(1e18);
-        return _scaleDecimals(unscaled, ERC20(auraToken), ERC20(address(want)));
+        return Utils.scaleDecimals(unscaled, ERC20(auraToken), ERC20(address(want)));
     }
 
     function balToWant(uint256 balTokens) public view returns (uint256) {
         uint unscaled = balTokens.mul(getBalPrice()).div(1e18);
-        return _scaleDecimals(unscaled, ERC20(balToken), ERC20(address(want)));
+        return Utils.scaleDecimals(unscaled, ERC20(balToken), ERC20(address(want)));
     }
 
     function getBalPrice() public view returns (uint256 price) {
@@ -466,20 +467,6 @@ contract LidoAuraStrategy is BaseStrategy {
             recipient: payable(address(this)),
             toInternalBalance: false
         });
-    }
-
-    function _scaleDecimals(
-        uint _amount,
-        ERC20 _fromToken,
-        ERC20 _toToken
-    ) internal view returns (uint _scaled) {
-        uint decFrom = _fromToken.decimals();
-        uint decTo = _toToken.decimals();
-        if (decTo > decFrom) {
-            return _amount.mul(10 ** (decTo.sub(decFrom)));
-        } else {
-            return _amount.div(10 ** (decFrom.sub(decTo)));
-        }
     }
 
     function convertCrvToCvx(
