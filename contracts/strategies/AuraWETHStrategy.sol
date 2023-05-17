@@ -226,12 +226,12 @@ contract AuraWETHStrategy is BaseStrategy {
         uint256 ratio = (invariant * 1e18) / totalSupply;
 
         uint256 auraComponent = Math.sqrt(2 * getAuraPrice());
-        uint256 balComponent = Math.sqrt(2 * ethToWant(1 ether));
+        uint256 wethComponent = Math.sqrt(2 * ethToWant(1 ether));
 
         return
             (Utils.scaleDecimals(ratio, ERC20(WETH), ERC20(address(want))) *
                 auraComponent *
-                balComponent) / (10 ** ERC20(address(want)).decimals());
+                wethComponent) / (10 ** ERC20(address(want)).decimals());
     }
 
     function prepareReturn(
