@@ -78,6 +78,11 @@ contract AuraWETHStrategy is BaseStrategy {
         return "StrategyAuraWETH";
     }
 
+    function setSlippage(uint256 _slippage) external onlyStrategist {
+        require(_slippage < 10_000, "!_slippage");
+        slippage = _slippage;
+    }
+
     function balanceOfWant() public view returns (uint256) {
         return want.balanceOf(address(this));
     }
@@ -94,8 +99,8 @@ contract AuraWETHStrategy is BaseStrategy {
         return IERC20(AURA_WETH_REWARDS).balanceOf(address(this));
     }
 
-    function auraRewards(uint256 _balRewards) public view returns (uint256) {
-        return convertCrvToCvx(_balRewards);
+    function auraRewards() public view returns (uint256) {
+        return convertCrvToCvx(balRewards());
     }
 
     function auraBptToBpt(uint _amountAuraBpt) public pure returns (uint256) {
@@ -126,10 +131,18 @@ contract AuraWETHStrategy is BaseStrategy {
             );
     }
 
-    function wantToBpt(uint _amountWant) public view returns (uint _amount) {
+    function wantToBpt(
+        uint _amountWant
+    ) public view virtual returns (uint _amount) {
         uint256 oneBptPrice = bptToWant(1 ether);
+        uint256 bptAmountUnscaled = (_amountWant *
+            10 ** ERC20(address(want)).decimals()) / oneBptPrice;
         return
-            (_amountWant * 10 ** ERC20(address(want)).decimals()) / oneBptPrice;
+            Utils.scaleDecimals(
+                bptAmountUnscaled,
+                ERC20(address(want)),
+                ERC20(WETH_AURA_BALANCER_POOL)
+            );
     }
 
     function bptToWant(uint bptTokens) public view returns (uint _amount) {
@@ -147,6 +160,7 @@ contract AuraWETHStrategy is BaseStrategy {
     function estimatedTotalAssets()
         public
         view
+        virtual
         override
         returns (uint256 _wants)
     {
@@ -155,12 +169,13 @@ contract AuraWETHStrategy is BaseStrategy {
         uint256 bptTokens = balanceOfUnstakedBpt() +
             auraBptToBpt(balanceOfAuraBpt());
         _wants += bptToWant(bptTokens);
-        uint256 balTokens = balRewards();
+        uint256 balTokens = balRewards() + ERC20(BAL).balanceOf(address(this));
         if (balTokens > 0) {
             _wants += balToWant(balTokens);
         }
 
-        uint256 auraTokens = auraRewards(balTokens);
+        uint256 auraTokens = auraRewards() +
+            ERC20(AURA).balanceOf(address(this));
         if (auraTokens > 0) {
             _wants += auraToWant(auraTokens);
         }
@@ -454,13 +469,30 @@ contract AuraWETHStrategy is BaseStrategy {
     }
 
     function withdrawSome(uint256 _amountNeeded) internal {
-        uint256 bptToUnstake = Math.min(
-            wantToBpt(_amountNeeded),
-            balanceOfAuraBpt()
-        );
+        if (_amountNeeded == 0) {
+            return;
+        }
 
-        if (bptToUnstake > 0) {
-            _exitPosition(bptToUnstake);
+        uint256 balTokens = balRewards() + ERC20(BAL).balanceOf(address(this));
+        uint256 auraTokens = auraRewards() +
+            ERC20(AURA).balanceOf(address(this));
+        uint256 rewardsTotal = balToWant(balTokens) + auraToWant(auraTokens);
+
+        if (rewardsTotal >= _amountNeeded) {
+            IConvexRewards(AURA_WETH_REWARDS).getReward(address(this), true);
+            _sellBalAndAura(
+                IERC20(BAL).balanceOf(address(this)),
+                IERC20(AURA).balanceOf(address(this))
+            );
+        } else {
+            uint256 bptToUnstake = Math.min(
+                wantToBpt(_amountNeeded - rewardsTotal),
+                balanceOfAuraBpt()
+            );
+
+            if (bptToUnstake > 0) {
+                _exitPosition(bptToUnstake);
+            }
         }
     }
 
@@ -537,7 +569,12 @@ contract AuraWETHStrategy is BaseStrategy {
     }
 
     function _exitPosition(uint256 bptAmount) internal {
-        IConvexRewards(AURA_WETH_REWARDS).withdrawAndUnwrap(bptAmount, false);
+        IConvexRewards(AURA_WETH_REWARDS).withdrawAndUnwrap(bptAmount, true);
+
+        _sellBalAndAura(
+            IERC20(BAL).balanceOf(address(this)),
+            IERC20(AURA).balanceOf(address(this))
+        );
 
         uint256 wethAmount = (bptToWant(bptAmount) *
             10 ** ERC20(address(want)).decimals()) / ethToWant(1 ether);
