@@ -371,7 +371,9 @@ describe("CVXStrategy", function () {
         await strategy.connect(deployer).harvest();
 
         const curveLPStakedAfter = await strategy.balanceOfCurveLPStaked();
-        expect(curveLPStakedBefore).to.be.equal(curveLPStakedAfter);
+        expect(Number(curveLPStakedBefore)).to.be.not.greaterThan(
+            Number(curveLPStakedAfter)
+        );
     });
 
     it("should change slippage", async function () {

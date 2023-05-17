@@ -218,6 +218,15 @@ contract CVXStrategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
+        IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).getReward(
+            address(this),
+            true
+        );
+        _sellCrvAndCvx(
+            ERC20(CRV).balanceOf(address(this)),
+            ERC20(CVX).balanceOf(address(this))
+        );
+
         uint256 _wantBal = balanceOfWant();
 
         if (_wantBal > _debtOutstanding) {
