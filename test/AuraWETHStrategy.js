@@ -10,7 +10,7 @@ const { ethers } = require("hardhat");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 
-describe("AuraWETHStrategy", function () {
+describe.only("AuraWETHStrategy", function () {
     const TOKENS = {
         USDC: {
             address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
@@ -27,19 +27,14 @@ describe("AuraWETHStrategy", function () {
             whale: "0x60faae176336dab62e284fe19b885b095d29fb7f",
             decimals: 18,
         },
-        CRV: {
-            address: "0xD533a949740bb3306d119CC777fa900bA034cd52",
-            whale: "0xF977814e90dA44bFA03b6295A0616a897441aceC",
+        AURA: {
+            address: "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF",
+            whale: "0x39D787fdf7384597C7208644dBb6FDa1CcA4eBdf",
             decimals: 18,
         },
-        CVX: {
-            address: "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B",
-            whale: "0xcba0074a77A3aD623A80492Bb1D8d932C62a8bab",
-            decimals: 18,
-        },
-        CURVE_CVX_ETH_LP: {
-            address: "0x3A283D9c08E8b55966afb64C515f5143cf907611",
-            whale: "0x3a9FfF453d50D4Ac52A6890647b823379ba36B9E",
+        BAL: {
+            address: "0xba100000625a3754423978a60c9317c58a424e3D",
+            whale: "0x740a4AEEfb44484853AA96aB12545FC0290805F3",
             decimals: 18,
         },
     };
@@ -159,5 +154,13 @@ describe("AuraWETHStrategy", function () {
         const { strategy } = await loadFixture(deployContractAndSetVariables);
         await dealTokensToAddress(strategy.address, TOKENS.USDC, "1000");
         await strategy.buyTokens();
+
+        console.log(utils.formatEther(await strategy.getBptPrice()));
+    });
+
+    it.only("should deposit", async function () {
+        const { strategy } = await loadFixture(deployContractAndSetVariables);
+        await dealTokensToAddress(strategy.address, TOKENS.BAL, "1000");
+        await strategy.sellBalAndAura(0, 0);
     });
 });
