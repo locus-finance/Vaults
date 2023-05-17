@@ -158,9 +158,15 @@ describe.only("AuraWETHStrategy", function () {
         console.log(utils.formatEther(await strategy.getBptPrice()));
     });
 
-    it.only("should deposit", async function () {
+    it("should deposit", async function () {
         const { strategy } = await loadFixture(deployContractAndSetVariables);
         await dealTokensToAddress(strategy.address, TOKENS.BAL, "1000");
         await strategy.sellBalAndAura(0, 0);
+    });
+
+    it.only("gets BPT price", async function () {
+        const { strategy } = await loadFixture(deployContractAndSetVariables);
+        await dealTokensToAddress(strategy.address, TOKENS.USDC, "1000");
+        await strategy.buyTokens();
     });
 });
