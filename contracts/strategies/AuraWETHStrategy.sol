@@ -24,8 +24,6 @@ import "../integrations/aura/IAuraMinter.sol";
 import "../utils/AuraMath.sol";
 import "../utils/Utils.sol";
 
-import "hardhat/console.sol";
-
 contract AuraWETHStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
     using Address for address;
@@ -499,17 +497,17 @@ contract AuraWETHStrategy is BaseStrategy {
     function liquidatePosition(
         uint256 _amountNeeded
     ) internal override returns (uint256 _liquidatedAmount, uint256 _loss) {
-        uint256 _wethBal = want.balanceOf(address(this));
-        if (_wethBal >= _amountNeeded) {
+        uint256 _wantBal = want.balanceOf(address(this));
+        if (_wantBal >= _amountNeeded) {
             return (_amountNeeded, 0);
         }
 
         withdrawSome(_amountNeeded);
 
-        _wethBal = want.balanceOf(address(this));
-        if (_amountNeeded > _wethBal) {
-            _liquidatedAmount = _wethBal;
-            _loss = _amountNeeded - _wethBal;
+        _wantBal = want.balanceOf(address(this));
+        if (_amountNeeded > _wantBal) {
+            _liquidatedAmount = _wantBal;
+            _loss = _amountNeeded - _wantBal;
         } else {
             _liquidatedAmount = _amountNeeded;
         }
