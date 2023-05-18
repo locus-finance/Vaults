@@ -371,7 +371,9 @@ describe("CVXStrategy", function () {
         await strategy.connect(deployer).harvest();
 
         const curveLPStakedAfter = await strategy.balanceOfCurveLPStaked();
-        expect(curveLPStakedBefore).to.be.equal(curveLPStakedAfter);
+        expect(Number(curveLPStakedBefore)).to.be.not.greaterThan(
+            Number(curveLPStakedAfter)
+        );
     });
 
     it("should change slippage", async function () {
@@ -539,6 +541,8 @@ describe("CVXStrategy", function () {
         const newStrategy = await CVXStrategy.deploy(vault.address);
         await newStrategy.deployed();
 
+        const curveLPStaked = await strategy.balanceOfCurveLPStaked();
+
         await vault["migrateStrategy(address,address)"](
             strategy.address,
             newStrategy.address
@@ -555,15 +559,22 @@ describe("CVXStrategy", function () {
         expect(Number(await newStrategy.balanceOfCurveLPStaked())).to.be.equal(
             0
         );
+        expect(Number(await want.balanceOf(newStrategy.address))).to.be.equal(
+            0
+        );
+        expect(Number(await strategy.balanceOfCurveLPUnstaked())).to.be.equal(
+            0
+        );
         expect(
-            Number(await want.balanceOf(newStrategy.address))
-        ).to.be.greaterThan(0);
+            Number(await newStrategy.balanceOfCurveLPUnstaked())
+        ).to.be.equal(Number(curveLPStaked));
 
         await newStrategy.harvest();
 
-        expect(
-            Number(await newStrategy.balanceOfCurveLPStaked())
-        ).to.be.greaterThan(0);
+        expect(Number(await strategy.balanceOfCurveLPStaked())).to.be.equal(0);
+        expect(Number(await newStrategy.balanceOfCurveLPStaked())).to.be.equal(
+            Number(curveLPStaked)
+        );
     });
 
     it("should revoke from vault", async function () {

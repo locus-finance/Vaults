@@ -66,6 +66,10 @@ contract CVXStrategy is BaseStrategy {
         return want.balanceOf(address(this));
     }
 
+    function balanceOfCurveLPUnstaked() public view returns (uint256) {
+        return ERC20(CURVE_CVX_ETH_LP).balanceOf(address(this));
+    }
+
     function balanceOfCurveLPStaked() public view returns (uint256) {
         return
             IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).balanceOf(address(this));
@@ -86,10 +90,7 @@ contract CVXStrategy is BaseStrategy {
     function curveLPToWant(uint256 _lpTokens) public view returns (uint256) {
         uint256 ethAmount = (
             _lpTokens > 0
-                ? ICurve(CURVE_CVX_ETH_POOL).calc_withdraw_one_coin(
-                    _lpTokens,
-                    0
-                )
+                ? (ICurve(CURVE_CVX_ETH_POOL).lp_price() * _lpTokens) / 1e18
                 : 0
         );
         return ethToWant(ethAmount);
@@ -180,7 +181,9 @@ contract CVXStrategy is BaseStrategy {
         returns (uint256 _wants)
     {
         _wants = balanceOfWant();
-        _wants += curveLPToWant(balanceOfCurveLPStaked());
+        _wants += curveLPToWant(
+            balanceOfCurveLPStaked() + balanceOfCurveLPUnstaked()
+        );
         _wants += crvToWant(balanceOfCrvRewards());
         _wants += cvxToWant(balanceOfCvxRewards());
     }
@@ -218,6 +221,15 @@ contract CVXStrategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
+        IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).getReward(
+            address(this),
+            true
+        );
+        _sellCrvAndCvx(
+            ERC20(CRV).balanceOf(address(this)),
+            ERC20(CVX).balanceOf(address(this))
+        );
+
         uint256 _wantBal = balanceOfWant();
 
         if (_wantBal > _debtOutstanding) {
@@ -253,12 +265,16 @@ contract CVXStrategy is BaseStrategy {
                 uint256(0),
                 _pools
             );
+        }
 
+        if (address(this).balance > 0) {
             uint256[2] memory amounts = [address(this).balance, uint256(0)];
             ICurve(CURVE_CVX_ETH_POOL).add_liquidity{
                 value: address(this).balance
             }(amounts, uint256(0), true);
+        }
 
+        if (balanceOfCurveLPUnstaked() > 0) {
             require(
                 IConvexDeposit(ETH_CVX_CONVEX_DEPOSIT).depositAll(
                     uint256(64),
@@ -419,6 +435,10 @@ contract CVXStrategy is BaseStrategy {
     }
 
     function prepareMigration(address _newStrategy) internal override {
+        IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).withdrawAndUnwrap(
+            balanceOfCurveLPStaked(),
+            true
+        );
         IERC20(CRV).safeTransfer(
             _newStrategy,
             IERC20(CRV).balanceOf(address(this))
@@ -431,7 +451,6 @@ contract CVXStrategy is BaseStrategy {
             _newStrategy,
             IERC20(CURVE_CVX_ETH_LP).balanceOf(address(this))
         );
-        _exitPosition(balanceOfCurveLPStaked());
     }
 
     function protectedTokens()
