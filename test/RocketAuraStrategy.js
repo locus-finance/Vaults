@@ -524,6 +524,7 @@ describe("RocketAuraStrategy", function () {
 
     it('should not get aura rewards after inflation protection time', async function () {
         const { strategy } = await loadFixture(deployContractAndSetVariables); 
+        const snapshotId = await network.provider.send('evm_snapshot');
 
         expect(
             await strategy.auraRewards(ethers.utils.parseEther('1'))
@@ -540,5 +541,7 @@ describe("RocketAuraStrategy", function () {
         expect(
             await strategy.auraRewards(ethers.utils.parseEther('1'))
         ).to.be.equal(0);
+
+        await network.provider.send("evm_revert", [snapshotId]);
     });
 });

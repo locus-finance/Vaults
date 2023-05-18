@@ -60,7 +60,7 @@ contract LidoAuraStrategy is BaseStrategy {
         );
 
     uint256 public bptSlippage = 9900; // 1%
-    uint256 public rewardsSlippage = 9000; // 3%
+    uint256 public rewardsSlippage = 9000; // 10%
 
     constructor(address _vault) BaseStrategy(_vault) {
         want.approve(address(balancerVault), type(uint256).max);
@@ -70,7 +70,7 @@ contract LidoAuraStrategy is BaseStrategy {
     }
 
     function name() external view override returns (string memory) {
-        return "StrategyRocketAura";
+        return "StrategyLidoAura";
     }
 
     /// @notice Balance of want sitting in our strategy.

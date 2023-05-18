@@ -1,4 +1,4 @@
-const { loadFixture, mine } = require("@nomicfoundation/hardhat-network-helpers");
+const { loadFixture, mine, time } = require("@nomicfoundation/hardhat-network-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
@@ -6,6 +6,7 @@ const { ethers } = require("hardhat");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 
+const usdt = "0xdac17f958d2ee523a2206206994597c13d831ec7";
 const dai = "0x6b175474e89094c44da98b954eedeac495271d0f";
 const bal = "0xba100000625a3754423978a60c9317c58a424e3D";
 const aura = "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF";
@@ -84,6 +85,33 @@ describe("LidoAuraStrategy", function () {
         .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.2'));
     });
 
+    it('should set bpt slippage', async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
+        
+        expect(await strategy.bptSlippage()).to.be.not.equal(9999);
+        await strategy.connect(deployer)['setBptSlippage(uint256)'](9999);
+        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
+        expect(await strategy.bptSlippage()).to.be.equal(9999);
+    });
+
+    it('should fail harvest with small rewards slippage', async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
+
+        await strategy.connect(deployer)['setRewardsSlippage(uint256)'](9999);
+        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
+        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('10'));
+        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
+
+        await strategy.connect(deployer).harvest();
+        mine(38000); // get more rewards
+
+        await expect(strategy.connect(deployer).harvest()).to.be.reverted;
+
+        await strategy.connect(deployer)['setRewardsSlippage(uint256)'](9000);
+        await strategy.connect(deployer).harvest();
+        expect(await strategy.estimatedTotalAssets())
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.2'));
+    });
 
     it('should withdraw requested amount', async function () {
         const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
@@ -385,6 +413,44 @@ describe("LidoAuraStrategy", function () {
             oneEther, 
             ethers.utils.parseEther('0.2')
         );
+    });
+
+    it('should not get aura rewards after inflation protection time', async function () {
+        const { strategy } = await loadFixture(deployContractAndSetVariables); 
+        const snapshotId = await network.provider.send('evm_snapshot');
+
+        expect(
+            await strategy.auraRewards(ethers.utils.parseEther('1'))
+        ).to.be.equal(ethers.utils.parseEther('3.4'));
+
+        const iAuraToken = await ethers.getContractAt("IAuraToken", aura);
+        const minter = await iAuraToken.minter();
+        const iAuraMinter = await ethers.getContractAt("IAuraMinter", minter);
+        const inflationProtectionTime = await iAuraMinter.inflationProtectionTime();
+
+        await time.setNextBlockTimestamp(inflationProtectionTime);
+        mine(2);
+
+        expect(
+            await strategy.auraRewards(ethers.utils.parseEther('1'))
+        ).to.be.equal(0);
+
+        await network.provider.send("evm_revert", [snapshotId]);
+    });
+
+
+    it('should not liquidate when enough want', async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
+        
+        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('1'));
+        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('1'));
+
+        await strategy.connect(deployer).harvest();
+        const balanceBefore = await strategy.estimatedTotalAssets();
+
+        want.connect(whale).transfer(strategy.address, ethers.utils.parseEther('8'));
+
+        await expect(vault.connect(whale)['withdraw()']()).not.to.be.reverted;
     });
 });
 
