@@ -331,10 +331,12 @@ contract AuraWETHStrategy is BaseStrategy {
             _maxAmountsIn[0] = wethBalance;
             _maxAmountsIn[1] = 0;
 
+            uint256 _bptExpected = (ethToWant(wethBalance) /
+                bptToWant(1 ether)) * (10 ** ERC20(address(want)).decimals());
             bytes memory _userData = abi.encode(
                 IBalancerV2Vault.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT,
                 _amountsIn,
-                0
+                (_bptExpected * slippage) / 10000
             );
 
             IBalancerV2Vault.JoinPoolRequest memory _request;
