@@ -55,6 +55,8 @@ interface ICurve {
         uint256 min_amount,
         bool use_eth
     ) external returns (uint256);
+
+    function lp_price() external view returns (uint256);
 }
 
 interface ICurveSwapRouter {
