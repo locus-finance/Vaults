@@ -38,6 +38,8 @@ interface ICurve {
 
     function get_virtual_price() external view returns (uint256);
 
+    function price_oracle() external view returns (uint256);
+
     function calc_withdraw_one_coin(
         uint256 token_amount,
         uint256 i
