@@ -1,4 +1,5 @@
 import "../strategies/RocketAuraStrategy.sol";
+import "../utils/AuraMath.sol";
 
 contract TestScaler is RocketAuraStrategy {
     constructor(address _vault) RocketAuraStrategy(_vault) {}
@@ -8,6 +9,6 @@ contract TestScaler is RocketAuraStrategy {
         ERC20 _fromToken,
         ERC20 _toToken
     ) public view returns (uint _scaled) {
-        return _scaleDecimals(_amount, _fromToken, _toToken);
+        return Utils.scaleDecimals(_amount, _fromToken, _toToken);
     }
 }
