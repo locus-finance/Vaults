@@ -129,23 +129,41 @@ contract RocketAuraStrategy is BaseStrategy {
             IBalancerPool(bRethStable).getRate()
         );
         return
-            Utils.scaleDecimals(unscaled, ERC20(address(want)), ERC20(bRethStable));
+            Utils.scaleDecimals(
+                unscaled,
+                ERC20(address(want)),
+                ERC20(bRethStable)
+            );
     }
 
     function bptToWant(uint _amountBpt) public view returns (uint _amount) {
         uint unscaled = _amountBpt.mul(getBptPrice()).div(1e18);
         return
-            Utils.scaleDecimals(unscaled, ERC20(bRethStable), ERC20(address(want)));
+            Utils.scaleDecimals(
+                unscaled,
+                ERC20(bRethStable),
+                ERC20(address(want))
+            );
     }
 
     function auraToWant(uint256 auraTokens) public view returns (uint256) {
         uint unscaled = auraTokens.mul(getAuraPrice()).div(1e18);
-        return Utils.scaleDecimals(unscaled, ERC20(auraToken), ERC20(address(want)));
+        return
+            Utils.scaleDecimals(
+                unscaled,
+                ERC20(auraToken),
+                ERC20(address(want))
+            );
     }
 
     function balToWant(uint256 balTokens) public view returns (uint256) {
         uint unscaled = balTokens.mul(getBalPrice()).div(1e18);
-        return Utils.scaleDecimals(unscaled, ERC20(balToken), ERC20(address(want)));
+        return
+            Utils.scaleDecimals(
+                unscaled,
+                ERC20(balToken),
+                ERC20(address(want))
+            );
     }
 
     function getBalPrice() public view returns (uint256 price) {

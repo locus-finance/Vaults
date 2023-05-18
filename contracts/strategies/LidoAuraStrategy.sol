@@ -44,7 +44,8 @@ contract LidoAuraStrategy is BaseStrategy {
         0xba100000625a3754423978a60c9317c58a424e3D;
     address internal constant auraBooster =
         0xA57b8d98dAE62B26Ec3bcC4a365338157060B234;
-    address internal constant wstETH = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
+    address internal constant wstETH =
+        0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0;
 
     bytes32 internal constant stEthEthPoolId =
         bytes32(
@@ -129,23 +130,41 @@ contract LidoAuraStrategy is BaseStrategy {
             IBalancerPool(bStethStable).getRate()
         );
         return
-            Utils.scaleDecimals(unscaled, ERC20(address(want)), ERC20(bStethStable));
+            Utils.scaleDecimals(
+                unscaled,
+                ERC20(address(want)),
+                ERC20(bStethStable)
+            );
     }
 
     function bptToWant(uint _amountBpt) public view returns (uint _amount) {
         uint unscaled = _amountBpt.mul(getBptPrice()).div(1e18);
         return
-            Utils.scaleDecimals(unscaled, ERC20(bStethStable), ERC20(address(want)));
+            Utils.scaleDecimals(
+                unscaled,
+                ERC20(bStethStable),
+                ERC20(address(want))
+            );
     }
 
     function auraToWant(uint256 auraTokens) public view returns (uint256) {
         uint unscaled = auraTokens.mul(getAuraPrice()).div(1e18);
-        return Utils.scaleDecimals(unscaled, ERC20(auraToken), ERC20(address(want)));
+        return
+            Utils.scaleDecimals(
+                unscaled,
+                ERC20(auraToken),
+                ERC20(address(want))
+            );
     }
 
     function balToWant(uint256 balTokens) public view returns (uint256) {
         uint unscaled = balTokens.mul(getBalPrice()).div(1e18);
-        return Utils.scaleDecimals(unscaled, ERC20(balToken), ERC20(address(want)));
+        return
+            Utils.scaleDecimals(
+                unscaled,
+                ERC20(balToken),
+                ERC20(address(want))
+            );
     }
 
     function getBalPrice() public view returns (uint256 price) {
@@ -226,17 +245,14 @@ contract LidoAuraStrategy is BaseStrategy {
         }
     }
 
-    function adjustPosition(uint256 _debtOutstanding) 
-        internal 
-        override 
-    {
-        if(balRewards() > 0) {
+    function adjustPosition(uint256 _debtOutstanding) internal override {
+        if (balRewards() > 0) {
             IConvexRewards(auraBStethStable).getReward(address(this), true);
         }
         _sellBalAndAura(
-            IERC20(balToken).balanceOf(address(this)), 
+            IERC20(balToken).balanceOf(address(this)),
             IERC20(auraToken).balanceOf(address(this))
-        ); 
+        );
 
         uint256 _wethBal = want.balanceOf(address(this));
         if (_wethBal > _debtOutstanding) {
@@ -254,7 +270,8 @@ contract LidoAuraStrategy is BaseStrategy {
             _maxAmountsIn[0] = 0;
             _maxAmountsIn[1] = _excessWeth;
 
-            uint256 _minimumBPT = (wantToBpt(_excessWeth) * bptSlippage) / 10000;
+            uint256 _minimumBPT = (wantToBpt(_excessWeth) * bptSlippage) /
+                10000;
             bytes memory _userData = abi.encode(
                 IBalancerV2Vault.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT,
                 _amountsIn,
@@ -276,7 +293,7 @@ contract LidoAuraStrategy is BaseStrategy {
                 request: _request
             });
         }
-        if(_wethBal > _debtOutstanding || balanceOfUnstakedBpt() > 0){
+        if (_wethBal > _debtOutstanding || balanceOfUnstakedBpt() > 0) {
             bool auraSuccess = IAuraDeposit(auraBooster).deposit(
                 29, // PID
                 IBalancerPool(bStethStable).balanceOf(address(this)),
@@ -287,7 +304,7 @@ contract LidoAuraStrategy is BaseStrategy {
     }
 
     function _sellBalAndAura(uint256 _balAmount, uint256 _auraAmount) internal {
-        if(_balAmount == 0 || _auraAmount == 0) return;
+        if (_balAmount == 0 || _auraAmount == 0) return;
 
         IBalancerV2Vault.BatchSwapStep[]
             memory swaps = new IBalancerV2Vault.BatchSwapStep[](2);
@@ -315,11 +332,13 @@ contract LidoAuraStrategy is BaseStrategy {
         assets[1] = auraToken;
         assets[2] = address(want);
 
-        int estimatedRewards = int(balToWant(_balAmount) + auraToWant(_auraAmount));
+        int estimatedRewards = int(
+            balToWant(_balAmount) + auraToWant(_auraAmount)
+        );
         int[] memory limits = new int[](3);
         limits[0] = int(_balAmount);
         limits[1] = int(_auraAmount);
-        limits[2] = (-1)*(estimatedRewards * int(rewardsSlippage) / 10000);
+        limits[2] = (-1) * ((estimatedRewards * int(rewardsSlippage)) / 10000);
 
         balancerVault.batchSwap(
             IBalancerV2Vault.SwapKind.GIVEN_IN,
@@ -364,7 +383,7 @@ contract LidoAuraStrategy is BaseStrategy {
     function liquidateAllPositions() internal override returns (uint256) {
         IConvexRewards(auraBStethStable).getReward(address(this), true);
         _sellBalAndAura(
-            IERC20(balToken).balanceOf(address(this)), 
+            IERC20(balToken).balanceOf(address(this)),
             IERC20(auraToken).balanceOf(address(this))
         );
         _exitPosition(IERC20(auraBStethStable).balanceOf(address(this)));
@@ -372,10 +391,7 @@ contract LidoAuraStrategy is BaseStrategy {
     }
 
     function _exitPosition(uint256 bptAmount) internal {
-        IConvexRewards(auraBStethStable).withdrawAndUnwrap(
-            bptAmount, 
-            false
-        );
+        IConvexRewards(auraBStethStable).withdrawAndUnwrap(bptAmount, false);
 
         address[] memory _assets = new address[](2);
         _assets[0] = wstETH;
