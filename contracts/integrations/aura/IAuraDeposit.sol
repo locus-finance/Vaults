@@ -32,3 +32,12 @@ interface IAuraDeposit {
 
     function depositAll(uint256 _pid, bool _stake) external returns (bool);
 }
+
+interface IBalDepositWrapper {
+    function deposit(
+        uint256 _amount,
+        uint256 _minOut,
+        bool _lock,
+        address _stakeAddress
+    ) external;
+}
