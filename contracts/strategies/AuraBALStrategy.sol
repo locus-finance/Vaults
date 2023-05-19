@@ -66,6 +66,7 @@ contract AuraBALStrategy is BaseStrategy {
         ERC20(AURA).approve(address(balancerVault), type(uint256).max);
         ERC20(WETH).approve(address(balancerVault), type(uint256).max);
         ERC20(AURA_BAL).approve(address(balancerVault), type(uint256).max);
+        ERC20(AURA_BAL).approve(AURA_BASE_REWARD, type(uint256).max);
         ERC20(BAL).approve(AURA_BAL_DEPOSIT_WRAPPER, type(uint256).max);
     }
 
@@ -328,12 +329,24 @@ contract AuraBALStrategy is BaseStrategy {
         }
 
         if (balanceOfBal() > 0) {
+            uint256 auraBalExpected = (balToWant(balanceOfBal()) *
+                (10 ** ERC20(address(want)).decimals())) /
+                auraBalToWant(1 ether);
+            uint256 auraBalExpectedScaled = Utils.scaleDecimals(
+                auraBalExpected,
+                ERC20(address(want)),
+                ERC20(AURA_BAL)
+            );
             IBalDepositWrapper(AURA_BAL_DEPOSIT_WRAPPER).deposit(
                 ERC20(BAL).balanceOf(address(this)),
-                0,
+                (auraBalExpectedScaled * slippage) / 10000,
                 true,
                 AURA_BASE_REWARD
             );
+        }
+
+        if (balanceOfUnstakedAuraBal() > 0) {
+            IConvexRewards(AURA_BASE_REWARD).stakeAll();
         }
     }
 

@@ -34,4 +34,6 @@ interface IConvexRewards {
 
     // check our reward period finish
     function periodFinish() external view returns (uint256);
+
+    function stakeAll() external;
 }
