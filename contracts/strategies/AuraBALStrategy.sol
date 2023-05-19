@@ -20,8 +20,6 @@ import "../integrations/aura/IConvexRewards.sol";
 import "../utils/AuraMath.sol";
 import "../utils/Utils.sol";
 
-import "hardhat/console.sol";
-
 contract AuraBALStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
     using Address for address;
@@ -34,25 +32,17 @@ contract AuraBALStrategy is BaseStrategy {
         0x96646936b91d6B9D7D0c47C496AfBF3D6ec7B6f8;
     address internal constant STABLE_POOL_BALANCER_POOL =
         0x79c58f70905F734641735BC61e45c19dD9Ad60bC;
-    address internal constant WETH_AURA_BALANCER_POOL =
-        0xCfCA23cA9CA720B6E98E3Eb9B6aa0fFC4a5C08B9;
     address internal constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address internal constant AURA = 0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF;
     address internal constant BAL = 0xba100000625a3754423978a60c9317c58a424e3D;
     address internal constant AURA_BAL =
         0x616e8BfA43F920657B3497DBf40D6b1A02D4608d;
-    address internal constant AURA_BOOSTER =
-        0xA57b8d98dAE62B26Ec3bcC4a365338157060B234;
-    address internal constant AURA_WETH_REWARDS =
-        0x712CC5BeD99aA06fC4D5FB50Aea3750fA5161D0f;
     address internal constant WETH_BAL_BALANCER_POOL =
         0x5c6Ee304399DBdB9C8Ef030aB642B10820DB8F56;
     address internal constant AURA_BAL_DEPOSIT_WRAPPER =
         0x68655AD9852a99C87C0934c7290BB62CFa5D4123;
     address internal constant AURA_BASE_REWARD =
         0x00A7BA8Ae7bca0B10A32Ea1f8e2a1Da980c6CAd2;
-    address internal constant AURA_BAL_REWARDS =
-        0xAc16927429c5c7Af63dD75BC9d8a58c63FfD0147;
     address internal constant STAKED_AURA_BAL =
         0xfAA2eD111B4F580fCb85C48E6DC6782Dc5FCD7a6;
 
@@ -64,6 +54,8 @@ contract AuraBALStrategy is BaseStrategy {
         0xcfca23ca9ca720b6e98e3eb9b6aa0ffc4a5c08b9000200000000000000000274;
     bytes32 internal constant WETH_BAL_BALANCER_POOL_ID =
         0x5c6ee304399dbdb9c8ef030ab642b10820db8f56000200000000000000000014;
+    bytes32 internal constant AURA_BAL_BALANCER_POOL_ID =
+        0x3dd0843a028c86e0b760b1a76929d1c5ef93a2dd000200000000000000000249;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
     uint256 public slippage = 9700; // 3%
@@ -74,11 +66,6 @@ contract AuraBALStrategy is BaseStrategy {
         ERC20(AURA).approve(address(balancerVault), type(uint256).max);
         ERC20(WETH).approve(address(balancerVault), type(uint256).max);
         ERC20(AURA_BAL).approve(address(balancerVault), type(uint256).max);
-        ERC20(WETH_AURA_BALANCER_POOL).approve(
-            address(balancerVault),
-            type(uint256).max
-        );
-        ERC20(WETH_AURA_BALANCER_POOL).approve(AURA_BOOSTER, type(uint256).max);
         ERC20(BAL).approve(AURA_BAL_DEPOSIT_WRAPPER, type(uint256).max);
     }
 
@@ -154,6 +141,20 @@ contract AuraBALStrategy is BaseStrategy {
         return
             scaledAmount.mul(getBalWethBptPrice()).div(
                 10 ** ERC20(address(want)).decimals()
+            );
+    }
+
+    function wantToAuraBal(
+        uint256 _amountWant
+    ) public view virtual returns (uint _amount) {
+        uint256 oneAuraBalPrice = auraBalToWant(1 ether);
+        uint256 auraBalAmountUnscaled = (_amountWant *
+            (10 ** ERC20(address(want)).decimals())) / oneAuraBalPrice;
+        return
+            Utils.scaleDecimals(
+                auraBalAmountUnscaled,
+                ERC20(address(want)),
+                ERC20(AURA_BAL)
             );
     }
 
@@ -259,222 +260,6 @@ contract AuraBALStrategy is BaseStrategy {
         } else {
             _debtPayment = Math.min(_liquidWant - _profit, _debtOutstanding);
         }
-    }
-
-    function buyTokens(uint256 _debtOutstanding) external {
-        uint256 _wantBal = want.balanceOf(address(this));
-        if (_wantBal > _debtOutstanding) {
-            uint256 _excessWant = _wantBal - _debtOutstanding;
-
-            IBalancerV2Vault.BatchSwapStep[]
-                memory swaps = new IBalancerV2Vault.BatchSwapStep[](3);
-
-            swaps[0] = IBalancerV2Vault.BatchSwapStep({
-                poolId: STABLE_POOL_BALANCER_POOL_ID,
-                assetInIndex: 0,
-                assetOutIndex: 1,
-                amount: _wantBal,
-                userData: abi.encode(0)
-            });
-
-            swaps[1] = IBalancerV2Vault.BatchSwapStep({
-                poolId: WETH_3POOL_BALANCER_POOL_ID,
-                assetInIndex: 1,
-                assetOutIndex: 2,
-                amount: 0,
-                userData: abi.encode(0)
-            });
-
-            swaps[2] = IBalancerV2Vault.BatchSwapStep({
-                poolId: WETH_BAL_BALANCER_POOL_ID,
-                assetInIndex: 2,
-                assetOutIndex: 3,
-                amount: 0,
-                userData: abi.encode(0)
-            });
-
-            address[] memory assets = new address[](4);
-            assets[0] = address(want);
-            assets[1] = STABLE_POOL_BALANCER_POOL;
-            assets[2] = WETH;
-            assets[3] = BAL;
-
-            uint256 balExpected = (_excessWant *
-                10 ** ERC20(address(want)).decimals()) / balToWant(1 ether);
-
-            int[] memory limits = new int[](4);
-            limits[0] = int(_excessWant);
-            limits[1] = 0;
-            limits[2] = 0;
-            limits[3] = -1 * int((balExpected * slippage) / 10000);
-
-            balancerVault.batchSwap(
-                IBalancerV2Vault.SwapKind.GIVEN_IN,
-                swaps,
-                assets,
-                getFundManagement(),
-                limits,
-                block.timestamp
-            );
-
-            console.log("Got BAL: %s", ERC20(BAL).balanceOf(address(this)));
-
-            IBalDepositWrapper(AURA_BAL_DEPOSIT_WRAPPER).deposit(
-                ERC20(BAL).balanceOf(address(this)),
-                0,
-                true,
-                AURA_BASE_REWARD
-            );
-            console.log(
-                "Got rewards: %s",
-                IConvexRewards(AURA_BASE_REWARD).balanceOf(address(this)),
-                IConvexRewards(AURA_BASE_REWARD).earned(address(this)),
-                ERC20(STAKED_AURA_BAL).balanceOf(address(this))
-            );
-        }
-    }
-
-    function rewardsCheck() external {
-        console.log(
-            "BAL balance before: %s",
-            ERC20(BAL).balanceOf(address(this))
-        );
-        console.log(
-            "AURA balance before: %s",
-            ERC20(AURA).balanceOf(address(this))
-        );
-        console.log(
-            "Got rewards: %s",
-            IConvexRewards(AURA_BASE_REWARD).balanceOf(address(this)),
-            IConvexRewards(AURA_BASE_REWARD).earned(address(this)),
-            AuraRewardsMath.convertCrvToCvx(
-                IConvexRewards(AURA_BASE_REWARD).earned(address(this))
-            )
-        );
-
-        // IConvexRewards(AURA_BASE_REWARD).getReward(address(this), true);
-        console.log(
-            "AURA_BAL balance: %s",
-            ERC20(AURA_BAL).balanceOf(address(this))
-        );
-
-        IConvexRewards(AURA_BASE_REWARD).withdraw(
-            IConvexRewards(AURA_BASE_REWARD).balanceOf(address(this)),
-            true
-        );
-        console.log(
-            "AURA_BAL balance: %s",
-            ERC20(AURA_BAL).balanceOf(address(this))
-        );
-        console.log("BAL balance: %s", ERC20(BAL).balanceOf(address(this)));
-        console.log("AURA balance: %s", ERC20(AURA).balanceOf(address(this)));
-
-        // uint256 _wantBal = ERC20(AURA_BAL).balanceOf(address(this));
-
-        // IBalancerV2Vault.BatchSwapStep[]
-        //     memory swaps = new IBalancerV2Vault.BatchSwapStep[](2);
-
-        // swaps[0] = IBalancerV2Vault.BatchSwapStep({
-        //     poolId: 0x3dd0843a028c86e0b760b1a76929d1c5ef93a2dd000200000000000000000249,
-        //     assetInIndex: 0,
-        //     assetOutIndex: 1,
-        //     amount: _wantBal,
-        //     userData: abi.encode(0)
-        // });
-
-        // swaps[1] = IBalancerV2Vault.BatchSwapStep({
-        //     poolId: 0x5c6ee304399dbdb9c8ef030ab642b10820db8f56000200000000000000000014,
-        //     assetInIndex: 1,
-        //     assetOutIndex: 2,
-        //     amount: 0,
-        //     userData: abi.encode(0)
-        // });
-
-        // address[] memory assets = new address[](3);
-        // assets[0] = AURA_BAL;
-        // assets[1] = 0x5c6Ee304399DBdB9C8Ef030aB642B10820DB8F56;
-        // assets[2] = BAL;
-
-        // int[] memory limits = new int[](3);
-        // limits[0] = int(_wantBal);
-        // limits[1] = 0;
-        // limits[2] = 0;
-
-        // balancerVault.batchSwap(
-        //     IBalancerV2Vault.SwapKind.GIVEN_IN,
-        //     swaps,
-        //     assets,
-        //     getFundManagement(),
-        //     limits,
-        //     block.timestamp
-        // );
-
-        // console.log("New BAL balance: %s", ERC20(BAL).balanceOf(address(this)));
-
-        uint256 _wantBal = ERC20(AURA_BAL).balanceOf(address(this));
-
-        IBalancerV2Vault.BatchSwapStep[]
-            memory swaps = new IBalancerV2Vault.BatchSwapStep[](1);
-
-        swaps[0] = IBalancerV2Vault.BatchSwapStep({
-            poolId: 0x3dd0843a028c86e0b760b1a76929d1c5ef93a2dd000200000000000000000249,
-            assetInIndex: 0,
-            assetOutIndex: 1,
-            amount: _wantBal,
-            userData: abi.encode(0)
-        });
-
-        address[] memory assets = new address[](2);
-        assets[0] = AURA_BAL;
-        assets[1] = 0x5c6Ee304399DBdB9C8Ef030aB642B10820DB8F56;
-
-        int[] memory limits = new int[](2);
-        limits[0] = int(_wantBal);
-        limits[1] = 0;
-
-        balancerVault.batchSwap(
-            IBalancerV2Vault.SwapKind.GIVEN_IN,
-            swaps,
-            assets,
-            getFundManagement(),
-            limits,
-            block.timestamp
-        );
-
-        uint256 bptAmount = IERC20(0x5c6Ee304399DBdB9C8Ef030aB642B10820DB8F56)
-            .balanceOf(address(this));
-        console.log("bpt amount: %s", bptAmount);
-
-        address[] memory _assets = new address[](2);
-        _assets[0] = BAL;
-        _assets[1] = WETH;
-
-        uint256[] memory _minAmountsOut = new uint256[](2);
-        _minAmountsOut[0] = 0;
-        _minAmountsOut[1] = 0;
-
-        bytes memory userData = abi.encode(
-            IBalancerV2Vault.ExitKind.EXACT_BPT_IN_FOR_ONE_TOKEN_OUT,
-            bptAmount,
-            1 // exitTokenIndex
-        );
-
-        IBalancerV2Vault.ExitPoolRequest memory request;
-        request = IBalancerV2Vault.ExitPoolRequest({
-            assets: _assets,
-            minAmountsOut: _minAmountsOut,
-            userData: userData,
-            toInternalBalance: false
-        });
-
-        balancerVault.exitPool({
-            poolId: WETH_BAL_BALANCER_POOL_ID,
-            sender: address(this),
-            recipient: payable(address(this)),
-            request: request
-        });
-
-        console.log("WETH balance: %s", ERC20(WETH).balanceOf(address(this)));
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
@@ -656,6 +441,28 @@ contract AuraBALStrategy is BaseStrategy {
         if (_amountNeeded == 0) {
             return;
         }
+
+        uint256 balTokens = balRewards() + ERC20(BAL).balanceOf(address(this));
+        uint256 auraTokens = auraRewards() +
+            ERC20(AURA).balanceOf(address(this));
+        uint256 rewardsTotal = balToWant(balTokens) + auraToWant(auraTokens);
+
+        if (rewardsTotal >= _amountNeeded) {
+            IConvexRewards(AURA_BASE_REWARD).getReward(address(this), true);
+            _sellBalAndAura(
+                IERC20(BAL).balanceOf(address(this)),
+                IERC20(AURA).balanceOf(address(this))
+            );
+        } else {
+            uint256 auraBalToUnstake = Math.min(
+                wantToAuraBal(_amountNeeded - rewardsTotal),
+                balanceOfStakedAuraBal()
+            );
+
+            if (auraBalToUnstake > 0) {
+                _exitPosition(auraBalToUnstake);
+            }
+        }
     }
 
     function liquidatePosition(
@@ -678,11 +485,130 @@ contract AuraBALStrategy is BaseStrategy {
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
+        _exitPosition(balanceOfStakedAuraBal());
         return want.balanceOf(address(this));
     }
 
-    function _exitPosition(uint256 bptAmount) internal {
-        IConvexRewards(AURA_WETH_REWARDS).withdrawAndUnwrap(bptAmount, true);
+    function _exitPosition(uint256 auraBalAmount) internal {
+        IConvexRewards(AURA_BASE_REWARD).withdraw(auraBalAmount, true);
+        _sellBalAndAura(
+            IERC20(BAL).balanceOf(address(this)),
+            IERC20(AURA).balanceOf(address(this))
+        );
+
+        IBalancerV2Vault.BatchSwapStep[]
+            memory swaps = new IBalancerV2Vault.BatchSwapStep[](1);
+
+        swaps[0] = IBalancerV2Vault.BatchSwapStep({
+            poolId: AURA_BAL_BALANCER_POOL_ID,
+            assetInIndex: 0,
+            assetOutIndex: 1,
+            amount: auraBalAmount,
+            userData: abi.encode(0)
+        });
+
+        address[] memory assets = new address[](2);
+        assets[0] = AURA_BAL;
+        assets[1] = WETH_BAL_BALANCER_POOL;
+
+        int[] memory limits = new int[](2);
+        limits[0] = int(auraBalAmount);
+        limits[1] = (-1) * int256((auraBalAmount * slippage) / 10000);
+
+        balancerVault.batchSwap(
+            IBalancerV2Vault.SwapKind.GIVEN_IN,
+            swaps,
+            assets,
+            getFundManagement(),
+            limits,
+            block.timestamp
+        );
+
+        uint256 wethBalAmount = IERC20(WETH_BAL_BALANCER_POOL).balanceOf(
+            address(this)
+        );
+        uint256 wantExpected = auraBalToWant(wethBalAmount);
+        uint256 wethExpected = (wantExpected *
+            (10 ** ERC20(address(want)).decimals())) / ethToWant(1 ether);
+        uint256 wethScaled = Utils.scaleDecimals(
+            wethExpected,
+            ERC20(address(want)),
+            ERC20(WETH)
+        );
+
+        address[] memory _assets = new address[](2);
+        _assets[0] = BAL;
+        _assets[1] = WETH;
+
+        uint256[] memory _minAmountsOut = new uint256[](2);
+        _minAmountsOut[0] = 0;
+        _minAmountsOut[1] = (wethScaled * slippage) / 10000;
+
+        bytes memory userData = abi.encode(
+            IBalancerV2Vault.ExitKind.EXACT_BPT_IN_FOR_ONE_TOKEN_OUT,
+            wethBalAmount,
+            1 // exitTokenIndex
+        );
+
+        IBalancerV2Vault.ExitPoolRequest memory request;
+        request = IBalancerV2Vault.ExitPoolRequest({
+            assets: _assets,
+            minAmountsOut: _minAmountsOut,
+            userData: userData,
+            toInternalBalance: false
+        });
+
+        balancerVault.exitPool({
+            poolId: WETH_BAL_BALANCER_POOL_ID,
+            sender: address(this),
+            recipient: payable(address(this)),
+            request: request
+        });
+
+        _sellWethForWant();
+    }
+
+    function _sellWethForWant() internal {
+        uint256 wethBal = IERC20(WETH).balanceOf(address(this));
+
+        if (wethBal > 0) {
+            IBalancerV2Vault.BatchSwapStep[]
+                memory swaps = new IBalancerV2Vault.BatchSwapStep[](2);
+
+            swaps[0] = IBalancerV2Vault.BatchSwapStep({
+                poolId: WETH_3POOL_BALANCER_POOL_ID,
+                assetInIndex: 0,
+                assetOutIndex: 1,
+                amount: wethBal,
+                userData: abi.encode(0)
+            });
+
+            swaps[1] = IBalancerV2Vault.BatchSwapStep({
+                poolId: STABLE_POOL_BALANCER_POOL_ID,
+                assetInIndex: 1,
+                assetOutIndex: 2,
+                amount: 0,
+                userData: abi.encode(0)
+            });
+
+            address[] memory assets = new address[](3);
+            assets[0] = WETH;
+            assets[1] = STABLE_POOL_BALANCER_POOL;
+            assets[2] = address(want);
+
+            int[] memory limits = new int[](3);
+            limits[0] = int256(wethBal);
+            limits[2] = (-1) * int((ethToWant(wethBal) * slippage) / 10000);
+
+            balancerVault.batchSwap(
+                IBalancerV2Vault.SwapKind.GIVEN_IN,
+                swaps,
+                assets,
+                getFundManagement(),
+                limits,
+                block.timestamp
+            );
+        }
     }
 
     function prepareMigration(address _newStrategy) internal override {
@@ -690,11 +616,24 @@ contract AuraBALStrategy is BaseStrategy {
             IConvexRewards(AURA_BASE_REWARD).balanceOf(address(this)),
             true
         );
+
+        uint256 auraBal = IERC20(AURA).balanceOf(address(this));
+        if (auraBal > 0) {
+            IERC20(AURA).safeTransfer(_newStrategy, auraBal);
+        }
+        uint256 balancerBal = IERC20(BAL).balanceOf(address(this));
+        if (balancerBal > 0) {
+            IERC20(BAL).safeTransfer(_newStrategy, balancerBal);
+        }
+        uint256 auraBalBalance = IERC20(AURA_BAL).balanceOf(address(this));
+        if (auraBalBalance > 0) {
+            IERC20(AURA_BAL).safeTransfer(_newStrategy, auraBalBalance);
+        }
     }
 
     function protectedTokens()
         internal
-        view
+        pure
         override
         returns (address[] memory)
     {

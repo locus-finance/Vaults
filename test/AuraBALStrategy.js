@@ -143,12 +143,18 @@ describe("AuraBALStrategy", function () {
         expect(await strategy.name()).to.equal("StrategyAuraBAL");
 
         await dealTokensToAddress(strategy.address, TOKENS.USDC, "1000");
-        await strategy.buyTokens(0);
+        // await strategy.buyTokens(0);
 
-        await mine(10000, { interval: 10 });
+        // await mine(10000, { interval: 10 });
 
-        await strategy.rewardsCheck();
+        // await strategy.rewardsCheck();
 
-        console.log(utils.formatUnits(await strategy.getBalWethBptPrice(), 6));
+        console.log(
+            utils.formatUnits(
+                await strategy.auraBalToWant(utils.parseEther("1")),
+                6
+            )
+        );
+        await strategy.test();
     });
 });
