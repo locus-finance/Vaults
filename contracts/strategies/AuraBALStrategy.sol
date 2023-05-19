@@ -14,7 +14,6 @@ import "../integrations/balancer/IBalancerV2Vault.sol";
 import "../integrations/balancer/IBalancerPool.sol";
 import "../integrations/balancer/IBalancerPriceOracle.sol";
 import "../integrations/aura/IAuraDeposit.sol";
-import "../integrations/aura/IAuraRewards.sol";
 import "../integrations/aura/IConvexRewards.sol";
 
 import "../utils/AuraMath.sol";
