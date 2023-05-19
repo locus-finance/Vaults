@@ -4,7 +4,7 @@ const { expect } = require("chai");
 const { BigNumber } = require("ethers");
 const { ethers } = require("hardhat");
 
-const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
+const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20";
 
 const usdt = "0xdac17f958d2ee523a2206206994597c13d831ec7";
 const dai = "0x6b175474e89094c44da98b954eedeac495271d0f";
@@ -133,25 +133,26 @@ describe("FraxStrategy", function () {
         expect(await strategy.estimatedTotalAssets())
         .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.005'));
 
-        for (let index = 0; index < 15; index++) {
-            console.log("estimatedTotalAssets: ", await strategy.estimatedTotalAssets());
-            console.log("block.timestamp:", (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp);
-            console.log("rewardsCycleEnd:", await SfrxEth.rewardsCycleEnd());
-            console.log("totalAssets:", await SfrxEth.totalAssets());
+        await network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: ["0x79e76c14b3bb6236dfc06d2d7ff219c8b070169c"],
+        });
+        const FrxEth = await ethers.getContractAt(
+            IERC20_SOURCE,
+            "0x5E8422345238F34275888049021821E8E08CAa1f"
+        );
+        const frxWhale = await ethers.getSigner("0x79e76c14b3bb6236dfc06d2d7ff219c8b070169c");
+
+        for (let index = 0; index < 1; index++) {
             mine(604800); // get more rewards
-            await dealTokensToAddress(strategy.address, TOKENS.FRXETH, "3");
+            await FrxEth.connect(frxWhale).transfer(SfrxEth.address, ethers.utils.parseEther('10'));
             await SfrxEth.syncRewards();
         }
         await strategy.connect(deployer).harvest();
 
-
         expect(Number(await strategy.estimatedTotalAssets()))
         .to.be.greaterThan(Number(ethers.utils.parseEther('10')));
-        await vault.connect(whale)['withdraw(uint256,address,uint256)'](
-            ethers.utils.parseEther('10'), 
-            whale.address, 
-            200 // 0.02% acceptable loss
-        );
+        await vault.connect(whale)['withdraw()']();
 
         expect(Number(await want.balanceOf(whale.address))).to.be.greaterThan(Number(balanceBefore));
     });

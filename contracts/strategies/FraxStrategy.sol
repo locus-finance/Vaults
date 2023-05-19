@@ -23,17 +23,19 @@ contract FraxStrategy is BaseStrategy {
 
     address internal constant fraxMinter =
         0xbAFA44EFE7901E04E39Dad13167D089C559c1138;
-
     address internal constant sfrxEth =
         0xac3E018457B222d93114458476f3E3416Abbe38F;
-
     address internal constant frxEth =
         0x5E8422345238F34275888049021821E8E08CAa1f;
-
     address internal constant frxEthCurvePool = 
         0xa1F8A6807c402E4A15ef4EBa36528A3FED24E577;
+    address internal constant curveSwapRouter =
+        0x99a58482BD75cbab83b27EC03CA68fF489b5788f;
+
+    uint256 public slippage = 9990; // 0.1%
 
     constructor(address _vault) BaseStrategy(_vault) {
+        IERC20(frxEth).approve(curveSwapRouter, type(uint256).max);
     }
 
     function name() external view override returns (string memory) {
@@ -51,12 +53,6 @@ contract FraxStrategy is BaseStrategy {
         override
         returns (uint256 _wants)
     {
-        console.log("balanceOfWant():\t", balanceOfWant());
-        console.log("address(this).balance:\t", address(this).balance);
-        console.log("sfrxToWant:\t\t", sfrxToWant(IERC20(sfrxEth).balanceOf(address(this))));
-        console.log("frxToWant:\t\t", frxToWant(IERC20(frxEth).balanceOf(address(this))));
-        console.log("\n");
-
         _wants = balanceOfWant();
         _wants += address(this).balance;
         _wants += sfrxToWant(IERC20(sfrxEth).balanceOf(address(this)));
@@ -68,8 +64,16 @@ contract FraxStrategy is BaseStrategy {
         return frxToWant(ISfrxEth(sfrxEth).previewRedeem(_amount));
     }
 
+    function wantToSfrx(uint256 _amount) public view returns (uint256) {
+        return ISfrxEth(sfrxEth).previewRedeem(wantToFrx(_amount));
+    }
+
     function frxToWant(uint256 _amount) public view returns (uint256) {
         return (ICurve(frxEthCurvePool).price_oracle() * _amount) / 1e18;
+    }
+
+    function wantToFrx(uint256 _amount) public view returns (uint256) {
+        return (_amount  * 1e18) / ICurve(frxEthCurvePool).price_oracle();
     }
 
     function prepareReturn(
@@ -114,8 +118,13 @@ contract FraxStrategy is BaseStrategy {
     }
 
     function withdrawSome(uint256 _amountNeeded) internal {
-        console.log("Need to withdrawSome:", _amountNeeded);
-        // ISfrxEth(sfrxEth).withdraw(_amountNeeded, address(this), address(this));
+        uint256 sfrxToUnstake = Math.min(
+            wantToSfrx(_amountNeeded),
+            IERC20(sfrxEth).balanceOf(address(this))
+        );
+        if (sfrxToUnstake > 0) {
+            _exitPosition(sfrxToUnstake);
+        }
     }
 
     function liquidatePosition(
@@ -146,6 +155,42 @@ contract FraxStrategy is BaseStrategy {
         return want.balanceOf(address(this));
     }
 
+    function _exitPosition(uint256 _sfrxToUnstake) internal {
+        ISfrxEth(sfrxEth).redeem(_sfrxToUnstake, address(this), address(this));
+        uint256 _frxAmount = IERC20(frxEth).balanceOf(address(this));
+        uint256 _minAmountOut = frxToWant(_frxAmount) * slippage / 10000;
+        address[9] memory _route = [
+            frxEth, // FRX
+            frxEthCurvePool, // frxeth pool
+            0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE, // ETH
+            address(want), // no pool for ETH->WETH
+            address(want), // wETH
+            address(0),
+            address(0),
+            address(0),
+            address(0)
+        ];
+        uint256[3][4] memory _swap_params = [
+            [uint256(1), uint256(0), uint256(1)], // FRX -> ETH, stableswap exchange
+            [uint256(0), uint256(0), uint256(15)], // ETH -> WETH, special 15 op
+            [uint256(0), uint256(0), uint256(0)],
+            [uint256(0), uint256(0), uint256(0)]
+        ];
+        address[4] memory _pools = [
+            address(0),
+            address(0),
+            address(0),
+            address(0)
+        ];
+        ICurveSwapRouter(curveSwapRouter).exchange_multiple(
+            _route,
+            _swap_params,
+            _frxAmount,
+            _minAmountOut,
+            _pools
+        );
+    }
+
     function prepareMigration(address _newStrategy) internal override {
         uint256 sfrxBal = IERC20(sfrxEth).balanceOf(address(this));
         if (sfrxBal > 0) {
@@ -168,6 +213,11 @@ contract FraxStrategy is BaseStrategy {
         uint256 _amtInWei
     ) public view virtual override returns (uint256) {
         return _amtInWei;
+    }
+
+    function setSlippage(uint256 _slippage) external onlyStrategist {
+        require(_slippage < 10_000, "!_slippage");
+        slippage = _slippage;
     }
 
     receive() external payable {}
