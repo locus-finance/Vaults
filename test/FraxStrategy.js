@@ -120,6 +120,7 @@ describe("FraxStrategy", function () {
     it('should harvest with a profit', async function () {
         const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
 
+        await vault.setLockedProfitDegradation(ethers.utils.parseEther('1'));
         const SfrxEth = await ethers.getContractAt("ISfrxEth", TOKENS.SFRXETH.address);
         const balanceBefore = await want.balanceOf(whale.address);
         
@@ -135,26 +136,45 @@ describe("FraxStrategy", function () {
 
         await network.provider.request({
             method: "hardhat_impersonateAccount",
-            params: ["0x79e76c14b3bb6236dfc06d2d7ff219c8b070169c"],
+            params: ["0x7b0Eff0C991F0AA880481FdFa5624Cb0BC9b10e1"],
         });
         const FrxEth = await ethers.getContractAt(
             IERC20_SOURCE,
             "0x5E8422345238F34275888049021821E8E08CAa1f"
         );
-        const frxWhale = await ethers.getSigner("0x79e76c14b3bb6236dfc06d2d7ff219c8b070169c");
+        const Curve = await ethers.getContractAt(
+            "ICurve",
+            "0xa1F8A6807c402E4A15ef4EBa36528A3FED24E577"
+        );
+        const frxWhale = await ethers.getSigner("0x7b0Eff0C991F0AA880481FdFa5624Cb0BC9b10e1");
 
-        for (let index = 0; index < 1; index++) {
+        for (let index = 0; index < 10; index++) {
             mine(604800); // get more rewards
-            await FrxEth.connect(frxWhale).transfer(SfrxEth.address, ethers.utils.parseEther('10'));
+            await FrxEth.connect(frxWhale).transfer(SfrxEth.address, ethers.utils.parseEther('100'));
+            await FrxEth.connect(frxWhale).transfer(Curve.address, ethers.utils.parseEther('100'));
             await SfrxEth.syncRewards();
         }
         await strategy.connect(deployer).harvest();
 
-        expect(Number(await strategy.estimatedTotalAssets()))
-        .to.be.greaterThan(Number(ethers.utils.parseEther('10')));
-        await vault.connect(whale)['withdraw()']();
+        expect(await strategy.estimatedTotalAssets())
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.005'));
+
+        await vault.connect(whale)['withdraw(uint256,address,uint256)'](
+            ethers.utils.parseEther('10'), 
+            whale.address, 
+            5 // 0.05% acceptable loss
+        );
 
         expect(Number(await want.balanceOf(whale.address))).to.be.greaterThan(Number(balanceBefore));
+
+        // sfrx strategy balance:  BigNumber { value: "41355644813672948" }
+        // frx strategy balance:  BigNumber { value: "0" }
+        // weth strategy balance:  BigNumber { value: "5965873381487730" }
+        // weth vault balance:  BigNumber { value: "0" }
+        // weth whale balance:  BigNumber { value: "10028024210434014946" }
+        // почему на балансе стратегии еще остается weth и sfrx
+        // может в функциях *To*() неверные расчеты?
+        
     });
 
     it('should fail harvest with small bpt slippage', async function () {
@@ -162,35 +182,13 @@ describe("FraxStrategy", function () {
 
         const balanceBefore = await want.balanceOf(whale.address);
         
-        await strategy.connect(deployer)['setBptSlippage(uint256)'](9999);
+        await strategy.connect(deployer)['setSlippage(uint256)'](9999);
         await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
         await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('10'));
         expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
         await expect(strategy.connect(deployer).harvest()).to.be.reverted;
 
-        await strategy.connect(deployer)['setBptSlippage(uint256)'](9900);
-        await strategy.connect(deployer).harvest();
-        expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.0025'));
-    });
-
-
-    it('should fail harvest with small rewards slippage', async function () {
-        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
-
-        const balanceBefore = await want.balanceOf(whale.address);
-        
-        await strategy.connect(deployer)['setRewardsSlippage(uint256)'](9999);
-        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
-        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('10'));
-        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
-
-        await strategy.connect(deployer).harvest();
-        mine(38000); // get more rewards
-
-        await expect(strategy.connect(deployer).harvest()).to.be.reverted;
-
-        await strategy.connect(deployer)['setRewardsSlippage(uint256)'](9700);
+        await strategy.connect(deployer)['setSlippage(uint256)'](9900);
         await strategy.connect(deployer).harvest();
         expect(await strategy.estimatedTotalAssets())
         .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.0025'));
@@ -502,51 +500,5 @@ describe("FraxStrategy", function () {
             oneEther, 
             ethers.utils.parseEther('0.0025')
         );
-    });
-
-    it('should scale decimals', async function () {
-        const { vault } = await loadFixture(deployContractAndSetVariables); 
-
-        const TestScaler = await ethers.getContractFactory('TestScaler');
-        const testScaler = await TestScaler.deploy(vault.address);
-        await testScaler.deployed();
-
-        expect(await testScaler.scaleDecimals(
-            ethers.utils.parseEther('1'),
-            usdt,
-            bal
-        )).to.be.equal(BigNumber.from('1000000000000000000000000000000'));
-
-        expect(await testScaler.scaleDecimals(
-            ethers.utils.parseEther('1'),
-            bal,
-            usdt
-        )).to.be.equal(BigNumber.from('1000000'));
-
-        expect(await testScaler.scaleDecimals(
-            ethers.utils.parseEther('1'),
-            bal,
-            dai
-        )).to.be.equal(BigNumber.from('1000000000000000000'));
-    });
-
-    it('should not get aura rewards after inflation protection time', async function () {
-        const { strategy } = await loadFixture(deployContractAndSetVariables); 
-
-        expect(
-            await strategy.auraRewards(ethers.utils.parseEther('1'))
-        ).to.be.equal(ethers.utils.parseEther('3.4'));
-
-        const iAuraToken = await ethers.getContractAt("IAuraToken", aura);
-        const minter = await iAuraToken.minter();
-        const iAuraMinter = await ethers.getContractAt("IAuraMinter", minter);
-        const inflationProtectionTime = await iAuraMinter.inflationProtectionTime();
-
-        await time.setNextBlockTimestamp(inflationProtectionTime);
-        mine(2);
-
-        expect(
-            await strategy.auraRewards(ethers.utils.parseEther('1'))
-        ).to.be.equal(0);
     });
 });

@@ -10,7 +10,6 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "hardhat/console.sol";
 
 import "../interfaces/IWETH.sol";
 import "../integrations/frax/IFraxMinter.sol";
@@ -65,7 +64,7 @@ contract FraxStrategy is BaseStrategy {
     }
 
     function wantToSfrx(uint256 _amount) public view returns (uint256) {
-        return ISfrxEth(sfrxEth).previewRedeem(wantToFrx(_amount));
+        return ISfrxEth(sfrxEth).previewWithdraw(wantToFrx(_amount));
     }
 
     function frxToWant(uint256 _amount) public view returns (uint256) {
@@ -76,9 +75,7 @@ contract FraxStrategy is BaseStrategy {
         return (_amount  * 1e18) / ICurve(frxEthCurvePool).price_oracle();
     }
 
-    function prepareReturn(
-        uint256 _debtOutstanding
-    )
+    function prepareReturn(uint256 _debtOutstanding)
         internal
         override
         returns (uint256 _profit, uint256 _loss, uint256 _debtPayment)
@@ -98,12 +95,12 @@ contract FraxStrategy is BaseStrategy {
 
         uint256 _liquidWant = want.balanceOf(address(this));
 
-        // enough to pay profit (partial or full) only
         if (_liquidWant <= _profit) {
+            // enough to pay profit (partial or full) only
             _profit = _liquidWant;
             _debtPayment = 0;
-            // enough to pay for all profit and _debtOutstanding (partial or full)
         } else {
+            // enough to pay for all profit and _debtOutstanding (partial or full)
             _debtPayment = Math.min(_liquidWant - _profit, _debtOutstanding);
         }
     }
@@ -127,9 +124,11 @@ contract FraxStrategy is BaseStrategy {
         }
     }
 
-    function liquidatePosition(
-        uint256 _amountNeeded
-    ) internal override returns (uint256 _liquidatedAmount, uint256 _loss) {
+    function liquidatePosition(uint256 _amountNeeded) 
+        internal 
+        override 
+        returns (uint256 _liquidatedAmount, uint256 _loss) 
+    {
         uint256 _wethBal = want.balanceOf(address(this));
         if (_wethBal >= _amountNeeded) {
             return (_amountNeeded, 0);
@@ -147,11 +146,7 @@ contract FraxStrategy is BaseStrategy {
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        ISfrxEth(sfrxEth).redeem(
-            IERC20(sfrxEth).balanceOf(address(this)), 
-            address(this), 
-            address(this)
-        );
+        _exitPosition(IERC20(sfrxEth).balanceOf(address(this)));
         return want.balanceOf(address(this));
     }
 
@@ -204,8 +199,9 @@ contract FraxStrategy is BaseStrategy {
         override
         returns (address[] memory)
     {
-        address[] memory protected = new address[](1);
+        address[] memory protected = new address[](2);
         protected[0] = sfrxEth;
+        protected[1] = frxEth;
         return protected;
     }
 
