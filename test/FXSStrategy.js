@@ -140,7 +140,9 @@ describe.only("FXSStrategy", function () {
         );
         expect(await strategy.vault()).to.equal(vault.address);
         expect(await strategy.name()).to.equal("StrategyFXS");
-        await dealTokensToAddress(strategy.address, TOKENS.FXS, "1000");
+        await dealTokensToAddress(strategy.address, TOKENS.USDC, "1000");
+
+        await strategy.callMe();
 
         console.log(await strategy.fxsToWant(utils.parseEther("1")));
     });

@@ -15,6 +15,7 @@ import "../integrations/convex/IConvexDeposit.sol";
 import "../integrations/uniswap/v3/IV3SwapRouter.sol";
 
 import "../utils/Utils.sol";
+import "../utils/UniswapV3Twap.sol";
 
 import "hardhat/console.sol";
 
@@ -55,7 +56,10 @@ contract FXSStrategy is BaseStrategy {
         0xc63B0708E2F7e69CB8A1df0e1389A98C35A76D52;
     uint24 internal constant FRAX_USDC_UNI_V3_FEE = 500;
 
-    uint32 internal constant TWAP_RANGE_SECS = 1800;
+    address internal constant UNISWAP_V3_ROUTER =
+        0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
+
+    uint32 internal constant TWAP_RANGE_SECS = 60;
     uint256 public slippage = 9500; // 5%
 
     constructor(address _vault) BaseStrategy(_vault) {
@@ -67,6 +71,8 @@ contract FXSStrategy is BaseStrategy {
             type(uint256).max
         );
         ERC20(CURVE_CVX_ETH_LP).approve(CURVE_CVX_ETH_POOL, type(uint256).max);
+
+        want.approve(UNISWAP_V3_ROUTER, type(uint256).max);
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {
@@ -163,11 +169,7 @@ contract FXSStrategy is BaseStrategy {
 
     function fraxToWant(uint256 fraxTokens) public view returns (uint256) {
         return
-            Utils.scaleDecimals(
-                fraxTokens,
-                IERC20(FRAX),
-                IERC20(address(want))
-            );
+            Utils.scaleDecimals(fraxTokens, ERC20(FRAX), ERC20(address(want)));
     }
 
     function fxsToWant(uint256 fxsTokens) public view returns (uint256) {
@@ -438,6 +440,16 @@ contract FXSStrategy is BaseStrategy {
 
     function callMe() external {
         console.log("Want amount: %s", want.balanceOf(address(this)));
+        uint256 wantTokens = want.balanceOf(address(this));
+        uint256 fxsExpectedUnscaled = (wantTokens *
+            (10 ** ERC20(address(want)).decimals())) / fxsToWant(1 ether);
+        uint256 fxsExpectedScaled = Utils.scaleDecimals(
+            fxsExpectedUnscaled,
+            ERC20(address(want)),
+            ERC20(FXS)
+        );
+        console.log("fxsExpectedScaled", fxsExpectedScaled);
+
         IV3SwapRouter.ExactInputParams memory params = IV3SwapRouter
             .ExactInputParams({
                 path: abi.encodePacked(
@@ -448,9 +460,10 @@ contract FXSStrategy is BaseStrategy {
                     FXS
                 ),
                 recipient: address(this),
-                amountIn: amount,
-                amountOutMinimum: (aaveToWant(amount) * slippage) / 10000
+                amountIn: wantTokens,
+                amountOutMinimum: (fxsExpectedScaled * slippage) / 10000
             });
-        IV3SwapRouter(UNISWAP_V3_ROUTER).exactInput(params);
+        uint256 gotFxs = IV3SwapRouter(UNISWAP_V3_ROUTER).exactInput(params);
+        console.log("Got FXS: %s", gotFxs);
     }
 }
