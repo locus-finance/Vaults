@@ -5,19 +5,25 @@
           "network" : "ETHEREUM",
           "chainId" : "1",
           "address": "",
-          "nativeToken": "ETH"
+          "nativeToken": "ETH",
+          "wantTokenTicker": "ETH",
+          "wantTokenAddress": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
         },
         "dVault" : {
           "network" : "ETHEREUM",
           "chainId" : "1",
           "address": "",
-          "nativeToken": "ETH"
+          "nativeToken": "ETH",
+          "wantTokenTicker": "USD",
+          "wantTokenAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
         },
         "daVault" : {
           "network" : "ARBITRUM ONE",
           "chainId" : "42161",
           "address": "",
-          "nativeToken": "ETH"
+          "nativeToken": "ETH",
+          "wantTokenTicker": "USD",
+          "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8"
         }
       },
     "TESTNET" : {
@@ -25,19 +31,25 @@
         "network" : "SEPOLIA",
         "chainId" : "11155111",
         "address": "0xD8647A1018B9b2edAaf3bDD3482621798AB4C2e4",
-        "nativeToken": "ETH"
+        "nativeToken": "ETH",
+        "wantTokenTicker": "ETH",
+        "wantTokenAddress": "0xee44150250AfF3E6aC25539765F056EDb7F85D7B"
       },
       "dVault" : {
         "network" : "SEPOLIA",
         "chainId" : "11155111",
         "address": "",
-        "nativeToken": "ETH"
+        "nativeToken": "ETH",
+        "wantTokenTicker": "USD",
+        "wantTokenAddress": " "
       },
       "daVault" : {
         "network" : "ARBITRUM GOERLI",
         "chainId" : "421613",
         "address": "",
-        "nativeToken": "ETH"
+        "nativeToken": "ETH",
+        "wantTokenTicker": "USD",
+        "wantTokenAddress": " "
       }
     }
   },
