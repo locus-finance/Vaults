@@ -14,6 +14,7 @@ import "../integrations/convex/IConvexRewards.sol";
 import "../integrations/convex/IConvexDeposit.sol";
 
 import "../utils/Utils.sol";
+import "../utils/CVXRewards.sol";
 
 contract CVXStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
@@ -84,9 +85,14 @@ contract CVXStrategy is BaseStrategy {
     }
 
     function balanceOfCvxRewards() public view virtual returns (uint256) {
+        uint256 crvRewards = IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).earned(
+            address(this)
+        );
+
         return
             ERC20(CVX).balanceOf(address(this)) +
-            IConvexRewards(CONVEX_CVX_REWARD_POOL).earned(address(this));
+            IConvexRewards(CONVEX_CVX_REWARD_POOL).earned(address(this)) +
+            CVXRewardsMath.convertCrvToCvx(crvRewards);
     }
 
     function curveLPToWant(uint256 _lpTokens) public view returns (uint256) {

@@ -683,5 +683,8 @@ describe("FXSStrategy", function () {
         expect(Number(await strategy.balanceOfCrvRewards())).to.be.greaterThan(
             0
         );
+        expect(Number(await strategy.balanceOfCvxRewards())).to.be.greaterThan(
+            0
+        );
     });
 });

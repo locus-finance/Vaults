@@ -10,4 +10,6 @@ interface ICvx {
     function INIT_MINT_AMOUNT() external view returns (uint256);
 
     function EMISSIONS_MAX_SUPPLY() external view returns (uint256);
+
+    function maxSupply() external view returns (uint256);
 }
