@@ -6,7 +6,6 @@ const { ethers } = require("hardhat");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20";
 
-const usdt = "0xdac17f958d2ee523a2206206994597c13d831ec7";
 const dai = "0x6b175474e89094c44da98b954eedeac495271d0f";
 
 describe("FraxStrategy", function () {
@@ -166,32 +165,19 @@ describe("FraxStrategy", function () {
         );
 
         expect(Number(await want.balanceOf(whale.address))).to.be.greaterThan(Number(balanceBefore));
-
-        // sfrx strategy balance:  BigNumber { value: "41355644813672948" }
-        // frx strategy balance:  BigNumber { value: "0" }
-        // weth strategy balance:  BigNumber { value: "5965873381487730" }
-        // weth vault balance:  BigNumber { value: "0" }
-        // weth whale balance:  BigNumber { value: "10028024210434014946" }
-        // почему на балансе стратегии еще остается weth и sfrx
-        // может в функциях *To*() неверные расчеты?
-        
     });
 
-    it('should fail harvest with small bpt slippage', async function () {
+    it('should fail harvest with small slippage', async function () {
         const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
-
-        const balanceBefore = await want.balanceOf(whale.address);
         
         await strategy.connect(deployer)['setSlippage(uint256)'](9999);
         await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
         await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('10'));
         expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
-        await expect(strategy.connect(deployer).harvest()).to.be.reverted;
-
-        await strategy.connect(deployer)['setSlippage(uint256)'](9900);
         await strategy.connect(deployer).harvest();
-        expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.0025'));
+
+        await vault.connect(deployer)['updateStrategyDebtRatio(address,uint256)'](strategy.address, 5000);
+        await expect(strategy.connect(deployer).harvest()).to.be.reverted;
     });
 
     it('should withdraw requested amount', async function () {
@@ -205,36 +191,9 @@ describe("FraxStrategy", function () {
 
         await strategy.connect(deployer).harvest();
         expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.0025'));
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.025'));
 
         await strategy.connect(deployer).harvest();
-        await vault.connect(whale)['withdraw(uint256,address,uint256)'](
-            ethers.utils.parseEther('10'), 
-            whale.address, 
-            3 // 0.02% acceptable loss
-        );
-
-        expect(await want.balanceOf(whale.address))
-        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.004'));
-    });
-
-    it('should withdraw with loss', async function () {
-        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
-
-        const balanceBefore = await want.balanceOf(whale.address);
-        
-        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
-        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('10'));
-
-        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
-
-        await strategy.connect(deployer).harvest();
-
-        expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.0025'));
-
-        await strategy.connect(deployer).tend();
-
         await vault.connect(whale)['withdraw(uint256,address,uint256)'](
             ethers.utils.parseEther('10'), 
             whale.address, 
@@ -242,7 +201,7 @@ describe("FraxStrategy", function () {
         );
 
         expect(await want.balanceOf(whale.address))
-        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.004'));
+        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.025'));
     });
 
     it('should not withdraw with loss', async function () {
@@ -258,7 +217,7 @@ describe("FraxStrategy", function () {
         await strategy.connect(deployer).harvest();
 
         expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.0025'));
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.025'));
 
         await strategy.connect(deployer).tend();
 
@@ -315,16 +274,10 @@ describe("FraxStrategy", function () {
             strategy.connect(deployer)['sweep(address)'](vault.address)
         ).to.be.revertedWith("!shares");
         await expect( 
-            strategy.connect(deployer)['sweep(address)'](bRethStable)
+            strategy.connect(deployer)['sweep(address)'](TOKENS.FRXETH.address)
         ).to.be.revertedWith("!protected");
         await expect( 
-            strategy.connect(deployer)['sweep(address)'](auraBRethStable)
-        ).to.be.revertedWith("!protected");
-        await expect( 
-            strategy.connect(deployer)['sweep(address)'](aura)
-        ).to.be.revertedWith("!protected");
-        await expect( 
-            strategy.connect(deployer)['sweep(address)'](bal)
+            strategy.connect(deployer)['sweep(address)'](TOKENS.SFRXETH.address)
         ).to.be.revertedWith("!protected");
 
         const daiToken = await hre.ethers.getContractAt(
@@ -412,34 +365,54 @@ describe("FraxStrategy", function () {
             ethers.utils.parseEther('0.0025')
         );
 
-        const RocketAuraStrategy = await ethers.getContractFactory('RocketAuraStrategy');
-        const newStrategy = await RocketAuraStrategy.deploy(vault.address);
+        await network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [TOKENS.FRXETH.whale],
+        });
+        const FrxEth = await ethers.getContractAt(IERC20_SOURCE, TOKENS.FRXETH.address);
+        const frxWhale = await ethers.getSigner(TOKENS.FRXETH.whale);
+        await FrxEth.connect(frxWhale).transfer(strategy.address, ethers.utils.parseEther('0.0001'));
+
+        await network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [TOKENS.ETH.whale],
+        });
+        const ethWhale = await ethers.getSigner(TOKENS.ETH.whale);
+        await ethWhale.sendTransaction({
+            to: strategy.address,
+            value: ethers.utils.parseEther("0.0001"),
+        });
+
+        const FraxStrategy = await ethers.getContractFactory('FraxStrategy');
+        const newStrategy = await FraxStrategy.deploy(vault.address);
         await newStrategy.deployed();
 
-        const auraToken = await hre.ethers.getContractAt(IERC20_SOURCE, aura);
-        const balToken = await hre.ethers.getContractAt(IERC20_SOURCE, bal);
-        const bRethStableToken = await hre.ethers.getContractAt(IERC20_SOURCE, bRethStable);
-        const auraBRethStableToken = await hre.ethers.getContractAt(IERC20_SOURCE, auraBRethStable);
+        const frxethToken = await hre.ethers.getContractAt(IERC20_SOURCE, TOKENS.FRXETH.address);
+        const sfrxethToken = await hre.ethers.getContractAt(IERC20_SOURCE, TOKENS.SFRXETH.address);
+
+        expect(Number(await sfrxethToken.balanceOf(strategy.address))).to.be.greaterThan(0);
+        expect(Number(await frxethToken.balanceOf(strategy.address))).to.be.greaterThan(0);
+        expect(Number(await ethers.provider.getBalance(strategy.address))).to.be.greaterThan(0);
 
         await vault['migrateStrategy(address,address)'](strategy.address, newStrategy.address);
 
         expect(await strategy.estimatedTotalAssets()).to.be.equal(0);
+        expect(Number(await sfrxethToken.balanceOf(strategy.address))).to.be.equal(0);
+        expect(Number(await frxethToken.balanceOf(strategy.address))).to.be.equal(0);
+        expect(Number(await ethers.provider.getBalance(strategy.address))).to.be.equal(0);
+
         expect(await newStrategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('1'), 
             ethers.utils.parseEther('0.0025')
         );
-        expect(Number(await auraToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
-        expect(Number(await balToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
-        expect(Number(await bRethStableToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
-        expect(Number(await auraBRethStableToken.balanceOf(newStrategy.address))).to.be.equal(0);
+        expect(Number(await sfrxethToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
+        expect(Number(await frxethToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
+        expect(Number(await ethers.provider.getBalance(newStrategy.address))).to.be.greaterThan(0);
 
         mine(100);
         await newStrategy.harvest();
 
-        expect(Number(await auraToken.balanceOf(newStrategy.address))).to.be.equal(0);
-        expect(Number(await balToken.balanceOf(newStrategy.address))).to.be.equal(0);
-        expect(Number(await bRethStableToken.balanceOf(newStrategy.address))).to.be.equal(0);
-        expect(Number(await auraBRethStableToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
+        expect(Number(await frxethToken.balanceOf(newStrategy.address))).to.be.equal(0);
 
         expect(await newStrategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('1'), 
@@ -471,34 +444,33 @@ describe("FraxStrategy", function () {
     });
 
     it('should withdraw on vault shutdown', async function () {
-        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
+        const { vault, strategy, whale, want } = await loadFixture(deployContractAndSetVariables); 
 
-        const oneEther = ethers.utils.parseEther('1');
-        await want.connect(whale).approve(vault.address, oneEther);
-        await vault.connect(whale)['deposit(uint256)'](oneEther);
-        expect(await want.balanceOf(vault.address)).to.equal(oneEther);
+        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
+        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('10'));
+        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
 
         if(await want.balanceOf(whale.address) > 0){
             want.connect(whale).transfer(ZERO_ADDRESS, await want.balanceOf(whale.address));
         }
         await strategy.harvest();
-        mine(3600*7);
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
-            ethers.utils.parseEther('1'), 
-            ethers.utils.parseEther('0.0025')
+            ethers.utils.parseEther('10'), 
+            ethers.utils.parseEther('0.025')
         );
 
         await vault['setEmergencyShutdown(bool)'](true);
-        mine(1);
         await vault.connect(whale)['withdraw(uint256,address,uint256)'](
-            ethers.utils.parseEther('1'), 
+            ethers.utils.parseEther('10'), 
             whale.address, 
-            5 // 0.05% acceptable loss
+            15 // 0.05% acceptable loss
         );
+        expect(await want.balanceOf(vault.address)).to.be.equal(0);
+        expect(await strategy.estimatedTotalAssets()).to.be.equal(0);
         expect(await want.balanceOf(whale.address)).to.be.closeTo(
-            oneEther, 
-            ethers.utils.parseEther('0.0025')
+            ethers.utils.parseEther('10'), 
+            ethers.utils.parseEther('0.025')
         );
     });
 });

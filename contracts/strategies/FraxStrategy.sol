@@ -106,10 +106,15 @@ contract FraxStrategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
+        if(IERC20(frxEth).balanceOf(address(this)) > 0){
+            _sellAllFrx();
+        }
         uint256 _wethBal = want.balanceOf(address(this));
         if (_wethBal > _debtOutstanding) {
             uint256 _excessWeth = _wethBal - _debtOutstanding;
             IWETH(address(want)).withdraw(_excessWeth);
+        }
+        if (address(this).balance > 0) {
             IFraxMinter(fraxMinter).submitAndDeposit{value: address(this).balance}(address(this));
         }
     }
@@ -152,6 +157,10 @@ contract FraxStrategy is BaseStrategy {
 
     function _exitPosition(uint256 _sfrxToUnstake) internal {
         ISfrxEth(sfrxEth).redeem(_sfrxToUnstake, address(this), address(this));
+        _sellAllFrx();
+    }
+
+    function _sellAllFrx() internal {
         uint256 _frxAmount = IERC20(frxEth).balanceOf(address(this));
         uint256 _minAmountOut = frxToWant(_frxAmount) * slippage / 10000;
         address[9] memory _route = [
@@ -190,6 +199,14 @@ contract FraxStrategy is BaseStrategy {
         uint256 sfrxBal = IERC20(sfrxEth).balanceOf(address(this));
         if (sfrxBal > 0) {
             IERC20(sfrxEth).safeTransfer(_newStrategy, sfrxBal);
+        }
+        uint256 frxBal = IERC20(frxEth).balanceOf(address(this));
+        if (frxBal > 0) {
+            IERC20(frxEth).safeTransfer(_newStrategy, frxBal);
+        }
+        uint256 ethBal = address(this).balance;
+        if (ethBal > 0) {
+            payable(_newStrategy).transfer(ethBal);
         }
     }
 
