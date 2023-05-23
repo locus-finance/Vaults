@@ -14,7 +14,7 @@
           "chainId" : "1",
           "address": "",
           "nativeToken": "ETH",
-          "wantTokenTicker": "USD",
+          "wantTokenTicker": "USDC",
           "wantTokenAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
         },
         "daVault" : {
@@ -22,7 +22,7 @@
           "chainId" : "42161",
           "address": "",
           "nativeToken": "ETH",
-          "wantTokenTicker": "USD",
+          "wantTokenTicker": "USDC",
           "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8"
         }
       },
@@ -40,7 +40,7 @@
         "chainId" : "11155111",
         "address": "",
         "nativeToken": "ETH",
-        "wantTokenTicker": "USD",
+        "wantTokenTicker": "USDC",
         "wantTokenAddress": " "
       },
       "daVault" : {
@@ -48,7 +48,7 @@
         "chainId" : "421613",
         "address": "",
         "nativeToken": "ETH",
-        "wantTokenTicker": "USD",
+        "wantTokenTicker": "USDC",
         "wantTokenAddress": " "
       }
     }
@@ -60,13 +60,17 @@
         "network" : "SEPOLIA",
         "chainId" : "11155111",
         "address": "0x66633600383A279B46f81bd69b79E8D9d9215073",
-        "nativeToken": "ETH"
+        "nativeToken": "ETH",
+        "wantTokenTicker": "ETH",
+        "wantTokenAddress": "0xee44150250AfF3E6aC25539765F056EDb7F85D7B"
       },
       "wstETH_Mock_Strategy": {
         "network" : "SEPOLIA",
         "chainId" : "11155111",
         "address": "0x44552Bc0B6ea5BB23716843cD4924CAbABaBde99",
-        "nativeToken": "ETH"
+        "nativeToken": "ETH",
+        "wantTokenTicker": "ETH",
+        "wantTokenAddress": "0xee44150250AfF3E6aC25539765F056EDb7F85D7B"
       }
     }
   },
