@@ -13,6 +13,8 @@ import "../integrations/curve/ICurve.sol";
 import "../integrations/convex/IConvexRewards.sol";
 import "../integrations/convex/IConvexDeposit.sol";
 
+import "../utils/Utils.sol";
+
 contract CVXStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
 
@@ -234,6 +236,13 @@ contract CVXStrategy is BaseStrategy {
 
         if (_wantBal > _debtOutstanding) {
             uint256 _excessWant = _wantBal - _debtOutstanding;
+            uint256 _ethExpected = (_excessWant *
+                (10 ** ERC20(address(want)).decimals())) / ethToWant(1 ether);
+            uint256 _ethExpectedScaled = Utils.scaleDecimals(
+                _ethExpected,
+                ERC20(address(want)),
+                ERC20(WETH)
+            );
 
             address[9] memory _route = [
                 address(want),
@@ -262,16 +271,26 @@ contract CVXStrategy is BaseStrategy {
                 _route,
                 _swap_params,
                 _excessWant,
-                uint256(0),
+                (_ethExpectedScaled * slippage) / 10000,
                 _pools
             );
         }
 
         if (address(this).balance > 0) {
+            uint256 ethPrice = ethToWant(address(this).balance);
+            uint256 lpPrice = curveLPToWant(1e18);
+            uint256 lpTokensExpectedUnscaled = (ethPrice *
+                (10 ** ERC20(address(want)).decimals())) / lpPrice;
+            uint256 lpTokensExpectedScaled = Utils.scaleDecimals(
+                lpTokensExpectedUnscaled,
+                ERC20(address(want)),
+                ERC20(CURVE_CVX_ETH_LP)
+            );
+
             uint256[2] memory amounts = [address(this).balance, uint256(0)];
             ICurve(CURVE_CVX_ETH_POOL).add_liquidity{
                 value: address(this).balance
-            }(amounts, uint256(0), true);
+            }(amounts, (lpTokensExpectedScaled * slippage) / 10000, true);
         }
 
         if (balanceOfCurveLPUnstaked() > 0) {
