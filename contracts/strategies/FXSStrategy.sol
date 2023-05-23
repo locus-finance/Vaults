@@ -12,11 +12,12 @@ import "../integrations/balancer/IBalancerPriceOracle.sol";
 import "../integrations/curve/ICurve.sol";
 import "../integrations/convex/IConvexRewards.sol";
 import "../integrations/convex/IConvexDeposit.sol";
+import "../integrations/uniswap/v3/IV3SwapRouter.sol";
 
 import "../utils/Utils.sol";
 import "../utils/CVXRewards.sol";
 
-contract CVXStrategy is BaseStrategy {
+contract FXSStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
 
     address internal constant USDC_ETH_UNI_V3_POOL =
@@ -28,32 +29,49 @@ contract CVXStrategy is BaseStrategy {
     address internal constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address internal constant CRV = 0xD533a949740bb3306d119CC777fa900bA034cd52;
     address internal constant CVX = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B;
+    address internal constant FXS = 0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0;
+    address internal constant FRAX = 0x853d955aCEf822Db058eb8505911ED77F175b99e;
 
     address internal constant CURVE_SWAP_ROUTER =
         0x99a58482BD75cbab83b27EC03CA68fF489b5788f;
-    address internal constant CURVE_CVX_ETH_POOL =
-        0xB576491F1E6e5E62f1d8F26062Ee822B40B0E0d4;
-    address internal constant CURVE_CVX_ETH_LP =
-        0x3A283D9c08E8b55966afb64C515f5143cf907611;
-    address internal constant ETH_CVX_CONVEX_DEPOSIT =
-        0xF403C135812408BFbE8713b5A23a04b3D48AAE31;
-    address internal constant ETH_CVX_CONVEX_CRV_REWARDS =
-        0xb1Fb0BA0676A1fFA83882c7F4805408bA232C1fA;
     address internal constant CONVEX_CVX_REWARD_POOL =
-        0x834B9147Fd23bF131644aBC6e557Daf99C5cDa15;
+        0xE2585F27bf5aaB7756f626D6444eD5Fc9154e606;
+    address internal constant CONVEX_FXS_REWARD_POOL =
+        0x28120D9D49dBAeb5E34D6B809b842684C482EF27;
+
+    address internal constant FXS_FRAX_UNI_V3_POOL =
+        0xb64508B9f7b81407549e13DB970DD5BB5C19107F;
+    uint24 internal constant FXS_FRAX_UNI_V3_FEE = 10000;
+
+    address internal constant FRAX_USDC_UNI_V3_POOL =
+        0xc63B0708E2F7e69CB8A1df0e1389A98C35A76D52;
+    uint24 internal constant FRAX_USDC_UNI_V3_FEE = 500;
+
+    address internal constant CURVE_FXS_POOL =
+        0xd658A338613198204DCa1143Ac3F01A722b5d94A;
+    address internal constant CURVE_FXS_LP =
+        0xF3A43307DcAFa93275993862Aae628fCB50dC768;
+
+    address internal constant FXS_CONVEX_DEPOSIT =
+        0xF403C135812408BFbE8713b5A23a04b3D48AAE31;
+    address internal constant FXS_CONVEX_CRV_REWARDS =
+        0xf27AFAD0142393e4b3E5510aBc5fe3743Ad669Cb;
+
+    address internal constant UNISWAP_V3_ROUTER =
+        0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
     uint256 public slippage = 9500; // 5%
 
     constructor(address _vault) BaseStrategy(_vault) {
-        want.approve(CURVE_SWAP_ROUTER, type(uint256).max);
         ERC20(CRV).approve(CURVE_SWAP_ROUTER, type(uint256).max);
         ERC20(CVX).approve(CURVE_SWAP_ROUTER, type(uint256).max);
-        ERC20(CURVE_CVX_ETH_LP).approve(
-            ETH_CVX_CONVEX_DEPOSIT,
-            type(uint256).max
-        );
-        ERC20(CURVE_CVX_ETH_LP).approve(CURVE_CVX_ETH_POOL, type(uint256).max);
+        ERC20(CURVE_FXS_LP).approve(FXS_CONVEX_DEPOSIT, type(uint256).max);
+        ERC20(CURVE_FXS_LP).approve(CURVE_FXS_POOL, type(uint256).max);
+        ERC20(FXS).approve(CURVE_FXS_POOL, type(uint256).max);
+        ERC20(FXS).approve(UNISWAP_V3_ROUTER, type(uint256).max);
+
+        want.approve(UNISWAP_V3_ROUTER, type(uint256).max);
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {
@@ -62,7 +80,7 @@ contract CVXStrategy is BaseStrategy {
     }
 
     function name() external pure override returns (string memory) {
-        return "StrategyCVX";
+        return "StrategyFXS";
     }
 
     function balanceOfWant() public view returns (uint256) {
@@ -70,22 +88,27 @@ contract CVXStrategy is BaseStrategy {
     }
 
     function balanceOfCurveLPUnstaked() public view returns (uint256) {
-        return ERC20(CURVE_CVX_ETH_LP).balanceOf(address(this));
+        return ERC20(CURVE_FXS_LP).balanceOf(address(this));
     }
 
     function balanceOfCurveLPStaked() public view returns (uint256) {
-        return
-            IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).balanceOf(address(this));
+        return IConvexRewards(FXS_CONVEX_CRV_REWARDS).balanceOf(address(this));
     }
 
     function balanceOfCrvRewards() public view virtual returns (uint256) {
         return
             ERC20(CRV).balanceOf(address(this)) +
-            IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).earned(address(this));
+            IConvexRewards(FXS_CONVEX_CRV_REWARDS).earned(address(this));
+    }
+
+    function balanceOfFxsRewards() public view returns (uint256) {
+        return
+            ERC20(FXS).balanceOf(address(this)) +
+            IConvexRewards(CONVEX_FXS_REWARD_POOL).earned(address(this));
     }
 
     function balanceOfCvxRewards() public view virtual returns (uint256) {
-        uint256 crvRewards = IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).earned(
+        uint256 crvRewards = IConvexRewards(FXS_CONVEX_CRV_REWARDS).earned(
             address(this)
         );
 
@@ -96,12 +119,12 @@ contract CVXStrategy is BaseStrategy {
     }
 
     function curveLPToWant(uint256 _lpTokens) public view returns (uint256) {
-        uint256 ethAmount = (
+        uint256 fxsAmount = (
             _lpTokens > 0
-                ? (ICurve(CURVE_CVX_ETH_POOL).lp_price() * _lpTokens) / 1e18
+                ? (ICurve(CURVE_FXS_POOL).lp_price() * _lpTokens) / 1e18
                 : 0
         );
-        return ethToWant(ethAmount);
+        return fxsToWant(fxsAmount);
     }
 
     function wantToCurveLP(
@@ -115,26 +138,11 @@ contract CVXStrategy is BaseStrategy {
         if (_amountNeeded == 0) {
             return;
         }
-        uint256 earnedCrv = balanceOfCrvRewards();
-        uint256 earnedCvx = balanceOfCvxRewards();
-        uint256 rewardsTotal = crvToWant(earnedCrv) + cvxToWant(earnedCvx);
-
-        if (rewardsTotal >= _amountNeeded) {
-            IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).getReward(
-                address(this),
-                true
-            );
-            _sellCrvAndCvx(
-                ERC20(CRV).balanceOf(address(this)),
-                ERC20(CVX).balanceOf(address(this))
-            );
-        } else {
-            uint256 lpTokensToWithdraw = Math.min(
-                wantToCurveLP(_amountNeeded - rewardsTotal),
-                balanceOfCurveLPStaked()
-            );
-            _exitPosition(lpTokensToWithdraw);
-        }
+        uint256 lpTokensToWithdraw = Math.min(
+            wantToCurveLP(_amountNeeded),
+            balanceOfCurveLPStaked()
+        );
+        _exitPosition(lpTokensToWithdraw);
     }
 
     function ethToWant(
@@ -150,6 +158,27 @@ contract CVXStrategy is BaseStrategy {
                 uint128(_amtInWei),
                 WETH,
                 address(want)
+            );
+    }
+
+    function fraxToWant(uint256 fraxTokens) public view returns (uint256) {
+        return
+            Utils.scaleDecimals(fraxTokens, ERC20(FRAX), ERC20(address(want)));
+    }
+
+    function fxsToWant(uint256 fxsTokens) public view returns (uint256) {
+        (int24 meanTick, ) = OracleLibrary.consult(
+            FXS_FRAX_UNI_V3_POOL,
+            TWAP_RANGE_SECS
+        );
+        return
+            fraxToWant(
+                OracleLibrary.getQuoteAtTick(
+                    meanTick,
+                    uint128(fxsTokens),
+                    FXS,
+                    FRAX
+                )
             );
     }
 
@@ -194,6 +223,7 @@ contract CVXStrategy is BaseStrategy {
         );
         _wants += crvToWant(balanceOfCrvRewards());
         _wants += cvxToWant(balanceOfCvxRewards());
+        _wants += fxsToWant(balanceOfFxsRewards());
     }
 
     function prepareReturn(
@@ -229,10 +259,7 @@ contract CVXStrategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
-        IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).getReward(
-            address(this),
-            true
-        );
+        IConvexRewards(FXS_CONVEX_CRV_REWARDS).getReward(address(this), true);
         _sellCrvAndCvx(
             ERC20(CRV).balanceOf(address(this)),
             ERC20(CVX).balanceOf(address(this))
@@ -242,67 +269,47 @@ contract CVXStrategy is BaseStrategy {
 
         if (_wantBal > _debtOutstanding) {
             uint256 _excessWant = _wantBal - _debtOutstanding;
-            uint256 _ethExpected = (_excessWant *
-                (10 ** ERC20(address(want)).decimals())) / ethToWant(1 ether);
-            uint256 _ethExpectedScaled = Utils.scaleDecimals(
-                _ethExpected,
+
+            uint256 fxsExpectedUnscaled = (_excessWant *
+                (10 ** ERC20(address(want)).decimals())) / fxsToWant(1 ether);
+            uint256 fxsExpectedScaled = Utils.scaleDecimals(
+                fxsExpectedUnscaled,
                 ERC20(address(want)),
-                ERC20(WETH)
+                ERC20(FXS)
             );
 
-            address[9] memory _route = [
-                address(want),
-                0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7, // 3pool
-                0xdAC17F958D2ee523a2206206994597C13D831ec7, // USDT
-                0xD51a44d3FaE010294C616388b506AcdA1bfAAE46, // tricrypto2 pool
-                0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE, // ETH
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            ];
-            uint256[3][4] memory _swap_params = [
-                [uint256(1), uint256(2), uint256(1)], // USDC -> USDT, stable swap exchange
-                [uint256(0), uint256(2), uint256(3)], // USDT -> ETH, cryptoswap exchange
-                [uint256(0), uint256(0), uint256(0)],
-                [uint256(0), uint256(0), uint256(0)]
-            ];
-            address[4] memory _pools = [
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            ];
-            ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
-                _route,
-                _swap_params,
-                _excessWant,
-                (_ethExpectedScaled * slippage) / 10000,
-                _pools
-            );
+            IV3SwapRouter.ExactInputParams memory params = IV3SwapRouter
+                .ExactInputParams({
+                    path: abi.encodePacked(
+                        address(want),
+                        FRAX_USDC_UNI_V3_FEE,
+                        FRAX,
+                        FXS_FRAX_UNI_V3_FEE,
+                        FXS
+                    ),
+                    recipient: address(this),
+                    amountIn: _excessWant,
+                    amountOutMinimum: (fxsExpectedScaled * slippage) / 10000
+                });
+            IV3SwapRouter(UNISWAP_V3_ROUTER).exactInput(params);
         }
 
-        if (address(this).balance > 0) {
-            uint256 ethPrice = ethToWant(address(this).balance);
-            uint256 lpPrice = curveLPToWant(1e18);
-            uint256 lpTokensExpectedUnscaled = (ethPrice *
-                (10 ** ERC20(address(want)).decimals())) / lpPrice;
-            uint256 lpTokensExpectedScaled = Utils.scaleDecimals(
-                lpTokensExpectedUnscaled,
-                ERC20(address(want)),
-                ERC20(CURVE_CVX_ETH_LP)
+        uint256 fxsBalance = ERC20(FXS).balanceOf(address(this));
+        if (fxsBalance > 0) {
+            uint256 lpExpected = (fxsBalance * 1e18) /
+                ICurve(CURVE_FXS_POOL).lp_price();
+            uint256[2] memory amounts = [fxsBalance, uint256(0)];
+            ICurve(CURVE_FXS_POOL).add_liquidity(
+                amounts,
+                (lpExpected * slippage) / 10000,
+                false
             );
-
-            uint256[2] memory amounts = [address(this).balance, uint256(0)];
-            ICurve(CURVE_CVX_ETH_POOL).add_liquidity{
-                value: address(this).balance
-            }(amounts, (lpTokensExpectedScaled * slippage) / 10000, true);
         }
 
         if (balanceOfCurveLPUnstaked() > 0) {
             require(
-                IConvexDeposit(ETH_CVX_CONVEX_DEPOSIT).depositAll(
-                    uint256(64),
+                IConvexDeposit(FXS_CONVEX_DEPOSIT).depositAll(
+                    uint256(72),
                     true
                 ),
                 "Convex staking failed"
@@ -383,7 +390,7 @@ contract CVXStrategy is BaseStrategy {
     }
 
     function _exitPosition(uint256 _stakedLpTokens) internal {
-        IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).withdrawAndUnwrap(
+        IConvexRewards(FXS_CONVEX_CRV_REWARDS).withdrawAndUnwrap(
             _stakedLpTokens,
             true
         );
@@ -393,45 +400,37 @@ contract CVXStrategy is BaseStrategy {
             ERC20(CVX).balanceOf(address(this))
         );
 
-        uint256 lpTokens = ERC20(CURVE_CVX_ETH_LP).balanceOf(address(this));
-        uint256 withdrawAmount = ICurve(CURVE_CVX_ETH_POOL)
-            .calc_withdraw_one_coin(lpTokens, 0);
-        ICurve(CURVE_CVX_ETH_POOL).remove_liquidity_one_coin(
+        uint256 lpTokens = balanceOfCurveLPUnstaked();
+        uint256 withdrawAmount = ICurve(CURVE_FXS_POOL).calc_withdraw_one_coin(
+            lpTokens,
+            0
+        );
+        ICurve(CURVE_FXS_POOL).remove_liquidity_one_coin(
             lpTokens,
             0,
             (withdrawAmount * slippage) / 10000,
             true
         );
 
-        uint256 ethAmount = address(this).balance;
-        if (ethAmount > 0) {
-            address[9] memory _route = [
-                0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE, // ETH
-                0xD51a44d3FaE010294C616388b506AcdA1bfAAE46, // tricrypto2 pool
-                0xdAC17F958D2ee523a2206206994597C13D831ec7, // USDT
-                0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7, // 3pool
-                address(want), // USDC
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            ];
-            uint256[3][4] memory _swap_params = [
-                [uint256(2), uint256(0), uint256(3)], // ETH -> USDT, cryptoswap exchange
-                [uint256(2), uint256(1), uint256(1)], // USDT -> USDC, stable swap exchange
-                [uint256(0), uint256(0), uint256(0)],
-                [uint256(0), uint256(0), uint256(0)]
-            ];
-            uint256 _expected = (ethToWant(ethAmount) * slippage) / 10000;
-            address[4] memory _pools = [
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            ];
-            ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple{
-                value: ethAmount
-            }(_route, _swap_params, ethAmount, _expected, _pools);
+        _sellFxs(ERC20(FXS).balanceOf(address(this)));
+    }
+
+    function _sellFxs(uint256 fxsAmount) internal {
+        if (fxsAmount > 0) {
+            IV3SwapRouter.ExactInputParams memory params = IV3SwapRouter
+                .ExactInputParams({
+                    path: abi.encodePacked(
+                        FXS,
+                        FXS_FRAX_UNI_V3_FEE,
+                        FRAX,
+                        FRAX_USDC_UNI_V3_FEE,
+                        address(want)
+                    ),
+                    recipient: address(this),
+                    amountIn: fxsAmount,
+                    amountOutMinimum: (fxsToWant(fxsAmount) * slippage) / 10000
+                });
+            IV3SwapRouter(UNISWAP_V3_ROUTER).exactInput(params);
         }
     }
 
@@ -460,7 +459,7 @@ contract CVXStrategy is BaseStrategy {
     }
 
     function prepareMigration(address _newStrategy) internal override {
-        IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).withdrawAndUnwrap(
+        IConvexRewards(FXS_CONVEX_CRV_REWARDS).withdrawAndUnwrap(
             balanceOfCurveLPStaked(),
             true
         );
@@ -472,9 +471,9 @@ contract CVXStrategy is BaseStrategy {
             _newStrategy,
             IERC20(CVX).balanceOf(address(this))
         );
-        IERC20(CURVE_CVX_ETH_LP).safeTransfer(
+        IERC20(CURVE_FXS_LP).safeTransfer(
             _newStrategy,
-            IERC20(CURVE_CVX_ETH_LP).balanceOf(address(this))
+            IERC20(CURVE_FXS_LP).balanceOf(address(this))
         );
     }
 
@@ -484,12 +483,11 @@ contract CVXStrategy is BaseStrategy {
         override
         returns (address[] memory)
     {
-        address[] memory protected = new address[](3);
+        address[] memory protected = new address[](4);
         protected[0] = CVX;
         protected[1] = CRV;
-        protected[2] = CURVE_CVX_ETH_LP;
+        protected[2] = FXS;
+        protected[3] = CURVE_FXS_LP;
         return protected;
     }
-
-    receive() external payable {}
 }
