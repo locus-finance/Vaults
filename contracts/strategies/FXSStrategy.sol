@@ -15,7 +15,6 @@ import "../integrations/convex/IConvexDeposit.sol";
 import "../integrations/uniswap/v3/IV3SwapRouter.sol";
 
 import "../utils/Utils.sol";
-import "../utils/UniswapV3Twap.sol";
 
 contract FXSStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
