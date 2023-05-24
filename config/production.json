@@ -12,6 +12,11 @@
             "strategies": {
                 "StrategyRocketAura": {
                     "address": "",
+                    "network" : " ",
+                    "chainId" : "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "ETH",
+                    "wantTokenAddress": " ",
                     "protocols": [
                         {
                             "name": "RocketPool",
@@ -62,6 +67,11 @@
                 },
                 "StrategyLidoAura": {
                     "address": "",
+                    "network" : " ",
+                    "chainId" : "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "ETH",
+                    "wantTokenAddress": " ",
                     "protocols": [
                         {
                             "name": "Lido",
@@ -112,6 +122,11 @@
                 },
                 "StrategyFrax": {
                     "address": "",
+                    "network" : " ",
+                    "chainId" : "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "ETH",
+                    "wantTokenAddress": " ",
                     "protocols": [
                         {
                             "name": "FRAX",
@@ -164,6 +179,11 @@
             "strategies": {
                 "StrategyAuraBAL": {
                     "address": "",
+                    "network" : " ",
+                    "chainId" : "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": " ",
                     "protocols": [
                         {
                             "name": "Balancer",
@@ -194,6 +214,11 @@
                 },
                 "StrategyAuraWETH": {
                     "address": "",
+                    "network" : " ",
+                    "chainId" : "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": " ",
                     "protocols": [
                         {
                             "name": "Balancer",
@@ -229,6 +254,11 @@
                 },
                 "StrategyCVX": {
                     "address": "",
+                    "network" : " ",
+                    "chainId" : "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": " ",
                     "protocols": [
                         {
                             "name": "Convex",
@@ -259,6 +289,11 @@
                 },
                 "StrategyFXS": {
                     "address": "",
+                    "network" : " ",
+                    "chainId" : "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": " ",
                     "protocols": [
                         {
                             "name": "FRAX",
@@ -304,6 +339,11 @@
                 },
                 "StrategyYearn": {
                     "address": "",
+                    "network" : " ",
+                    "chainId" : "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "ETH",
+                    "wantTokenAddress": " ",
                     "protocols": [
                         {
                             "name": "Yearn",
@@ -332,6 +372,18 @@
                         }
                     ]
                 }
+            }
+        },
+        "daVault": {
+            "chain": {
+                "nativeToken": "ETH",
+                "chainId": 42161,
+                "name": "ARBITRUM ONE"
+            },
+            "wantTokenTicker": "USDC",
+            "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+            "address": "",
+            "strategies": {
             }
         }
     }
