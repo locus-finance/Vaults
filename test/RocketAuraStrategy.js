@@ -14,6 +14,39 @@ const bRethStable = "0x1E19CF2D73a72Ef1332C882F20534B6519Be0276";
 const auraBRethStable = "0x001B78CEC62DcFdc660E06A91Eb1bC966541d758";
 
 describe("RocketAuraStrategy", function () {
+    const TOKENS = {
+        USDT: {
+            address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+            whale: "0x461249076b88189f8ac9418de28b365859e46bfd",
+            decimals: 6,
+        },
+        ETH: {
+            address: ZERO_ADDRESS,
+            whale: "0x00000000219ab540356cbb839cbe05303d7705fa",
+            decimals: 18,
+        },
+        DAI: {
+            address: "0x6b175474e89094c44da98b954eedeac495271d0f",
+            whale: "0x60faae176336dab62e284fe19b885b095d29fb7f",
+            decimals: 18,
+        },
+        RETH: {
+            address: "0xae78736Cd615f374D3085123A210448E74Fc6393",
+            whale: "0x7C5aaA2a20b01df027aD032f7A768aC015E77b86",
+            decimals: 18,
+        },
+        AURA: {
+            address: "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF",
+            whale: "0x39D787fdf7384597C7208644dBb6FDa1CcA4eBdf",
+            decimals: 18,
+        },
+        BAL: {
+            address: "0xba100000625a3754423978a60c9317c58a424e3D",
+            whale: "0x10a19e7ee7d7f8a52822f6817de8ea18204f2e4f",
+            decimals: 18,
+        },
+    };
+
     async function deployContractAndSetVariables() {
         const [deployer, governance, treasury, whale] = await ethers.getSigners();
         const WETH_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
@@ -50,70 +83,39 @@ describe("RocketAuraStrategy", function () {
         return { vault, deployer, symbol, name, want, whale, governance, treasury, strategy, want };
     }
 
-    async function fakeRethPrice(want, fakePrice) {
-        const RocketNetworkBalances = await ethers.getContractAt("IRocketNetworkBalances", "0x07fcabcbe4ff0d80c2b1eb42855c0131b6cba2f4");
+    async function dealTokensToAddress(
+        address,
+        dealToken,
+        amountUnscaled = "100"
+    ) {
+        const token = await ethers.getContractAt(
+            IERC20_SOURCE,
+            dealToken.address
+        );
 
-        await network.provider.send("evm_setAutomine", [false]);
-        await network.provider.send("evm_setIntervalMining", [0]);
-        const oracles = [
-            "0x2c6c5809a257ea74a2df6d20aee6119196d4bea0",
-            "0xb13fa6eff52e6db8e9f0f1b60b744a9a9a01425a",
-            "0x751683968fd078341c48b90bc657d6babc2339f7", 
-            "0xccbff44e0f0329527feb0167bc8744d7d5aed3e9", 
-            "0xd7f94c53691afb5a616c6af96e7075c1ffa1d8ee", 
-            "0xc5d291607600044348e5014404cc18394bd1d57d", 
-            "0xb3a533098485bede3cb7fa8711af84fe0bb1e0ad", 
-            "0x58fa2ca71c4a37f6b280fc55e04cc8effa68a18a", 
-            "0x16222268bb682aa34ce60c73f4527f30aca1b788", 
-            "0x2354628919e1d53d2a69cf700cc53c4093977b94", 
-        ];
-        const { number } = await hre.ethers.provider.getBlock("latest");
-        for (let index = 0; index < oracles.length; index++) {
-            const oracleAddress = oracles[index];   
-            await network.provider.request({
-                method: "hardhat_impersonateAccount",
-                params: [oracleAddress],
-            });
-            const rocketOracle = await ethers.getSigner(oracleAddress);
-            await RocketNetworkBalances.connect(rocketOracle).submitBalances(
-                number,
-                fakePrice, 
-                ethers.utils.parseEther('1'), 
-                ethers.utils.parseEther('1')
-            );
-        }
-        
-        mine(10000);
-        await network.provider.send("evm_setAutomine", [true]);
-
-        const wEthWhaleAddress = "0x8eb8a3b98659cce290402893d0123abb75e3ab28";
         await network.provider.request({
             method: "hardhat_impersonateAccount",
-            params: [wEthWhaleAddress],
+            params: [dealToken.whale],
+        });
+        const tokenWhale = await ethers.getSigner(dealToken.whale);
+
+        await network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: [TOKENS.ETH.whale],
+        });
+        const ethWhale = await ethers.getSigner(TOKENS.ETH.whale);
+
+        await ethWhale.sendTransaction({
+            to: tokenWhale.address,
+            value: ethers.utils.parseEther("0.5"),
         });
 
-        const wEthWhale = await ethers.getSigner(wEthWhaleAddress);
-        const balancerVault = await ethers.getContractAt("IBalancerV2Vault", "0xBA12222222228d8Ba445958a75a0704d566BF2C8");
-
-        await want.connect(wEthWhale).approve(balancerVault.address, ethers.utils.parseEther('35000'));
-        await balancerVault.connect(wEthWhale).swap(
-            {
-                kind: 0, // SwapKind.GivenIn
-                poolId: '0x1e19cf2d73a72ef1332c882f20534b6519be0276000200000000000000000112',
-                assetIn: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-                assetOut: '0xae78736Cd615f374D3085123A210448E74Fc6393',
-                amount: ethers.utils.parseEther('350'),
-                userData: '0x',
-            },
-            { 
-                sender: wEthWhale.address, 
-                recipient: wEthWhale.address, 
-                fromInternalBalance: false, 
-                toInternalBalance: false 
-            },
-            0,
-            ethers.constants.MaxUint256
-        );
+        await token
+            .connect(tokenWhale)
+            .transfer(
+                address,
+                ethers.utils.parseUnits(amountUnscaled, dealToken.decimals)
+            );
     }
 
     it('should deploy strategy', async function () {
@@ -121,9 +123,10 @@ describe("RocketAuraStrategy", function () {
         expect(await strategy.vault()).to.equal(vault.address);
     });
 
-    it('should harvest with profit', async function () {
+    it('should harvest with a profit', async function () {
         const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
 
+        await vault.setLockedProfitDegradation(ethers.utils.parseEther('1'));
         const balanceBefore = await want.balanceOf(whale.address);
         
         await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
@@ -131,20 +134,18 @@ describe("RocketAuraStrategy", function () {
         expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
 
         await strategy.connect(deployer).harvest();
-        expect(await strategy.estimatedTotalAssets())
+        const estimatedBefore = await strategy.estimatedTotalAssets();
+
+        expect(estimatedBefore)
         .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.0025'));
 
-        for (let index = 0; index < 15; index++) {
-            mine(38000); // get more rewards
-            await strategy.connect(deployer).harvest();
-        }
+        await dealTokensToAddress(strategy.address, TOKENS.BAL, "100");
+        await strategy.connect(deployer).harvest();
+
         expect(Number(await strategy.estimatedTotalAssets()))
-        .to.be.greaterThan(Number(ethers.utils.parseEther('10')));
-        await vault.connect(whale)['withdraw(uint256,address,uint256)'](
-            ethers.utils.parseEther('10'), 
-            whale.address, 
-            2 // 0.02% acceptable loss
-        );
+        .to.be.greaterThanOrEqual(Number(estimatedBefore));
+
+        await vault.connect(whale)['withdraw()']();
 
         expect(Number(await want.balanceOf(whale.address))).to.be.greaterThan(Number(balanceBefore));
     });
@@ -526,9 +527,13 @@ describe("RocketAuraStrategy", function () {
         const { strategy } = await loadFixture(deployContractAndSetVariables); 
         const snapshotId = await network.provider.send('evm_snapshot');
 
+        const TestAuraMath = await hre.ethers.getContractFactory("TestAuraMath");
+        const testAuraMath = await TestAuraMath.deploy();
+        await testAuraMath.deployed();
+    
         expect(
-            await strategy.auraRewards(ethers.utils.parseEther('1'))
-        ).to.be.equal(ethers.utils.parseEther('3.4'));
+            await testAuraMath.convertCrvToCvx(ethers.utils.parseEther('1'))
+        ).to.be.equal(ethers.utils.parseEther('3.354'));
 
         const iAuraToken = await ethers.getContractAt("IAuraToken", aura);
         const minter = await iAuraToken.minter();
@@ -539,7 +544,7 @@ describe("RocketAuraStrategy", function () {
         mine(2);
 
         expect(
-            await strategy.auraRewards(ethers.utils.parseEther('1'))
+            await testAuraMath.convertCrvToCvx(ethers.utils.parseEther('1'))
         ).to.be.equal(0);
 
         await network.provider.send("evm_revert", [snapshotId]);

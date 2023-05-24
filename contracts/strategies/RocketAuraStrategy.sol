@@ -81,6 +81,14 @@ contract RocketAuraStrategy is BaseStrategy {
         return IERC20(auraBRethStable).balanceOf(address(this));
     }
 
+    function balanceOfAura() public view returns (uint256) {
+        return IERC20(auraToken).balanceOf(address(this));
+    }
+
+    function balanceOfBal() public view returns (uint256) {
+        return IERC20(balToken).balanceOf(address(this));
+    }
+
     function balanceOfUnstakedBpt() public view returns (uint256) {
         return IERC20(bRethStable).balanceOf(address(this));
     }
@@ -89,8 +97,8 @@ contract RocketAuraStrategy is BaseStrategy {
         return IAuraRewards(auraBRethStable).earned(address(this));
     }
 
-    function auraRewards(uint256 _balRewards) public view returns (uint256) {
-        return convertCrvToCvx(_balRewards);
+    function auraRewards() public view returns (uint256) {
+        return AuraRewardsMath.convertCrvToCvx(balRewards());
     }
 
     function auraBptToBpt(uint _amountAuraBpt) public pure returns (uint256) {
@@ -103,19 +111,16 @@ contract RocketAuraStrategy is BaseStrategy {
         override
         returns (uint256 _wants)
     {
-        // WETH + BPT (B-rETH-Stable) + auraBPT (auraB-rETH-Stable) + AURA (rewards) + BAL (rewards)
-        // should be converted to WETH using balancer
         _wants = balanceOfWant();
 
-        uint256 bptTokens = balanceOfUnstakedBpt() +
-            auraBptToBpt(balanceOfAuraBpt());
+        uint256 bptTokens = balanceOfUnstakedBpt() + auraBptToBpt(balanceOfAuraBpt());
         _wants += bptToWant(bptTokens);
-        uint256 balTokens = balRewards();
+        uint256 balTokens = balRewards() + balanceOfBal();
         if (balTokens > 0) {
             _wants += balToWant(balTokens);
         }
 
-        uint256 auraTokens = auraRewards(balTokens);
+        uint256 auraTokens = auraRewards() + balanceOfAura();
         if (auraTokens > 0) {
             _wants += auraToWant(auraTokens);
         }
@@ -233,12 +238,12 @@ contract RocketAuraStrategy is BaseStrategy {
 
         uint256 _liquidWant = want.balanceOf(address(this));
 
-        // enough to pay profit (partial or full) only
         if (_liquidWant <= _profit) {
+            // enough to pay profit (partial or full) only
             _profit = _liquidWant;
             _debtPayment = 0;
-            // enough to pay for all profit and _debtOutstanding (partial or full)
         } else {
+            // enough to pay for all profit and _debtOutstanding (partial or full)
             _debtPayment = Math.min(_liquidWant - _profit, _debtOutstanding);
         }
     }
@@ -350,13 +355,25 @@ contract RocketAuraStrategy is BaseStrategy {
     }
 
     function withdrawSome(uint256 _amountNeeded) internal {
-        uint256 bptToUnstake = Math.min(
-            wantToBpt(_amountNeeded),
-            IERC20(auraBRethStable).balanceOf(address(this))
-        );
+        uint256 balTokens = balRewards() + balanceOfBal();
+        uint256 auraTokens = auraRewards() + balanceOfAura();
+        uint256 rewardsTotal = balToWant(balTokens) + auraToWant(auraTokens);
 
-        if (bptToUnstake > 0) {
-            _exitPosition(bptToUnstake);
+        if (rewardsTotal >= _amountNeeded) {
+            IConvexRewards(auraBRethStable).getReward(address(this), true);
+            _sellBalAndAura(
+                balanceOfBal(),
+                balanceOfAura()
+            );
+        } else {
+            uint256 bptToUnstake = Math.min(
+                wantToBpt(_amountNeeded),
+                IERC20(auraBRethStable).balanceOf(address(this))
+            );
+
+            if (bptToUnstake > 0) {
+                _exitPosition(bptToUnstake);
+            }
         }
     }
 
@@ -482,48 +499,5 @@ contract RocketAuraStrategy is BaseStrategy {
             recipient: payable(address(this)),
             toInternalBalance: false
         });
-    }
-
-    function convertCrvToCvx(
-        uint256 _amount
-    ) internal view returns (uint256 amount) {
-        address minter = IAuraToken(auraToken).minter();
-        uint256 inflationProtectionTime = IAuraMinter(minter)
-            .inflationProtectionTime();
-
-        if (block.timestamp > inflationProtectionTime) {
-            // Inflation protected for now
-            return 0;
-        }
-
-        uint256 supply = ICvx(auraToken).totalSupply();
-        uint256 totalCliffs = ICvx(auraToken).totalCliffs();
-        uint256 maxSupply = ICvx(auraToken).EMISSIONS_MAX_SUPPLY();
-        uint256 initMintAmount = ICvx(auraToken).INIT_MINT_AMOUNT();
-
-        // After AuraMinter.inflationProtectionTime has passed, this calculation might not be valid.
-        // uint256 emissionsMinted = supply - initMintAmount - minterMinted;
-        uint256 emissionsMinted = supply - initMintAmount;
-
-        uint256 cliff = emissionsMinted.div(
-            ICvx(auraToken).reductionPerCliff()
-        );
-
-        // e.g. 100 < 500
-        if (cliff < totalCliffs) {
-            // e.g. (new) reduction = (500 - 100) * 2.5 + 700 = 1700;
-            // e.g. (new) reduction = (500 - 250) * 2.5 + 700 = 1325;
-            // e.g. (new) reduction = (500 - 400) * 2.5 + 700 = 950;
-            uint256 reduction = totalCliffs.sub(cliff).mul(5).div(2).add(700);
-            // e.g. (new) amount = 1e19 * 1700 / 500 =  34e18;
-            // e.g. (new) amount = 1e19 * 1325 / 500 =  26.5e18;
-            // e.g. (new) amount = 1e19 * 950 / 500  =  19e17;
-            amount = _amount.mul(reduction).div(totalCliffs);
-            // e.g. amtTillMax = 5e25 - 1e25 = 4e25
-            uint256 amtTillMax = maxSupply.sub(emissionsMinted);
-            if (amount > amtTillMax) {
-                amount = amtTillMax;
-            }
-        }
     }
 }

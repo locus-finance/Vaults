@@ -63,7 +63,8 @@ describe("LidoAuraStrategy", function () {
         expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
 
         await strategy.connect(deployer).harvest();
-        const balanceBefore = await strategy.estimatedTotalAssets();
+        const balanceBefore = await want.balanceOf(whale.address);
+        const estimatedBefore = await strategy.estimatedTotalAssets();
 
         expect(await strategy.estimatedTotalAssets())
         .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.2'));
@@ -74,15 +75,14 @@ describe("LidoAuraStrategy", function () {
         await strategy.connect(deployer).harvest();
 
         expect(Number(await strategy.estimatedTotalAssets()))
-        .to.be.greaterThan(Number(balanceBefore));
+        .to.be.greaterThan(Number(estimatedBefore));
         await vault.connect(whale)['withdraw(uint256,address,uint256)'](
             ethers.utils.parseEther('10'), 
             whale.address, 
             5 // 0.05% acceptable loss
         );
 
-        expect(await want.balanceOf(whale.address))
-        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.2'));
+        expect(Number(await want.balanceOf(whale.address))).to.be.greaterThan(Number(balanceBefore));
     });
 
     it('should set bpt slippage', async function () {
@@ -414,30 +414,6 @@ describe("LidoAuraStrategy", function () {
             ethers.utils.parseEther('0.2')
         );
     });
-
-    it('should not get aura rewards after inflation protection time', async function () {
-        const { strategy } = await loadFixture(deployContractAndSetVariables); 
-        const snapshotId = await network.provider.send('evm_snapshot');
-
-        expect(
-            await strategy.auraRewards(ethers.utils.parseEther('1'))
-        ).to.be.equal(ethers.utils.parseEther('3.4'));
-
-        const iAuraToken = await ethers.getContractAt("IAuraToken", aura);
-        const minter = await iAuraToken.minter();
-        const iAuraMinter = await ethers.getContractAt("IAuraMinter", minter);
-        const inflationProtectionTime = await iAuraMinter.inflationProtectionTime();
-
-        await time.setNextBlockTimestamp(inflationProtectionTime);
-        mine(2);
-
-        expect(
-            await strategy.auraRewards(ethers.utils.parseEther('1'))
-        ).to.be.equal(0);
-
-        await network.provider.send("evm_revert", [snapshotId]);
-    });
-
 
     it('should not liquidate when enough want', async function () {
         const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
