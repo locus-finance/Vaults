@@ -8,9 +8,10 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {OracleLibrary} from "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
 
-import "../interfaces/ICRVStrategy.sol";
+import "../integrations/balancer/IBalancerPriceOracle.sol";
+import "../integrations/curve/ICurve.sol";
 
-contract YCRVStrategy is ICRVStrategy, BaseStrategy {
+contract YCRVStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
 
     address internal constant yCRVVault =
@@ -36,7 +37,7 @@ contract YCRVStrategy is ICRVStrategy, BaseStrategy {
         ERC20(yCRV).approve(yCRVVault, type(uint256).max);
     }
 
-    function setSlippage(uint256 _slippage) external override onlyStrategist {
+    function setSlippage(uint256 _slippage) external onlyStrategist {
         require(_slippage < 10_000, "!_slippage");
         slippage = _slippage;
     }
@@ -45,21 +46,19 @@ contract YCRVStrategy is ICRVStrategy, BaseStrategy {
         return "StrategyYearn";
     }
 
-    function balanceOfWant() public view override returns (uint256) {
+    function balanceOfWant() public view returns (uint256) {
         return want.balanceOf(address(this));
     }
 
-    function balanceOfStakedYCrv() public view override returns (uint256) {
+    function balanceOfStakedYCrv() public view returns (uint256) {
         return IERC20(yCRVVault).balanceOf(address(this));
     }
 
-    function balanceOfYCrv() public view override returns (uint256) {
+    function balanceOfYCrv() public view returns (uint256) {
         return IERC20(yCRV).balanceOf(address(this));
     }
 
-    function crvToWant(
-        uint256 crvTokens
-    ) public view override returns (uint256) {
+    function crvToWant(uint256 crvTokens) public view returns (uint256) {
         (int24 meanTick, ) = OracleLibrary.consult(
             CRV_USDC_UNI_V3_POOL,
             TWAP_RANGE_SECS
@@ -73,17 +72,13 @@ contract YCRVStrategy is ICRVStrategy, BaseStrategy {
             );
     }
 
-    function yCrvToWant(
-        uint256 yCRVTokens
-    ) public view override returns (uint256) {
+    function yCrvToWant(uint256 yCRVTokens) public view returns (uint256) {
         uint256 crvRatio = ICurve(YCRV_CRV_CURVE_POOL).get_virtual_price();
         uint256 crvTokens = (yCRVTokens * 1e18) / crvRatio;
         return crvToWant(crvTokens);
     }
 
-    function stYCRVToWant(
-        uint256 stTokens
-    ) public view override returns (uint256) {
+    function stYCRVToWant(uint256 stTokens) public view returns (uint256) {
         uint256 yCRVTokens = (stTokens * VaultAPI(yCRVVault).pricePerShare()) /
             1e18;
         return yCrvToWant(yCRVTokens);
@@ -91,14 +86,12 @@ contract YCRVStrategy is ICRVStrategy, BaseStrategy {
 
     function wantToStYCrv(
         uint256 wantTokens
-    ) public view virtual override returns (uint256) {
+    ) public view virtual returns (uint256) {
         uint256 stYCrvRate = 1e36 / stYCRVToWant(1e18);
         return (wantTokens * stYCrvRate) / 1e18;
     }
 
-    function wantToYCrv(
-        uint256 wantTokens
-    ) public view override returns (uint256) {
+    function wantToYCrv(uint256 wantTokens) public view returns (uint256) {
         uint256 yCrvRate = 1e36 / yCrvToWant(1e18);
         return (wantTokens * yCrvRate) / 1e18;
     }
