@@ -2,7 +2,6 @@
 // Feel free to change the license, but this is what we use
 
 pragma solidity ^0.8.18;
-pragma experimental ABIEncoderV2;
 
 import {BaseStrategy, StrategyParams} from "@yearn-protocol/contracts/BaseStrategy.sol";
 

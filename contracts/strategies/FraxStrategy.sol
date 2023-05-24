@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0
 
 pragma solidity ^0.8.18;
-pragma experimental ABIEncoderV2;
 
 import {BaseStrategy, StrategyParams} from "@yearn-protocol/contracts/BaseStrategy.sol";
 
@@ -11,7 +10,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "../interfaces/IWETH.sol";
+import "../integrations/weth/IWETH.sol";
 import "../integrations/frax/IFraxMinter.sol";
 import "../integrations/frax/ISfrxEth.sol";
 import "../integrations/curve/ICurve.sol";
