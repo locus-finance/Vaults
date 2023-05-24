@@ -26,7 +26,7 @@ contract FraxStrategy is BaseStrategy {
         0xac3E018457B222d93114458476f3E3416Abbe38F;
     address internal constant frxEth =
         0x5E8422345238F34275888049021821E8E08CAa1f;
-    address internal constant frxEthCurvePool = 
+    address internal constant frxEthCurvePool =
         0xa1F8A6807c402E4A15ef4EBa36528A3FED24E577;
     address internal constant curveSwapRouter =
         0x99a58482BD75cbab83b27EC03CA68fF489b5788f;
@@ -72,10 +72,12 @@ contract FraxStrategy is BaseStrategy {
     }
 
     function wantToFrx(uint256 _amount) public view returns (uint256) {
-        return (_amount  * 1e18) / ICurve(frxEthCurvePool).price_oracle();
+        return (_amount * 1e18) / ICurve(frxEthCurvePool).price_oracle();
     }
 
-    function prepareReturn(uint256 _debtOutstanding)
+    function prepareReturn(
+        uint256 _debtOutstanding
+    )
         internal
         override
         returns (uint256 _profit, uint256 _loss, uint256 _debtPayment)
@@ -106,7 +108,7 @@ contract FraxStrategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
-        if(IERC20(frxEth).balanceOf(address(this)) > 0){
+        if (IERC20(frxEth).balanceOf(address(this)) > 0) {
             _sellAllFrx();
         }
         uint256 _wethBal = want.balanceOf(address(this));
@@ -115,7 +117,9 @@ contract FraxStrategy is BaseStrategy {
             IWETH(address(want)).withdraw(_excessWeth);
         }
         if (address(this).balance > 0) {
-            IFraxMinter(fraxMinter).submitAndDeposit{value: address(this).balance}(address(this));
+            IFraxMinter(fraxMinter).submitAndDeposit{
+                value: address(this).balance
+            }(address(this));
         }
     }
 
@@ -129,11 +133,9 @@ contract FraxStrategy is BaseStrategy {
         }
     }
 
-    function liquidatePosition(uint256 _amountNeeded) 
-        internal 
-        override 
-        returns (uint256 _liquidatedAmount, uint256 _loss) 
-    {
+    function liquidatePosition(
+        uint256 _amountNeeded
+    ) internal override returns (uint256 _liquidatedAmount, uint256 _loss) {
         uint256 _wethBal = want.balanceOf(address(this));
         if (_wethBal >= _amountNeeded) {
             return (_amountNeeded, 0);
@@ -162,7 +164,7 @@ contract FraxStrategy is BaseStrategy {
 
     function _sellAllFrx() internal {
         uint256 _frxAmount = IERC20(frxEth).balanceOf(address(this));
-        uint256 _minAmountOut = frxToWant(_frxAmount) * slippage / 10000;
+        uint256 _minAmountOut = (frxToWant(_frxAmount) * slippage) / 10000;
         address[9] memory _route = [
             frxEth, // FRX
             frxEthCurvePool, // frxeth pool
