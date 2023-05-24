@@ -1,0 +1,318 @@
+{
+    "vaults": {
+        "vETH": {
+            "chain": {
+                "nativeToken": "ETH",
+                "chainId": 1,
+                "name": "Ethereum Mainnet"
+            },
+            "wantTokenTicker": "WETH",
+            "wantTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+            "address": "",
+            "strategies": {
+                "StrategyRocketAura": {
+                    "address": "",
+                    "protocols": [
+                        {
+                            "name": "RocketPool",
+                            "addresses": [
+                                {
+                                    "name": "rETH",
+                                    "type": "Token",
+                                    "address": "0xae78736Cd615f374D3085123A210448E74Fc6393"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Aura",
+                            "addresses": [
+                                {
+                                    "name": "AURA",
+                                    "type": "Token",
+                                    "address": "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF"
+                                },
+                                {
+                                    "name": "AURA-bREthStable",
+                                    "type": "Staked LP Token",
+                                    "address": "0x001B78CEC62DcFdc660E06A91Eb1bC966541d758"
+                                },
+                                {
+                                    "name": "Booster",
+                                    "type": "Protocol rewards",
+                                    "address": "0xA57b8d98dAE62B26Ec3bcC4a365338157060B234"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Balancer",
+                            "addresses": [
+                                {
+                                    "name": "BAL",
+                                    "type": "Token",
+                                    "address": "0xba100000625a3754423978a60c9317c58a424e3D"
+                                },
+                                {
+                                    "name": "bREthStable",
+                                    "type": "LP Token",
+                                    "address": "0x1E19CF2D73a72Ef1332C882F20534B6519Be0276"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "StrategyLidoAura": {
+                    "address": "",
+                    "protocols": [
+                        {
+                            "name": "Lido",
+                            "addresses": [
+                                {
+                                    "name": "wstETH",
+                                    "type": "Token",
+                                    "address": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Aura",
+                            "addresses": [
+                                {
+                                    "name": "AURA",
+                                    "type": "Token",
+                                    "address": "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF"
+                                },
+                                {
+                                    "name": "AURA-BStEthStable",
+                                    "type": "Staked LP Token",
+                                    "address": "0xe4683Fe8F53da14cA5DAc4251EaDFb3aa614d528"
+                                },
+                                {
+                                    "name": "Booster",
+                                    "type": "Protocol rewards",
+                                    "address": "0xA57b8d98dAE62B26Ec3bcC4a365338157060B234"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Balancer",
+                            "addresses": [
+                                {
+                                    "name": "BAL",
+                                    "type": "Token",
+                                    "address": "0xba100000625a3754423978a60c9317c58a424e3D"
+                                },
+                                {
+                                    "name": "BStEthStable",
+                                    "type": "LP Token",
+                                    "address": "0x32296969Ef14EB0c6d29669C550D4a0449130230"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "StrategyFrax": {
+                    "address": "",
+                    "protocols": [
+                        {
+                            "name": "FRAX",
+                            "addresses": [
+                                {
+                                    "name": "frxETH",
+                                    "type": "Token",
+                                    "address": "0x5E8422345238F34275888049021821E8E08CAa1f"
+                                },
+                                {
+                                    "name": "sfrxETH",
+                                    "type": "Token",
+                                    "address": "0xac3E018457B222d93114458476f3E3416Abbe38F"
+                                },
+                                {
+                                    "name": "frxETH",
+                                    "type": "Minter",
+                                    "address": "0xbAFA44EFE7901E04E39Dad13167D089C559c1138"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Curve",
+                            "addresses": [
+                                {
+                                    "name": "frxETH",
+                                    "type": "Pool",
+                                    "address": "0xa1F8A6807c402E4A15ef4EBa36528A3FED24E577"
+                                },
+                                {
+                                    "name": "Swap router",
+                                    "type": "Router",
+                                    "address": "0x99a58482BD75cbab83b27EC03CA68fF489b5788f"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        "dVault": {
+            "chain": {
+                "nativeToken": "ETH",
+                "chainId": 1,
+                "name": "Ethereum Mainnet"
+            },
+            "wantTokenTicker": "USDC",
+            "wantTokenAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+            "address": "",
+            "strategies": {
+                "StrategyAuraBAL": {
+                    "address": "",
+                    "protocols": [
+                        {
+                            "name": "Balancer",
+                            "addresses": [
+                                {
+                                    "name": "BAL",
+                                    "type": "Token",
+                                    "address": "0xba100000625a3754423978a60c9317c58a424e3D"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Aura",
+                            "addresses": [
+                                {
+                                    "name": "AURA",
+                                    "type": "Token",
+                                    "address": "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF"
+                                },
+                                {
+                                    "name": "auraBAL",
+                                    "type": "Staked Token",
+                                    "address": "0x616e8BfA43F920657B3497DBf40D6b1A02D4608d"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "StrategyAuraWETH": {
+                    "address": "",
+                    "protocols": [
+                        {
+                            "name": "Balancer",
+                            "addresses": [
+                                {
+                                    "name": "BAL",
+                                    "type": "Token",
+                                    "address": "0xba100000625a3754423978a60c9317c58a424e3D"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Aura",
+                            "addresses": [
+                                {
+                                    "name": "AURA",
+                                    "type": "Token",
+                                    "address": "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF"
+                                },
+                                {
+                                    "name": "Booster",
+                                    "type": "Booster",
+                                    "address": "0xA57b8d98dAE62B26Ec3bcC4a365338157060B234"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "StrategyCVX": {
+                    "address": "",
+                    "protocols": [
+                        {
+                            "name": "Convex",
+                            "addresses": [
+                                {
+                                    "name": "CVX",
+                                    "type": "Token",
+                                    "address": "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Curve",
+                            "addresses": [
+                                {
+                                    "name": "CRV",
+                                    "type": "Token",
+                                    "address": "0xD533a949740bb3306d119CC777fa900bA034cd52"
+                                },
+                                {
+                                    "name": "CVX-ETH LP",
+                                    "type": "Pool",
+                                    "address": "0xB576491F1E6e5E62f1d8F26062Ee822B40B0E0d4"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "StrategyFXS": {
+                    "address": "",
+                    "protocols": [
+                        {
+                            "name": "FRAX",
+                            "addresses": [
+                                {
+                                    "name": "FRAX",
+                                    "type": "Token",
+                                    "address": "0x853d955aCEf822Db058eb8505911ED77F175b99e"
+                                },
+                                {
+                                    "name": "FXS",
+                                    "type": "Token",
+                                    "address": "0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Convex",
+                            "addresses": [
+                                {
+                                    "name": "CVX",
+                                    "type": "Token",
+                                    "address": "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "StrategyYearn": {
+                    "address": "",
+                    "protocols": [
+                        {
+                            "name": "Yearn",
+                            "addresses": [
+                                {
+                                    "name": "yCRV",
+                                    "type": "Token",
+                                    "address": "0xFCc5c47bE19d06BF83eB04298b026F81069ff65b"
+                                },
+                                {
+                                    "name": "yCRV Yearn Vault",
+                                    "type": "Vault",
+                                    "address": "0x27B5739e22ad9033bcBf192059122d163b60349D"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Curve",
+                            "addresses": [
+                                {
+                                    "name": "CRV",
+                                    "type": "Token",
+                                    "address": "0xD533a949740bb3306d119CC777fa900bA034cd52"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}
