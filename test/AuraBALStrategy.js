@@ -368,6 +368,8 @@ describe("AuraBALStrategy", function () {
         );
         await strategy.overrideEstimatedTotalAssets(0);
         expect(Number(await strategy.estimatedTotalAssets())).to.be.equal(0);
+
+        await mine(300, { interval: 20 });
         await strategy.connect(deployer).harvest();
 
         const auraBalStakedAfter = await strategy.balanceOfStakedAuraBal();
