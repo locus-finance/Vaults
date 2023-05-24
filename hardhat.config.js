@@ -140,7 +140,8 @@ module.exports = {
     clear: true,
     flat: true,
     spacing: 2,
-    only: [':Vault$', ':TestStrategy$']
+    format: "minimal",
+    only: [':Vault$', ':TestStrategy$', ':AuraBALStrategy$', ':AuraWETHStrategy$', ':CVXStrategy$', ':FraxStrategy$', ':FXSStrategy$', ':LidoAuraStrategy$', ':RocketAuraStrategy$', ':YCRVStrategy$']
   }
 };
 
