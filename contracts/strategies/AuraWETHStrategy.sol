@@ -13,9 +13,8 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import "../integrations/balancer/IBalancerV2Vault.sol";
 import "../integrations/balancer/IBalancerPool.sol";
 import "../integrations/balancer/IBalancerPriceOracle.sol";
-import "../integrations/aura/IAuraDeposit.sol";
-import "../integrations/aura/IAuraRewards.sol";
-import "../integrations/aura/IConvexRewards.sol";
+import "../integrations/convex/IConvexDeposit.sol";
+import "../integrations/convex/IConvexRewards.sol";
 
 import "../utils/AuraMath.sol";
 import "../utils/Utils.sol";
@@ -86,7 +85,7 @@ contract AuraWETHStrategy is BaseStrategy {
     }
 
     function balRewards() public view returns (uint256) {
-        return IAuraRewards(AURA_WETH_REWARDS).earned(address(this));
+        return IConvexRewards(AURA_WETH_REWARDS).earned(address(this));
     }
 
     function balanceOfAuraBpt() public view returns (uint256) {
@@ -356,7 +355,7 @@ contract AuraWETHStrategy is BaseStrategy {
         }
 
         if (balanceOfUnstakedBpt() > 0) {
-            bool auraSuccess = IAuraDeposit(AURA_BOOSTER).depositAll(
+            bool auraSuccess = IConvexDeposit(AURA_BOOSTER).depositAll(
                 0, // PID
                 true // stake
             );

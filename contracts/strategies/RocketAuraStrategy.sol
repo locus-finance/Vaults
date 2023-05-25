@@ -14,13 +14,11 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import "../integrations/balancer/IBalancerV2Vault.sol";
 import "../integrations/balancer/IBalancerPool.sol";
 import "../integrations/balancer/IBalancerPriceOracle.sol";
-import "../integrations/aura/IAuraBooster.sol";
-import "../integrations/aura/IAuraDeposit.sol";
-import "../integrations/aura/IAuraRewards.sol";
-import "../integrations/aura/IConvexRewards.sol";
 import "../integrations/aura/ICvx.sol";
 import "../integrations/aura/IAuraToken.sol";
 import "../integrations/aura/IAuraMinter.sol";
+import "../integrations/convex/IConvexRewards.sol";
+import "../integrations/convex/IConvexDeposit.sol";
 
 import "../utils/AuraMath.sol";
 import "../utils/Utils.sol";
@@ -94,7 +92,7 @@ contract RocketAuraStrategy is BaseStrategy {
     }
 
     function balRewards() public view returns (uint256) {
-        return IAuraRewards(auraBRethStable).earned(address(this));
+        return IConvexRewards(auraBRethStable).earned(address(this));
     }
 
     function auraRewards() public view returns (uint256) {
@@ -113,7 +111,8 @@ contract RocketAuraStrategy is BaseStrategy {
     {
         _wants = balanceOfWant();
 
-        uint256 bptTokens = balanceOfUnstakedBpt() + auraBptToBpt(balanceOfAuraBpt());
+        uint256 bptTokens = balanceOfUnstakedBpt() +
+            auraBptToBpt(balanceOfAuraBpt());
         _wants += bptToWant(bptTokens);
         uint256 balTokens = balRewards() + balanceOfBal();
         if (balTokens > 0) {
@@ -298,7 +297,7 @@ contract RocketAuraStrategy is BaseStrategy {
             });
         }
         if (_wethBal > _debtOutstanding || balanceOfUnstakedBpt() > 0) {
-            bool auraSuccess = IAuraDeposit(auraBooster).deposit(
+            bool auraSuccess = IConvexDeposit(auraBooster).deposit(
                 15, // PID
                 IBalancerPool(bRethStable).balanceOf(address(this)),
                 true // stake
@@ -361,10 +360,7 @@ contract RocketAuraStrategy is BaseStrategy {
 
         if (rewardsTotal >= _amountNeeded) {
             IConvexRewards(auraBRethStable).getReward(address(this), true);
-            _sellBalAndAura(
-                balanceOfBal(),
-                balanceOfAura()
-            );
+            _sellBalAndAura(balanceOfBal(), balanceOfAura());
         } else {
             uint256 bptToUnstake = Math.min(
                 wantToBpt(_amountNeeded),

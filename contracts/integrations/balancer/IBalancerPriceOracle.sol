@@ -12,8 +12,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.12;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.18;
 
 /**
  * @dev Interface for querying historical data from a Pool that can be used as a Price Oracle.
