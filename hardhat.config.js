@@ -61,7 +61,7 @@ module.exports = {
             },
             allowUnlimitedContractSize: true,
         },
-        eth_mainnet: {
+        mainnet: {
             url: ETH_NODE,
             chainId: 1,
             accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`]
@@ -115,15 +115,8 @@ module.exports = {
     },
     etherscan: {
         apiKey: {
-            optimisticEthereum: process.env.ETHERSCAN_API_KEY,
-            optimisticGoerli:process.env.OPTIMISM_API_KEY,
-            polygon: process.env.POLYGON_API_KEY,
-            polygonMumbai: process.env.POLYGON_API_KEY,
-            avalanche: process.env.AVAX_API_KEY,
-            avalancheFujiTestnet: process.env.AVAX_API_KEY,
-            bsc: process.env.BSC_API_KEY,
-            bscTestnet: process.env.BSC_API_KEY,
-            arbitrumOne: process.env.ARBITRUM_API_KEY
+            mainnet: process.env.ETHERSCAN_API_KEY,
+            sepolia: process.env.ETHERSCAN_API_KEY,
         }
     },
     gasReporter: {
