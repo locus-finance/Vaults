@@ -12,12 +12,22 @@ const DEPLOY_SETTINGS = {
     governance: getEnv("GOVERNANCE_ACCOUNT"),
     treasury: getEnv("TREASURY_ACCOUNT"),
     depositLimitWeth: "1000",
+    performanceFee: 1000,
+    managementFee: 70,
 };
 
 async function main() {
     const [deployer] = await hre.ethers.getSigners();
-    const { want, name, symbol, governance, treasury, depositLimitWeth } = 
-        DEPLOY_SETTINGS;
+    const {
+        want,
+        name,
+        symbol,
+        governance,
+        treasury,
+        depositLimitWeth,
+        managementFee,
+        performanceFee,
+    } = DEPLOY_SETTINGS;
 
     const Vault = await hre.ethers.getContractFactory("Vault");
     const vault = await Vault.deploy();
@@ -39,8 +49,19 @@ async function main() {
         ethers.utils.parseUnits(depositLimitWeth, WETH_DECIMALS)
     );
     await limitTx.wait();
-
     console.log(`Set deposit limit to ${await vault.depositLimit()}`);
+
+    const performanceFeeTx = await vault["setPerformanceFee(uint256)"](
+        performanceFee
+    );
+    await performanceFeeTx.wait();
+    console.log(`Set performance fee to ${await vault.performanceFee()}`);
+
+    const managementFeeTx = await vault["setManagementFee(uint256)"](
+        managementFee
+    );
+    await managementFeeTx.wait();
+    console.log(`Set management fee to ${await vault.managementFee()}`);
 }
 
 main()
