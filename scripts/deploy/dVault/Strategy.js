@@ -73,6 +73,11 @@ async function main() {
         "Vault strategy indicators:",
         await vault.strategies(strategy.address)
     );
+
+    await hre.run("verify:verify", {
+        address: strategy.address,
+        constructorArguments: [vault.address],
+    });
 }
 
 main()
