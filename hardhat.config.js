@@ -61,7 +61,7 @@ module.exports = {
             },
             allowUnlimitedContractSize: true,
         },
-        eth_mainnet: {
+        mainnet: {
             url: ETH_NODE,
             chainId: 1,
             accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`]
@@ -115,7 +115,7 @@ module.exports = {
     },
     etherscan: {
         apiKey: {
-            eth_mainnet: process.env.ETHERSCAN_API_KEY,
+            mainnet: process.env.ETHERSCAN_API_KEY,
             sepolia: process.env.ETHERSCAN_API_KEY,
         }
     },
