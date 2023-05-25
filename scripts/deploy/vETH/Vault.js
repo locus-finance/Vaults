@@ -11,7 +11,7 @@ const DEPLOY_SETTINGS = {
     symbol: "vETH",
     governance: getEnv("GOVERNANCE_ACCOUNT"),
     treasury: getEnv("TREASURY_ACCOUNT"),
-    depositLimitWETH: "1000",
+    depositLimitWeth: "1000",
 };
 
 async function main() {
@@ -24,10 +24,10 @@ async function main() {
     await vault.deployed();
 
     const tx = await vault["initialize(address,address,address,string,string)"](
-        want, 
-        governance, 
-        treasury, 
-        name, 
+        want,
+        governance,
+        treasury,
+        name,
         symbol
     );
     await tx.wait();
