@@ -265,8 +265,10 @@ contract YCRVStrategy is BaseStrategy {
                 _expected,
                 _pools
             );
+        }
 
-            uint256 _yCrvBal = IERC20(yCRV).balanceOf(address(this));
+        uint256 _yCrvBal = IERC20(yCRV).balanceOf(address(this));
+        if (_yCrvBal > 0) {
             VaultAPI(yCRVVault).deposit(_yCrvBal, address(this));
         }
     }
