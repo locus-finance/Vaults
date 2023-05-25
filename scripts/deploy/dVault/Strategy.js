@@ -8,27 +8,27 @@ const TARGET_STRATEGY = getEnv("TARGET_STRATEGY");
 const DEPLOY_SETTINGS = {
     vaultAddress: getEnv("DVAULT_ADDRESS"),
     YCRVStrategy: {
-        ratio: 1000,
+        ratio: "1000",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000",
     },
     CVXStrategy: {
-        ratio: 1000,
+        ratio: "1000",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "10000000",
     },
     FXSStrategy: {
-        ratio: 1000,
+        ratio: "1000",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000",
     },
     AuraBALStrategy: {
-        ratio: 1000,
+        ratio: "1000",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000",
     },
     AuraWETHStrategy: {
-        ratio: 1000,
+        ratio: "1000",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000",
     },
@@ -62,7 +62,7 @@ async function main() {
         "addStrategy(address,uint256,uint256,uint256,uint256)"
     ](
         strategy.address,
-        ratio,
+        Number(ratio),
         ethers.utils.parseUnits(minDebtHarvestUsdc, USDC_DECIMALS),
         ethers.utils.parseUnits(maxDebtHarvestUsdc, USDC_DECIMALS),
         0
