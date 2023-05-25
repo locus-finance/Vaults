@@ -1,9 +1,11 @@
 const hre = require("hardhat");
 
+const { getEnv } = require("../../utils");
+
 const USDC_DECIMALS = 6;
 
 const DEPLOY_SETTINGS = {
-    vaultAddress: "0x5E5713a0d915701F464DEbb66015adD62B2e6AE9",
+    vaultAddress: getEnv("DVAULT_ADDRESS"),
     ratio: "10000",
     minDebtHarvestUsdc: "0",
     maxDebtHarvestUsdc: "100000",
@@ -39,8 +41,7 @@ async function main() {
     await addStrategyTx.wait();
 
     console.log(
-        "Vault strategy indicators:",
-        await vault.strategies(strategy.address)
+        `Vault strategy indicators: ${await vault.strategies(strategy.address)}`
     );
 }
 
