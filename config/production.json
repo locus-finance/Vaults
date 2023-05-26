@@ -13,12 +13,12 @@
             "performanceFee" : "10",
             "strategies": {
                 "StrategyRocketAura": {
-                    "address": "",
-                    "network" : " ",
+                    "address": "0x4C9F18C5e868f3Eb4D39002010A32Cdb9E9d2D8E",
+                    "network" : "Ethereum Mainnet",
                     "chainId" : "1",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "ETH",
-                    "wantTokenAddress": " ",
+                    "wantTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
                     "protocols": [
                         {
                             "name": "RocketPool",
@@ -68,12 +68,12 @@
                     ]
                 },
                 "StrategyLidoAura": {
-                    "address": "",
-                    "network" : " ",
+                    "address": " 0x0fB38bE7FfA498AF483DF6CDA1776EB4E750Db63",
+                    "network" : "Ethereum Mainnet",
                     "chainId" : "1",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "ETH",
-                    "wantTokenAddress": " ",
+                    "wantTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
                     "protocols": [
                         {
                             "name": "Lido",
@@ -123,12 +123,12 @@
                     ]
                 },
                 "StrategyFrax": {
-                    "address": "",
-                    "network" : " ",
+                    "address": "0x7e149943d0a36ef012d49B7a10C7192489C903e0",
+                    "network" : "Ethereum Mainnet",
                     "chainId" : "1",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "ETH",
-                    "wantTokenAddress": " ",
+                    "wantTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
                     "protocols": [
                         {
                             "name": "FRAX",
