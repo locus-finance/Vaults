@@ -12,7 +12,7 @@
             "managementFee" : "0.7",
             "performanceFee" : "10",
             "strategies": {
-                "StrategyRocketAura": {
+                "RocketAuraStrategy": {
                     "address": "0x4C9F18C5e868f3Eb4D39002010A32Cdb9E9d2D8E",
                     "network" : "Ethereum Mainnet",
                     "chainId" : "1",
@@ -67,7 +67,7 @@
                         }
                     ]
                 },
-                "StrategyLidoAura": {
+                "LidoAuraStrategy": {
                     "address": " 0x0fB38bE7FfA498AF483DF6CDA1776EB4E750Db63",
                     "network" : "Ethereum Mainnet",
                     "chainId" : "1",
@@ -122,7 +122,7 @@
                         }
                     ]
                 },
-                "StrategyFrax": {
+                "FraxStrategy": {
                     "address": "0x7e149943d0a36ef012d49B7a10C7192489C903e0",
                     "network" : "Ethereum Mainnet",
                     "chainId" : "1",
