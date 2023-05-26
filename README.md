@@ -41,5 +41,20 @@ After configuration strategy can be deployed with following command. `TARGET_STR
 
 ```
 TARGET_STRATEGY="" <vault name>_ADDRESS="" npx hardhat run scripts/deploy/<vault name>/Strategy.js --network <hardhat.config.js network>
-```
 
+TARGET_STRATEGY="RocketAuraStrategy" VETH_ADDRESS="0xE2fb9fBEadFc3577584C60A2f7FDF9933abed81a" npx hardhat run scripts/deploy/vETH/Strategy.js --network mainnet
+
+TARGET_STRATEGY="FraxStrategy" VETH_ADDRESS="0xE2fb9fBEadFc3577584C60A2f7FDF9933abed81a" npx hardhat run scripts/deploy/vETH/Strategy.js --network mainnet
+
+TARGET_STRATEGY="LidoAuraStrategy" VETH_ADDRESS="0xE2fb9fBEadFc3577584C60A2f7FDF9933abed81a" npx hardhat run scripts/deploy/vETH/Strategy.js --network mainnet
+
+TARGET_STRATEGY="AuraBALStrategy" DVAULT_ADDRESS="0xebac2E85E95c67ac0baDC4dEFb58708De8F5C39b" npx hardhat run scripts/deploy/dVault/Strategy.js --network mainnet
+
+TARGET_STRATEGY="AuraWETHStrategy" DVAULT_ADDRESS="0xebac2E85E95c67ac0baDC4dEFb58708De8F5C39b" npx hardhat run scripts/deploy/dVault/Strategy.js --network mainnet
+
+TARGET_STRATEGY="CVXStrategy" DVAULT_ADDRESS="0xebac2E85E95c67ac0baDC4dEFb58708De8F5C39b" npx hardhat run scripts/deploy/dVault/Strategy.js --network mainnet
+
+TARGET_STRATEGY="FXSStrategy" DVAULT_ADDRESS="0xebac2E85E95c67ac0baDC4dEFb58708De8F5C39b" npx hardhat run scripts/deploy/dVault/Strategy.js --network mainnet
+
+TARGET_STRATEGY="YCRVStrategy" DVAULT_ADDRESS="0xebac2E85E95c67ac0baDC4dEFb58708De8F5C39b" npx hardhat run scripts/deploy/dVault/Strategy.js --network mainnet
+```

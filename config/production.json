@@ -8,15 +8,17 @@
             },
             "wantTokenTicker": "WETH",
             "wantTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-            "address": "",
+            "address": " 0xE2fb9fBEadFc3577584C60A2f7FDF9933abed81a",
+            "managementFee" : "0.7",
+            "performanceFee" : "10",
             "strategies": {
                 "StrategyRocketAura": {
-                    "address": "",
-                    "network" : " ",
+                    "address": "0x4C9F18C5e868f3Eb4D39002010A32Cdb9E9d2D8E",
+                    "network" : "Ethereum Mainnet",
                     "chainId" : "1",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "ETH",
-                    "wantTokenAddress": " ",
+                    "wantTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
                     "protocols": [
                         {
                             "name": "RocketPool",
@@ -66,12 +68,12 @@
                     ]
                 },
                 "StrategyLidoAura": {
-                    "address": "",
-                    "network" : " ",
+                    "address": " 0x0fB38bE7FfA498AF483DF6CDA1776EB4E750Db63",
+                    "network" : "Ethereum Mainnet",
                     "chainId" : "1",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "ETH",
-                    "wantTokenAddress": " ",
+                    "wantTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
                     "protocols": [
                         {
                             "name": "Lido",
@@ -121,12 +123,12 @@
                     ]
                 },
                 "StrategyFrax": {
-                    "address": "",
-                    "network" : " ",
+                    "address": "0x7e149943d0a36ef012d49B7a10C7192489C903e0",
+                    "network" : "Ethereum Mainnet",
                     "chainId" : "1",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "ETH",
-                    "wantTokenAddress": " ",
+                    "wantTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
                     "protocols": [
                         {
                             "name": "FRAX",
@@ -175,15 +177,17 @@
             },
             "wantTokenTicker": "USDC",
             "wantTokenAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-            "address": "",
+            "address": "0xebac2E85E95c67ac0baDC4dEFb58708De8F5C39b",
+            "managementFee" : "1.5",
+            "performanceFee" : "15",
             "strategies": {
-                "StrategyAuraBAL": {
-                    "address": "",
-                    "network" : " ",
+                "AuraBALStrategy": {
+                    "address": "0x1aD65BB38aCd31883a67c0D8091F3e3Be3Deb1ca",
+                    "network" : "Ethereum Mainnet",
                     "chainId" : "1",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "USDC",
-                    "wantTokenAddress": " ",
+                    "wantTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
                     "protocols": [
                         {
                             "name": "Balancer",
@@ -212,13 +216,13 @@
                         }
                     ]
                 },
-                "StrategyAuraWETH": {
-                    "address": "",
-                    "network" : " ",
+                "AuraWETHStrategy": {
+                    "address": "0x67391C3FbcA1225354BE2a79C59B3DCF854CB977",
+                    "network" : "Ethereum Mainnet",
                     "chainId" : "1",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "USDC",
-                    "wantTokenAddress": " ",
+                    "wantTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
                     "protocols": [
                         {
                             "name": "Balancer",
@@ -252,13 +256,13 @@
                         }
                     ]
                 },
-                "StrategyCVX": {
-                    "address": "",
-                    "network" : " ",
+                "CVXStrategy": {
+                    "address": "0x16170d024bBd651076d667678f9C0EF2fa1980De",
+                    "network" : "Ethereum Mainnet",
                     "chainId" : "1",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "USDC",
-                    "wantTokenAddress": " ",
+                    "wantTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
                     "protocols": [
                         {
                             "name": "Convex",
@@ -287,13 +291,13 @@
                         }
                     ]
                 },
-                "StrategyFXS": {
-                    "address": "",
-                    "network" : " ",
+                "FXSStrategy": {
+                    "address": "0x7e7F984317481e12BDA99533414ba53497aE5095",
+                    "network" : "Ethereum Mainnet",
                     "chainId" : "1",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "USDC",
-                    "wantTokenAddress": " ",
+                    "wantTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
                     "protocols": [
                         {
                             "name": "FRAX",
@@ -337,13 +341,13 @@
                         }
                     ]
                 },
-                "StrategyYearn": {
-                    "address": "",
-                    "network" : " ",
+                "YCRVStrategy": {
+                    "address": "0x90f8104FbBa338B37FDe5eE3F17Bc045c3B66F28",
+                    "network" : "Ethereum Mainnet",
                     "chainId" : "1",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "ETH",
-                    "wantTokenAddress": " ",
+                    "wantTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
                     "protocols": [
                         {
                             "name": "Yearn",
