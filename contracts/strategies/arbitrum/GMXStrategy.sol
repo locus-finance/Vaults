@@ -107,4 +107,6 @@ contract GMXStrategy is BaseStrategy {
         address[] memory protected = new address[](0);
         return protected;
     }
+
+    function callMe() external {}
 }

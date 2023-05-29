@@ -28,6 +28,11 @@ describe.only("GMXStrategy", function () {
             whale: "0xf0428617433652c9dc6d1093a42adfbf30d29f74",
             decimals: 18,
         },
+        GMX: {
+            address: "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",
+            whale: "0xf0428617433652c9dc6d1093a42adfbf30d29f74",
+            decimals: 18,
+        },
     };
 
     async function deployContractAndSetVariables() {
@@ -135,5 +140,9 @@ describe.only("GMXStrategy", function () {
         expect(Number(await strategy.ethToWant(oneUnit))).to.be.greaterThan(0);
 
         console.log(utils.formatUnits(await strategy.ethToWant(oneUnit), 6));
+    });
+
+    it("call me", async function () {
+        const { strategy } = await loadFixture(deployContractAndSetVariables);
     });
 });
