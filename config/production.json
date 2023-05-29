@@ -10,7 +10,7 @@
             "wantTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
             "address": " 0xE2fb9fBEadFc3577584C60A2f7FDF9933abed81a",
             "managementFee" : "0.7",
-            "performanceFee" : "10",
+            "performanceFee" : "5",
             "strategies": {
                 "RocketAuraStrategy": {
                     "address": "0x4C9F18C5e868f3Eb4D39002010A32Cdb9E9d2D8E",
@@ -179,7 +179,7 @@
             "wantTokenAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
             "address": "0xebac2E85E95c67ac0baDC4dEFb58708De8F5C39b",
             "managementFee" : "1.5",
-            "performanceFee" : "15",
+            "performanceFee" : "10",
             "strategies": {
                 "AuraBALStrategy": {
                     "address": "0x1aD65BB38aCd31883a67c0D8091F3e3Be3Deb1ca",
