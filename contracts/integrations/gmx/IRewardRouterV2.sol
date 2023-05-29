@@ -5,6 +5,12 @@ pragma solidity ^0.8.18;
 interface IRewardRouterV2 {
     function stakeGmx(uint256 _amount) external;
 
+    function stakeEsGmx(uint256 _amount) external;
+
+    function unstakeGmx(uint256 _amount) external;
+
+    function unstakeEsGmx(uint256 _amount) external;
+
     function compound() external;
 
     function handleRewards(
