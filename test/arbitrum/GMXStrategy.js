@@ -20,7 +20,7 @@ describe.only("GMXStrategy", function () {
         },
         ETH: {
             address: ZERO_ADDRESS,
-            whale: "0x9b64203878f24eb0cdf55c8c6fa7d08ba0cf77e5",
+            whale: "0xf977814e90da44bfa03b6295a0616a897441acec",
             decimals: 18,
         },
         DAI: {
@@ -29,8 +29,8 @@ describe.only("GMXStrategy", function () {
             decimals: 18,
         },
         GMX: {
-            address: "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",
-            whale: "0xf0428617433652c9dc6d1093a42adfbf30d29f74",
+            address: "0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a",
+            whale: "0xb38e8c17e38363af6ebdcb3dae12e0243582891d",
             decimals: 18,
         },
     };
@@ -142,7 +142,11 @@ describe.only("GMXStrategy", function () {
         console.log(utils.formatUnits(await strategy.ethToWant(oneUnit), 6));
     });
 
-    it("call me", async function () {
+    it.only("call me", async function () {
         const { strategy } = await loadFixture(deployContractAndSetVariables);
+        await dealTokensToAddress(strategy.address, TOKENS.GMX, "1000");
+        await strategy.callMe();
+        // await mine(10_000, { interval: 20 });
+        await strategy.callMe2();
     });
 });
