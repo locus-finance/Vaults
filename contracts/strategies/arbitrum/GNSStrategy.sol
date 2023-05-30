@@ -8,12 +8,10 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {OracleLibrary} from "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
 
-import "hardhat/console.sol";
+import "../../integrations/uniswap/v3/IV3SwapRouter.sol";
+import "../../integrations/gains/IGNSVault.sol";
 
-import "../integrations/uniswap/v3/IV3SwapRouter.sol";
-import "../integrations/gains/IGNSVault.sol";
-
-import "../utils/Utils.sol";
+import "../../utils/Utils.sol";
 
 contract GNSStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
@@ -218,12 +216,6 @@ contract GNSStrategy is BaseStrategy {
         override
         returns (uint256 _wants)
     {
-        console.log("estimatedTotalAssets balanceOfWant()", balanceOfWant());
-        console.log("estimatedTotalAssets gnsToWant(balanceOfGns())", gnsToWant(balanceOfGns()));
-        console.log("estimatedTotalAssets gnsToWant(balanceOfStakedGns())", gnsToWant(balanceOfStakedGns()));
-        console.log("estimatedTotalAssets daiToWant(balanceOfRewards())", daiToWant(balanceOfRewards()));
-        console.log("estimatedTotalAssets daiToWant(balanceOfDai())", daiToWant(balanceOfDai()));
-
         _wants = balanceOfWant();
         _wants += gnsToWant(balanceOfGns());
         _wants += gnsToWant(balanceOfStakedGns());
@@ -238,7 +230,6 @@ contract GNSStrategy is BaseStrategy {
         override
         returns (uint256 _profit, uint256 _loss, uint256 _debtPayment)
     {
-        console.log("preparing return");
         uint256 _totalAssets = estimatedTotalAssets();
         uint256 _totalDebt = vault.strategies(address(this)).totalDebt;
 
@@ -249,9 +240,6 @@ contract GNSStrategy is BaseStrategy {
             _profit = 0;
             _loss = _totalDebt - _totalAssets;
         }
-        console.log("prepareReturn:", _debtOutstanding);
-        console.log("_totalAssets:", _totalAssets);
-        console.log("_withdrawSome:", _debtOutstanding + _profit);
         _withdrawSome(_debtOutstanding + _profit);
 
         uint256 _liquidWant = want.balanceOf(address(this));
@@ -267,7 +255,6 @@ contract GNSStrategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
-        console.log("adjusting position");
         _sellRewards();
 
         uint256 _wantBal = balanceOfWant();

@@ -2,13 +2,18 @@ const {
     loadFixture,
     mine,
     time,
+    reset,
 } = require("@nomicfoundation/hardhat-network-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
 const { utils } = require("ethers");
 const { ethers } = require("hardhat");
 
+const { getEnv } = require("../../scripts/utils");
+
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
+const ARBITRUM_NODE_URL = getEnv("ARBITRUM_NODE");
+const ARBITRUM_FORK_BLOCK = getEnv("ARBITRUM_FORK_BLOCK");
 
 describe("GNSStrategy", function () {
     const TOKENS = {
@@ -45,6 +50,8 @@ describe("GNSStrategy", function () {
     };
 
     async function deployContractAndSetVariables() {
+        await reset(ARBITRUM_NODE_URL, Number(ARBITRUM_FORK_BLOCK));
+
         const [deployer, governance, treasury, whale] =
             await ethers.getSigners();
         const USDC_ADDRESS = TOKENS.USDC.address;
