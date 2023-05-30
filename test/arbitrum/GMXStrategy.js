@@ -11,9 +11,9 @@ const { parseEther } = require("ethers/lib/utils");
 const { ethers } = require("hardhat");
 
 const { getEnv } = require("../../scripts/utils");
+const { toBytes32, setStorageAt } = require("../utils");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
-
 const ARBITRUM_NODE_URL = getEnv("ARBITRUM_NODE");
 const ARBITRUM_FORK_BLOCK = getEnv("ARBITRUM_FORK_BLOCK");
 
@@ -680,6 +680,44 @@ describe("GMXStrategy", function () {
 
         expect(Number(await strategy.balanceOfWethRewards())).to.be.greaterThan(
             0
+        );
+    });
+
+    it("should stake esGMX", async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(
+            deployContractAndSetVariables
+        );
+
+        const balanceBefore = await want.balanceOf(whale.address);
+        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
+        expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
+
+        const index = ethers.utils.solidityKeccak256(
+            ["uint256", "uint256"],
+            [strategy.address, 5]
+        );
+
+        // Token esGMX is non-transferrable token, so we need to override storage to simulate existing balance.
+        await setStorageAt(
+            TOKENS.ES_GMX.address,
+            index,
+            toBytes32(ethers.utils.parseEther("1000")).toString()
+        );
+
+        const esGmxToken = await hre.ethers.getContractAt(
+            IERC20_SOURCE,
+            TOKENS.ES_GMX.address
+        );
+        expect(
+            Number(await esGmxToken.balanceOf(strategy.address))
+        ).to.be.equal(Number(ethers.utils.parseEther("1000")));
+
+        expect(await strategy.balanceOfUnstakedEsGmx()).to.be.equal(
+            ethers.utils.parseEther("1000")
+        );
+        await strategy.connect(deployer).harvest();
+        expect(await strategy.balanceOfStakedEsGmx()).to.be.equal(
+            ethers.utils.parseEther("1000")
         );
     });
 });
