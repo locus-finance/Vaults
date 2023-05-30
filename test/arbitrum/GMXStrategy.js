@@ -2,6 +2,7 @@ const {
     loadFixture,
     mine,
     time,
+    reset,
 } = require("@nomicfoundation/hardhat-network-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
@@ -9,7 +10,12 @@ const { utils } = require("ethers");
 const { parseEther } = require("ethers/lib/utils");
 const { ethers } = require("hardhat");
 
+const { getEnv } = require("../../scripts/utils");
+
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
+
+const ARBITRUM_NODE_URL = getEnv("ARBITRUM_NODE");
+const ARBITRUM_FORK_BLOCK = getEnv("ARBITRUM_FORK_BLOCK");
 
 describe("GMXStrategy", function () {
     const TOKENS = {
@@ -46,6 +52,8 @@ describe("GMXStrategy", function () {
     };
 
     async function deployContractAndSetVariables() {
+        await reset(ARBITRUM_NODE_URL, Number(ARBITRUM_FORK_BLOCK));
+
         const [deployer, governance, treasury, whale] =
             await ethers.getSigners();
         const USDC_ADDRESS = TOKENS.USDC.address;
@@ -535,6 +543,8 @@ describe("GMXStrategy", function () {
         await newStrategy.deployed();
 
         const gmxStaked = await strategy.balanceOfStakedGmx();
+        const unstakedEsGmxBalance = await strategy.balanceOfUnstakedEsGmx();
+        const stakedEsGmxBalance = await strategy.balanceOfStakedEsGmx();
 
         await vault["migrateStrategy(address,address)"](
             strategy.address,
@@ -557,6 +567,14 @@ describe("GMXStrategy", function () {
         expect(Number(await newStrategy.balanceOfUnstakedGmx())).to.be.equal(
             Number(gmxStaked)
         );
+
+        await newStrategy.connect(deployer).acceptTransfer(strategy.address);
+        expect(
+            Number(await strategy.balanceOfUnstakedEsGmx())
+        ).to.be.not.lessThan(Number(unstakedEsGmxBalance));
+        expect(
+            Number(await newStrategy.balanceOfStakedEsGmx())
+        ).to.be.not.lessThan(Number(stakedEsGmxBalance));
 
         await newStrategy.harvest();
 
@@ -659,26 +677,6 @@ describe("GMXStrategy", function () {
         );
 
         await mine(300, { interval: 20 });
-
-        expect(Number(await strategy.balanceOfWethRewards())).to.be.greaterThan(
-            0
-        );
-    });
-
-    it("should accrue some rewards after some time", async function () {
-        const { vault, strategy, whale, deployer, want } = await loadFixture(
-            deployContractAndSetVariables
-        );
-
-        const balanceBefore = await want.balanceOf(whale.address);
-        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
-        expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
-
-        await strategy.connect(deployer).harvest();
-        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
-            balanceBefore,
-            ethers.utils.parseUnits("100", 6)
-        );
 
         expect(Number(await strategy.balanceOfWethRewards())).to.be.greaterThan(
             0

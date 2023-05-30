@@ -296,6 +296,8 @@ contract GMXStrategy is BaseStrategy {
             IV3SwapRouter(UNISWAP_V3_ROUTER).exactInput(params);
         }
 
+        // Currently, GMX does not reward users with esGMX and this condition will not be true until
+        // they start distributing esGMX rewards.
         if (balanceOfUnstakedEsGmx() > 0) {
             IRewardRouterV2(GMX_REWARD_ROUTER).stakeEsGmx(
                 balanceOfUnstakedEsGmx()
@@ -336,16 +338,11 @@ contract GMXStrategy is BaseStrategy {
             /* _shouldClaimGmx= */ false,
             /* _shouldStakeGmx= */ false,
             /* _shouldClaimEsGmx= */ true,
-            /* _shouldStakeEsGmx= */ false,
+            /* _shouldStakeEsGmx= */ true,
             /* _shouldStakeMultiplierPoints= */ false,
             /* _shouldClaimWeth= */ true,
             /* _shouldConvertWethToEth= */ false
         );
-        if (balanceOfStakedEsGmx() > 0) {
-            IRewardRouterV2(GMX_REWARD_ROUTER).unstakeEsGmx(
-                balanceOfStakedEsGmx()
-            );
-        }
         if (balanceOfStakedGmx() > 0) {
             IRewardRouterV2(GMX_REWARD_ROUTER).unstakeGmx(balanceOfStakedGmx());
         }
@@ -355,6 +352,14 @@ contract GMXStrategy is BaseStrategy {
             ERC20(WETH).balanceOf(address(this))
         );
         IERC20(GMX).safeTransfer(_newStrategy, balanceOfUnstakedGmx());
+
+        // This is used to allow new strategy to transfer esGMX from old strategy.
+        // esGMX is non-transferable by default and we need to signal transfer first.
+        IRewardRouterV2(GMX_REWARD_ROUTER).signalTransfer(_newStrategy);
+    }
+
+    function acceptTransfer(address _oldStrategy) external onlyStrategist {
+        IRewardRouterV2(GMX_REWARD_ROUTER).acceptTransfer(_oldStrategy);
     }
 
     function protectedTokens()

@@ -56,8 +56,8 @@ module.exports = {
         hardhat: {
             chainId: 43114,
             forking: {
-                url: IS_ARB ? ARBITRUM_NODE : ETH_NODE,
-                blockNumber: IS_ARB ? 95666222 : 17293210,
+                url: ETH_NODE,
+                blockNumber: 17293210,
             },
             allowUnlimitedContractSize: true,
         },
