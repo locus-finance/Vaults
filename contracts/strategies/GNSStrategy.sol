@@ -18,29 +18,23 @@ import "../utils/Utils.sol";
 contract GNSStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
 
-    address internal constant GNS_VAULT =
-        0x6B8D3C08072a020aC065c467ce922e3A36D3F9d6;
-    address internal constant GNS =
-        0x18c11FD286C5EC11c3b683Caa813B77f5163A122;
-
+    address internal constant GNS = 0x18c11FD286C5EC11c3b683Caa813B77f5163A122;
     address internal constant WETH = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
     address internal constant DAI = 0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1;
 
-    address internal constant ETH_USDC_UNI_V3_POOL =
-        0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443;
-    address internal constant GNS_ETH_UNI_V3_POOL =
-        0xC91B7b39BBB2c733f0e7459348FD0c80259c8471;
-    address internal constant DAI_USDC_UNI_V3_POOL =
-        0xF0428617433652c9dc6D1093A42AdFbF30D29f74;
-    address internal constant UNISWAP_V3_ROUTER =
-        0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
-        
-
+    address internal constant GNS_VAULT = 0x6B8D3C08072a020aC065c467ce922e3A36D3F9d6;
+    address internal constant UNISWAP_V3_ROUTER = 0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
+    
+    address internal constant ETH_USDC_UNI_V3_POOL = 0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443;
+    address internal constant GNS_ETH_UNI_V3_POOL = 0xC91B7b39BBB2c733f0e7459348FD0c80259c8471;
+    address internal constant DAI_USDC_UNI_V3_POOL = 0xF0428617433652c9dc6D1093A42AdFbF30D29f74;
+    
     uint24 internal constant ETH_USDC_UNI_FEE = 500;
     uint24 internal constant GNS_ETH_UNI_FEE = 3000;
     uint24 internal constant DAI_USDC_UNI_FEE = 100;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
+    uint32 internal constant DAI_USDC_TWAP_RANGE_SECS = 1200;
 
     uint256 public slippage = 9900; // 1%
 
@@ -68,13 +62,17 @@ contract GNSStrategy is BaseStrategy {
         return IERC20(DAI).balanceOf(address(this));
     }
 
+    function balanceOfWeth() public view returns (uint256) {
+        return IERC20(WETH).balanceOf(address(this));
+    }
+
     function balanceOfGns() public view returns (uint256) {
         return IERC20(GNS).balanceOf(address(this));
     }
 
     function balanceOfStakedGns() public view returns (uint256) {
         IGNSVault.User memory user = IGNSVault(GNS_VAULT).users(address(this));
-		return user.stakedTokens + IERC20(GNS).balanceOf(address(this));
+		return user.stakedTokens;
     }
 
     function balanceOfRewards() public view returns (uint256) {
@@ -202,7 +200,7 @@ contract GNSStrategy is BaseStrategy {
     function daiToWant(uint256 daiAmount) public view returns (uint256) {
         (int24 meanTick, ) = OracleLibrary.consult(
             DAI_USDC_UNI_V3_POOL,
-            TWAP_RANGE_SECS
+            DAI_USDC_TWAP_RANGE_SECS
         );
         return
             OracleLibrary.getQuoteAtTick(
@@ -324,14 +322,11 @@ contract GNSStrategy is BaseStrategy {
     }
 
     function prepareMigration(address _newStrategy) internal override {
-        // IERC20(yCRV).safeTransfer(
-        //     _newStrategy,
-        //     IERC20(yCRV).balanceOf(address(this))
-        // );
-        // IERC20(yCRVVault).safeTransfer(
-        //     _newStrategy,
-        //     IERC20(yCRVVault).balanceOf(address(this))
-        // );
+        IGNSVault(GNS_VAULT).unstakeTokens(balanceOfStakedGns());
+        IGNSVault(GNS_VAULT).harvest();
+        IERC20(GNS).safeTransfer(_newStrategy, balanceOfGns());
+        IERC20(DAI).safeTransfer(_newStrategy, balanceOfDai());
+        IERC20(WETH).safeTransfer(_newStrategy, balanceOfWeth());
     }
 
     function protectedTokens()
@@ -340,9 +335,10 @@ contract GNSStrategy is BaseStrategy {
         override
         returns (address[] memory)
     {
-        address[] memory protected = new address[](2);
-        // protected[0] = yCRV;
-        // protected[1] = yCRVVault;
+        address[] memory protected = new address[](3);
+        protected[0] = GNS;
+        protected[1] = DAI;
+        protected[2] = WETH;
         return protected;
     }
 }
