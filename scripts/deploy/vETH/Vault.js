@@ -12,7 +12,7 @@ const DEPLOY_SETTINGS = {
     governance: getEnv("GOVERNANCE_ACCOUNT"),
     treasury: getEnv("TREASURY_ACCOUNT"),
     depositLimitWeth: "1000",
-    performanceFee: 1000,
+    performanceFee: 500,
     managementFee: 70,
 };
 
