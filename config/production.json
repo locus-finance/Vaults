@@ -9,6 +9,7 @@
             "wantTokenTicker": "WETH",
             "wantTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
             "address": "0x3edbE670D03C4A71367dedA78E73EA4f8d68F2E4",
+            "decimals": "18",
             "managementFee": "0.7",
             "performanceFee": "5",
             "strategies": {
@@ -68,7 +69,7 @@
                     ]
                 },
                 "LidoAuraStrategy": {
-                    "address": " 0x0fB38bE7FfA498AF483DF6CDA1776EB4E750Db63",
+                    "address": " ",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -178,6 +179,7 @@
             "wantTokenTicker": "USDC",
             "wantTokenAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
             "address": "0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B",
+            "decimals": "6",
             "managementFee": "1.5",
             "performanceFee": "10",
             "strategies": {
@@ -386,7 +388,8 @@
             },
             "wantTokenTicker": "USDC",
             "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
-            "address": "",
+            "address": " ",
+            "decimals": "6",
             "managementFee": "2",
             "performanceFee": "15",
             "strategies": {

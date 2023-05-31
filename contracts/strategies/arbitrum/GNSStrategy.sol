@@ -20,13 +20,18 @@ contract GNSStrategy is BaseStrategy {
     address internal constant WETH = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
     address internal constant DAI = 0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1;
 
-    address internal constant GNS_VAULT = 0x6B8D3C08072a020aC065c467ce922e3A36D3F9d6;
-    address internal constant UNISWAP_V3_ROUTER = 0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
-    
-    address internal constant ETH_USDC_UNI_V3_POOL = 0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443;
-    address internal constant GNS_ETH_UNI_V3_POOL = 0xC91B7b39BBB2c733f0e7459348FD0c80259c8471;
-    address internal constant DAI_USDC_UNI_V3_POOL = 0xF0428617433652c9dc6D1093A42AdFbF30D29f74;
-    
+    address internal constant GNS_VAULT =
+        0x6B8D3C08072a020aC065c467ce922e3A36D3F9d6;
+    address internal constant UNISWAP_V3_ROUTER =
+        0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
+
+    address internal constant ETH_USDC_UNI_V3_POOL =
+        0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443;
+    address internal constant GNS_ETH_UNI_V3_POOL =
+        0xC91B7b39BBB2c733f0e7459348FD0c80259c8471;
+    address internal constant DAI_USDC_UNI_V3_POOL =
+        0xF0428617433652c9dc6D1093A42AdFbF30D29f74;
+
     uint24 internal constant ETH_USDC_UNI_FEE = 500;
     uint24 internal constant GNS_ETH_UNI_FEE = 3000;
     uint24 internal constant DAI_USDC_UNI_FEE = 100;
@@ -70,7 +75,7 @@ contract GNSStrategy is BaseStrategy {
 
     function balanceOfStakedGns() public view returns (uint256) {
         IGNSVault.User memory user = IGNSVault(GNS_VAULT).users(address(this));
-		return user.stakedTokens;
+        return user.stakedTokens;
     }
 
     function balanceOfRewards() public view returns (uint256) {
@@ -97,7 +102,7 @@ contract GNSStrategy is BaseStrategy {
     function _sellRewards() internal {
         IGNSVault(GNS_VAULT).harvest();
         uint256 balDai = IERC20(DAI).balanceOf(address(this));
-        if (balDai > 0){
+        if (balDai > 0) {
             uint256 minAmountOut = (daiToWant(balDai) * slippage) / 10000;
             IV3SwapRouter.ExactInputSingleParams memory params = IV3SwapRouter
                 .ExactInputSingleParams({
@@ -149,9 +154,7 @@ contract GNSStrategy is BaseStrategy {
             );
     }
 
-    function wantToEth(
-        uint256 wantAmount
-    ) public view returns (uint256) {
+    function wantToEth(uint256 wantAmount) public view returns (uint256) {
         (int24 meanTick, ) = OracleLibrary.consult(
             ETH_USDC_UNI_V3_POOL,
             TWAP_RANGE_SECS
@@ -278,7 +281,7 @@ contract GNSStrategy is BaseStrategy {
         }
 
         uint256 gnsBal = balanceOfGns();
-        if(gnsBal > 0) {
+        if (gnsBal > 0) {
             IGNSVault(GNS_VAULT).stakeTokens(gnsBal);
         }
     }
