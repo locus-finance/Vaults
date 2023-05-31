@@ -334,7 +334,7 @@ describe("GMXStrategy", function () {
 
         // Dropping some USDC to strategy for accodomating loss
         await dealTokensToAddress(strategy.address, TOKENS.USDC, "500");
-        // Force to sell all staked Curve LP to fulfill withdraw request for 100%
+        // Force to sell all staked GMX to fulfill withdraw request for 100%
         await strategy.overrideWantToGmx(await strategy.balanceOfStakedGmx());
 
         await vault

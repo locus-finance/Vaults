@@ -11,16 +11,11 @@ const { parseEther } = require("ethers/lib/utils");
 const { ethers } = require("hardhat");
 
 const { getEnv } = require("../../scripts/utils");
-const { toBytes32, setStorageAt } = require("../utils");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 
 const ARBITRUM_NODE_URL = getEnv("ARBITRUM_NODE");
 const ARBITRUM_FORK_BLOCK = getEnv("ARBITRUM_FORK_BLOCK");
-
-const STABLE_JOE_ABI = [
-    "function isRewardToken(address token) public view returns (bool)",
-];
 
 describe.only("JOEStrategy", function () {
     const TOKENS = {
@@ -332,7 +327,7 @@ describe.only("JOEStrategy", function () {
 
         // Dropping some USDC to strategy for accodomating loss
         await dealTokensToAddress(strategy.address, TOKENS.USDC, "500");
-        // // Force to sell all staked Curve LP to fulfill withdraw request for 100%
+        // Force to sell all staked JOE to fulfill withdraw request for 100%
         await strategy.overrideWantToJoe(await strategy.balanceOfStakedJoe());
 
         await vault
@@ -677,7 +672,7 @@ describe.only("JOEStrategy", function () {
         );
     });
 
-    it.only("should change reward token", async function () {
+    it("should change reward token", async function () {
         const { vault, strategy, whale, deployer, want } = await loadFixture(
             deployContractAndSetVariables
         );
@@ -693,33 +688,5 @@ describe.only("JOEStrategy", function () {
         await expect(strategy.balanceOfRewards()).to.be.revertedWith(
             "StableJoeStaking: wrong reward token"
         );
-
-        // JOE is currently not an approved token.
-        // We should override storage to simulate that this token is approved.
-        const index = ethers.utils.solidityKeccak256(
-            ["uint256", "uint256"],
-            [TOKENS.JOE.address, 5]
-        );
-
-        for (let i = 0; i < 15; i++) {
-            const index = ethers.utils.solidityKeccak256(
-                ["uint256", "uint256"],
-                [TOKENS.JOE.address, i]
-            );
-            await setStorageAt(
-                STABLE_JOE_STAKING,
-                index,
-                toBytes32(ethers.constants.One).toString()
-            );
-        }
-        // console.log(ethers.utils.hexlify(ethers.utils.zeroPad("0x01", 32)));
-        // console.log(ethers.constants.MaxUint256);
-
-        const stakingContract = new hre.ethers.Contract(
-            STABLE_JOE_STAKING,
-            STABLE_JOE_ABI,
-            deployer
-        );
-        console.log(await stakingContract.isRewardToken(TOKENS.JOE.address));
     });
 });

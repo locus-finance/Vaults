@@ -108,6 +108,7 @@ contract JOEStrategy is BaseStrategy {
         }
 
         uint256 totalRewards = balanceOfRewards();
+
         if (totalRewards >= _amountNeeded) {
             _claimAndSellRewards();
         } else {
