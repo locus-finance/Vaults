@@ -414,6 +414,36 @@
                             ]
                         }
                     ]
+                },
+                "GNSStrategy": {
+                    "address": "",
+                    "network": "Arbitrum One",
+                    "chainId": "42161",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
+                    "protocols": [
+                        {
+                            "name": "GNS",
+                            "addresses": [
+                                {
+                                    "name": "GNS",
+                                    "type": "Token",
+                                    "address": "0x18c11FD286C5EC11c3b683Caa813B77f5163A122"
+                                },
+                                {
+                                    "name": "DAI",
+                                    "type": "Reward Token",
+                                    "address": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1"
+                                },
+                                {
+                                    "name": "GNS Vault",
+                                    "type": "Staking pool",
+                                    "address": "0x6B8D3C08072a020aC065c467ce922e3A36D3F9d6"
+                                }
+                            ]
+                        }
+                    ]
                 }
             }
         }
