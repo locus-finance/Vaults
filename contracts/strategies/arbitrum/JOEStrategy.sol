@@ -13,8 +13,6 @@ import "../../integrations/chainlink/AggregatorV3Interface.sol";
 import "../../integrations/joe/IStableJoeStaking.sol";
 import "../../integrations/joe/ILBRouter.sol";
 
-import "hardhat/console.sol";
-
 contract JOEStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
 
@@ -81,7 +79,10 @@ contract JOEStrategy is BaseStrategy {
             address(this),
             JOE_REWARD_TOKEN
         );
+        return rewards;
+    }
 
+    function rewardsToWant(uint256 rewards) public view returns (uint256) {
         if (JOE_REWARD_TOKEN == address(want)) {
             return rewards;
         } else {
@@ -107,7 +108,7 @@ contract JOEStrategy is BaseStrategy {
             return;
         }
 
-        uint256 totalRewards = balanceOfRewards();
+        uint256 totalRewards = rewardsToWant(balanceOfRewards());
 
         if (totalRewards >= _amountNeeded) {
             _claimAndSellRewards();
@@ -184,7 +185,7 @@ contract JOEStrategy is BaseStrategy {
     {
         _wants = balanceOfWant();
         _wants += joeToWant(balanceOfStakedJoe() + balanceOfUnstakedJoe());
-        _wants += balanceOfRewards();
+        _wants += rewardsToWant(balanceOfRewards());
     }
 
     function joeToWant(uint256 _joeAmount) public view returns (uint256) {

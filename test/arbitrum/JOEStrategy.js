@@ -17,7 +17,7 @@ const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 const ARBITRUM_NODE_URL = getEnv("ARBITRUM_NODE");
 const ARBITRUM_FORK_BLOCK = getEnv("ARBITRUM_FORK_BLOCK");
 
-describe.only("JOEStrategy", function () {
+describe("JOEStrategy", function () {
     const TOKENS = {
         USDC: {
             address: "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
@@ -167,7 +167,7 @@ describe.only("JOEStrategy", function () {
             ethers.utils.parseUnits("100", 6)
         );
 
-        // // We are dropping some USDC to staking contract to simulate profit from JOE
+        // We are dropping some USDC to staking contract to simulate profit from JOE staking
         await dealTokensToAddress(STABLE_JOE_STAKING, TOKENS.USDC, "1000000");
         expect(Number(await strategy.balanceOfRewards())).to.be.greaterThan(0);
 
@@ -673,7 +673,7 @@ describe.only("JOEStrategy", function () {
     });
 
     it("should change reward token", async function () {
-        const { vault, strategy, whale, deployer, want } = await loadFixture(
+        const { strategy, deployer } = await loadFixture(
             deployContractAndSetVariables
         );
 
@@ -685,8 +685,19 @@ describe.only("JOEStrategy", function () {
         await strategy.setRewardToken(TOKENS.JOE.address);
         expect(await strategy.JOE_REWARD_TOKEN()).to.equal(TOKENS.JOE.address);
 
-        await expect(strategy.balanceOfRewards()).to.be.revertedWith(
-            "StableJoeStaking: wrong reward token"
+        const oneJoePrice = await strategy.joeToWant(utils.parseEther("1"));
+        expect(await strategy.rewardsToWant(utils.parseEther("1"))).to.equal(
+            oneJoePrice
+        );
+
+        await dealTokensToAddress(strategy.address, TOKENS.JOE, "1000");
+        await strategy.overrideBalanceOfRewards(utils.parseEther("1000"));
+
+        await strategy.connect(deployer).harvest();
+        await strategy.overrideBalanceOfRewards(utils.parseEther("0"));
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            await strategy.joeToWant(utils.parseEther("1000")),
+            ethers.utils.parseUnits("50", 6)
         );
     });
 });
