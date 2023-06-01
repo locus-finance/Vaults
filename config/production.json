@@ -447,6 +447,31 @@
                             ]
                         }
                     ]
+                },
+                "JOEStrategy": {
+                    "address": "",
+                    "network": "Arbitrum One",
+                    "chainId": "42161",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
+                    "protocols": [
+                        {
+                            "name": "JOE",
+                            "addresses": [
+                                {
+                                    "name": "JOE",
+                                    "type": "Token",
+                                    "address": "0x371c7ec6D8039ff7933a2AA28EB827Ffe1F52f07"
+                                },
+                                {
+                                    "name": "USDC",
+                                    "type": "Reward Token",
+                                    "address": "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8"
+                                }
+                            ]
+                        }
+                    ]
                 }
             }
         }
