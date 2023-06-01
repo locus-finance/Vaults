@@ -11,13 +11,13 @@ const { parseEther } = require("ethers/lib/utils");
 const { ethers } = require("hardhat");
 
 const { getEnv } = require("../../scripts/utils");
-const { toBytes32, setStorageAt } = require("../utils");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
+
 const ARBITRUM_NODE_URL = getEnv("ARBITRUM_NODE");
 const ARBITRUM_FORK_BLOCK = getEnv("ARBITRUM_FORK_BLOCK");
 
-describe("GMXStrategy", function () {
+describe("JOEStrategy", function () {
     const TOKENS = {
         USDC: {
             address: "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
@@ -34,22 +34,14 @@ describe("GMXStrategy", function () {
             whale: "0x2ac5f9a2a69700090755d5b3caa8c4cba0b748f9",
             decimals: 18,
         },
-        WETH: {
-            address: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
-            whale: "0xdc57a80b7ba9ff11b917eea47936ae29eae1ef39",
-            decimals: 18,
-        },
-        GMX: {
-            address: "0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a",
-            whale: "0xb38e8c17e38363af6ebdcb3dae12e0243582891d",
-            decimals: 18,
-        },
-        ES_GMX: {
-            address: "0xf42Ae1D54fd613C9bb14810b0588FaAa09a426cA",
-            whale: "0x423f76b91dd2181d9ef37795d6c1413c75e02c7f",
+        JOE: {
+            address: "0x371c7ec6D8039ff7933a2AA28EB827Ffe1F52f07",
+            whale: "0x1446e040b1ef8253b48fc09930576d9b67142804",
             decimals: 18,
         },
     };
+
+    const STABLE_JOE_STAKING = "0x43646A8e839B2f2766392C1BF8f60F6e587B6960";
 
     async function deployContractAndSetVariables() {
         await reset(ARBITRUM_NODE_URL, Number(ARBITRUM_FORK_BLOCK));
@@ -76,8 +68,8 @@ describe("GMXStrategy", function () {
             ethers.utils.parseEther("10000")
         );
 
-        const GMXStrategy = await ethers.getContractFactory("MockGMXStrategy");
-        const strategy = await GMXStrategy.deploy(vault.address);
+        const JOEStrategy = await ethers.getContractFactory("MockJOEStrategy");
+        const strategy = await JOEStrategy.deploy(vault.address);
         await strategy.deployed();
 
         await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
@@ -148,7 +140,7 @@ describe("GMXStrategy", function () {
             deployContractAndSetVariables
         );
         expect(await strategy.vault()).to.equal(vault.address);
-        expect(await strategy.name()).to.equal("StrategyGMX");
+        expect(await strategy.name()).to.equal("StrategyJOE");
     });
 
     it("should get reasonable prices from oracle", async function () {
@@ -156,7 +148,7 @@ describe("GMXStrategy", function () {
         const oneUnit = utils.parseEther("1");
 
         expect(Number(await strategy.ethToWant(oneUnit))).to.be.greaterThan(0);
-        expect(Number(await strategy.gmxToWant(oneUnit))).to.be.greaterThan(0);
+        expect(Number(await strategy.joeToWant(oneUnit))).to.be.greaterThan(0);
     });
 
     it("should harvest with a profit", async function () {
@@ -175,8 +167,9 @@ describe("GMXStrategy", function () {
             ethers.utils.parseUnits("100", 6)
         );
 
-        // We are dropping some WETH to strategy to simulate profit from staking in GMX
-        await dealTokensToAddress(strategy.address, TOKENS.WETH, "1");
+        // We are dropping some USDC to staking contract to simulate profit from JOE staking
+        await dealTokensToAddress(STABLE_JOE_STAKING, TOKENS.USDC, "1000000");
+        expect(Number(await strategy.balanceOfRewards())).to.be.greaterThan(0);
 
         await strategy.connect(deployer).harvest();
 
@@ -334,8 +327,8 @@ describe("GMXStrategy", function () {
 
         // Dropping some USDC to strategy for accodomating loss
         await dealTokensToAddress(strategy.address, TOKENS.USDC, "500");
-        // Force to sell all staked GMX to fulfill withdraw request for 100%
-        await strategy.overrideWantToGmx(await strategy.balanceOfStakedGmx());
+        // Force to sell all staked JOE to fulfill withdraw request for 100%
+        await strategy.overrideWantToJoe(await strategy.balanceOfStakedJoe());
 
         await vault
             .connect(whale)
@@ -346,6 +339,40 @@ describe("GMXStrategy", function () {
             );
         expect(Number(await want.balanceOf(whale.address))).to.be.equal(
             balanceBefore
+        );
+    });
+
+    it("should withdraw rewards only", async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(
+            deployContractAndSetVariables
+        );
+
+        const balanceBefore = utils.parseUnits("10", 6);
+        await dealTokensToAddress(deployer.address, TOKENS.USDC, "10");
+        await want
+            .connect(deployer)
+            ["approve(address,uint256)"](
+                vault.address,
+                ethers.constants.MaxUint256
+            );
+        await vault.connect(deployer)["deposit(uint256)"](balanceBefore);
+
+        await vault
+            .connect(whale)
+            ["deposit(uint256)"](utils.parseUnits("1000", 6));
+
+        await strategy.connect(deployer).harvest();
+        await dealTokensToAddress(STABLE_JOE_STAKING, TOKENS.USDC, "1000000");
+
+        await vault
+            .connect(deployer)
+            ["withdraw(uint256,address,uint256)"](
+                await vault.balanceOf(deployer.address),
+                deployer.address,
+                0
+            );
+        expect(Number(await want.balanceOf(deployer.address))).to.be.equal(
+            Number(balanceBefore)
         );
     });
 
@@ -364,7 +391,7 @@ describe("GMXStrategy", function () {
             ethers.utils.parseUnits("100", 6)
         );
 
-        const gmxStakedBefore = await strategy.balanceOfStakedGmx();
+        const joeStakedBefore = await strategy.balanceOfStakedJoe();
 
         expect(Number(await strategy.estimatedTotalAssets())).to.be.greaterThan(
             0
@@ -373,9 +400,9 @@ describe("GMXStrategy", function () {
         expect(Number(await strategy.estimatedTotalAssets())).to.be.equal(0);
         await strategy.connect(deployer).harvest();
 
-        const gmxStakedAfter = await strategy.balanceOfStakedGmx();
-        expect(Number(gmxStakedBefore)).to.be.not.greaterThan(
-            Number(gmxStakedAfter)
+        const joeStakedAfter = await strategy.balanceOfStakedJoe();
+        expect(Number(joeStakedBefore)).to.be.not.greaterThan(
+            Number(joeStakedAfter)
         );
     });
 
@@ -428,13 +455,7 @@ describe("GMXStrategy", function () {
             strategy.connect(deployer)["sweep(address)"](vault.address)
         ).to.be.revertedWith("!shares");
         await expect(
-            strategy.connect(deployer)["sweep(address)"](TOKENS.WETH.address)
-        ).to.be.revertedWith("!protected");
-        await expect(
-            strategy.connect(deployer)["sweep(address)"](TOKENS.GMX.address)
-        ).to.be.revertedWith("!protected");
-        await expect(
-            strategy.connect(deployer)["sweep(address)"](TOKENS.ES_GMX.address)
+            strategy.connect(deployer)["sweep(address)"](TOKENS.JOE.address)
         ).to.be.revertedWith("!protected");
 
         const daiToken = await hre.ethers.getContractAt(
@@ -538,13 +559,11 @@ describe("GMXStrategy", function () {
             ethers.utils.parseUnits("100", 6)
         );
 
-        const GMXStrategy = await ethers.getContractFactory("GMXStrategy");
-        const newStrategy = await GMXStrategy.deploy(vault.address);
+        const JOEStrategy = await ethers.getContractFactory("JOEStrategy");
+        const newStrategy = await JOEStrategy.deploy(vault.address);
         await newStrategy.deployed();
 
-        const gmxStaked = await strategy.balanceOfStakedGmx();
-        const unstakedEsGmxBalance = await strategy.balanceOfUnstakedEsGmx();
-        const stakedEsGmxBalance = await strategy.balanceOfStakedEsGmx();
+        const joeStaked = await strategy.balanceOfStakedJoe();
 
         await vault["migrateStrategy(address,address)"](
             strategy.address,
@@ -558,29 +577,21 @@ describe("GMXStrategy", function () {
         );
 
         expect(Number(await want.balanceOf(strategy.address))).to.be.equal(0);
-        expect(Number(await strategy.balanceOfStakedGmx())).to.be.equal(0);
-        expect(Number(await newStrategy.balanceOfStakedGmx())).to.be.equal(0);
+        expect(Number(await strategy.balanceOfStakedJoe())).to.be.equal(0);
+        expect(Number(await newStrategy.balanceOfStakedJoe())).to.be.equal(0);
         expect(Number(await want.balanceOf(newStrategy.address))).to.be.equal(
             0
         );
-        expect(Number(await strategy.balanceOfUnstakedGmx())).to.be.equal(0);
-        expect(Number(await newStrategy.balanceOfUnstakedGmx())).to.be.equal(
-            Number(gmxStaked)
+        expect(Number(await strategy.balanceOfUnstakedJoe())).to.be.equal(0);
+        expect(Number(await newStrategy.balanceOfUnstakedJoe())).to.be.equal(
+            Number(joeStaked)
         );
-
-        await newStrategy.connect(deployer).acceptTransfer(strategy.address);
-        expect(
-            Number(await strategy.balanceOfUnstakedEsGmx())
-        ).to.be.not.lessThan(Number(unstakedEsGmxBalance));
-        expect(
-            Number(await newStrategy.balanceOfStakedEsGmx())
-        ).to.be.not.lessThan(Number(stakedEsGmxBalance));
 
         await newStrategy.harvest();
 
-        expect(Number(await strategy.balanceOfStakedGmx())).to.be.equal(0);
-        expect(Number(await newStrategy.balanceOfStakedGmx())).to.be.equal(
-            Number(gmxStaked)
+        expect(Number(await strategy.balanceOfStakedJoe())).to.be.equal(0);
+        expect(Number(await newStrategy.balanceOfStakedJoe())).to.be.equal(
+            Number(joeStaked)
         );
     });
 
@@ -661,63 +672,32 @@ describe("GMXStrategy", function () {
         );
     });
 
-    it("should accrue some rewards after some time", async function () {
-        const { vault, strategy, whale, deployer, want } = await loadFixture(
+    it("should change reward token", async function () {
+        const { strategy, deployer } = await loadFixture(
             deployContractAndSetVariables
         );
 
-        const balanceBefore = await want.balanceOf(whale.address);
-        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
-        expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
+        await expect(strategy.setRewardToken(TOKENS.DAI.address)).to.be
+            .reverted;
+
+        // We are setting reward token to JOE which is not yet supported by the vesting contract.
+        // This is unlikely to happen but we need to test it.
+        await strategy.setRewardToken(TOKENS.JOE.address);
+        expect(await strategy.JOE_REWARD_TOKEN()).to.equal(TOKENS.JOE.address);
+
+        const oneJoePrice = await strategy.joeToWant(utils.parseEther("1"));
+        expect(await strategy.rewardsToWant(utils.parseEther("1"))).to.equal(
+            oneJoePrice
+        );
+
+        await dealTokensToAddress(strategy.address, TOKENS.JOE, "1000");
+        await strategy.overrideBalanceOfRewards(utils.parseEther("1000"));
 
         await strategy.connect(deployer).harvest();
+        await strategy.overrideBalanceOfRewards(utils.parseEther("0"));
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
-            balanceBefore,
-            ethers.utils.parseUnits("100", 6)
-        );
-
-        await mine(300, { interval: 20 });
-
-        expect(Number(await strategy.balanceOfWethRewards())).to.be.greaterThan(
-            0
-        );
-    });
-
-    it("should stake esGMX", async function () {
-        const { vault, strategy, whale, deployer, want } = await loadFixture(
-            deployContractAndSetVariables
-        );
-
-        const balanceBefore = await want.balanceOf(whale.address);
-        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
-        expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
-
-        const index = ethers.utils.solidityKeccak256(
-            ["uint256", "uint256"],
-            [strategy.address, 5]
-        );
-
-        // Token esGMX is non-transferrable token, so we need to override storage to simulate existing balance.
-        await setStorageAt(
-            TOKENS.ES_GMX.address,
-            index,
-            toBytes32(ethers.utils.parseEther("1000")).toString()
-        );
-
-        const esGmxToken = await hre.ethers.getContractAt(
-            IERC20_SOURCE,
-            TOKENS.ES_GMX.address
-        );
-        expect(
-            Number(await esGmxToken.balanceOf(strategy.address))
-        ).to.be.equal(Number(ethers.utils.parseEther("1000")));
-
-        expect(await strategy.balanceOfUnstakedEsGmx()).to.be.equal(
-            ethers.utils.parseEther("1000")
-        );
-        await strategy.connect(deployer).harvest();
-        expect(await strategy.balanceOfStakedEsGmx()).to.be.equal(
-            ethers.utils.parseEther("1000")
+            await strategy.joeToWant(utils.parseEther("1000")),
+            ethers.utils.parseUnits("50", 6)
         );
     });
 });
