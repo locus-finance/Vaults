@@ -27,11 +27,11 @@ contract GMDStrategy is BaseStrategy {
 
     address internal constant ETH_USDC_UNI_V3_POOL =
         0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443;
-    address internal constant GMD_USDC_UNI_V3_POOL =
-        0x7f9a20548d9482041dC33435A7Fb25Be7c4b98B9;
+    address internal constant GMD_ETH_UNI_V3_POOL =
+        0x0632742C132413Cd47438691D8064Ff9214aC216;
 
     uint24 internal constant ETH_USDC_UNI_FEE = 500;
-    uint24 internal constant GMD_USDC_UNI_FEE = 10000;
+    uint24 internal constant GMD_ETH_UNI_FEE = 3000;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
 
@@ -40,6 +40,7 @@ contract GMDStrategy is BaseStrategy {
     constructor(address _vault) BaseStrategy(_vault) {
         want.approve(UNISWAP_V3_ROUTER, type(uint256).max);
         ERC20(WETH).approve(UNISWAP_V3_ROUTER, type(uint256).max);
+        ERC20(GMD).approve(UNISWAP_V3_ROUTER, type(uint256).max);
         ERC20(GMD).approve(GMD_POOL, type(uint256).max);
     }
 
@@ -88,6 +89,10 @@ contract GMDStrategy is BaseStrategy {
         if (gmdToUnstake > 0) {
             _exitPosition(gmdToUnstake);
         }
+
+        if(balanceOfWant() < _amountNeeded) {
+            _sellRewards();
+        }
     }
 
     function _sellRewards() internal {
@@ -115,17 +120,20 @@ contract GMDStrategy is BaseStrategy {
         IGMDStaking(GMD_POOL).withdraw(GMD_PID, gmdAmount);
 
         uint256 minAmountOut = (gmdToWant(gmdAmount) * slippage) / 10000;
-        IV3SwapRouter.ExactInputSingleParams memory params = IV3SwapRouter
-            .ExactInputSingleParams({
-                tokenIn: GMD,
-                tokenOut: address(want),
-                fee: GMD_USDC_UNI_FEE,
+        IV3SwapRouter.ExactInputParams memory params = IV3SwapRouter
+            .ExactInputParams({
+                path: abi.encodePacked(
+                    GMD,
+                    GMD_ETH_UNI_FEE,
+                    WETH,
+                    ETH_USDC_UNI_FEE,
+                    address(want)
+                ),
                 recipient: address(this),
                 amountIn: gmdAmount,
-                amountOutMinimum: minAmountOut,
-                sqrtPriceLimitX96: 0
+                amountOutMinimum: minAmountOut
             });
-        IV3SwapRouter(UNISWAP_V3_ROUTER).exactInputSingle(params);
+        IV3SwapRouter(UNISWAP_V3_ROUTER).exactInput(params);
     }
 
     function ethToWant(
@@ -160,21 +168,23 @@ contract GMDStrategy is BaseStrategy {
 
     function gmdToWant(uint256 gmdAmount) public view returns (uint256) {
         (int24 meanTick, ) = OracleLibrary.consult(
-            GMD_USDC_UNI_V3_POOL,
+            GMD_ETH_UNI_V3_POOL,
             TWAP_RANGE_SECS
         );
         return
-            OracleLibrary.getQuoteAtTick(
-                meanTick,
-                uint128(gmdAmount),
-                GMD,
-                address(want)
+            ethToWant(
+                OracleLibrary.getQuoteAtTick(
+                    meanTick,
+                    uint128(gmdAmount),
+                    GMD,
+                    address(want)
+                )
             );
     }
 
     function wantToGmd(uint256 wantAmount) public view returns (uint256) {
         (int24 meanTick, ) = OracleLibrary.consult(
-            GMD_USDC_UNI_V3_POOL,
+            GMD_ETH_UNI_V3_POOL,
             TWAP_RANGE_SECS
         );
         return
@@ -193,6 +203,7 @@ contract GMDStrategy is BaseStrategy {
         override
         returns (uint256 _wants)
     {
+
         _wants = balanceOfWant();
         _wants += gmdToWant(balanceOfGmd());
         _wants += gmdToWant(balanceOfStakedGmd());
@@ -238,17 +249,20 @@ contract GMDStrategy is BaseStrategy {
         if (_wantBal > _debtOutstanding) {
             uint256 _excessWant = _wantBal - _debtOutstanding;
             uint256 minAmountOut = (wantToGmd(_excessWant) * slippage) / 10000;
-            IV3SwapRouter.ExactInputSingleParams memory params = IV3SwapRouter
-                .ExactInputSingleParams({
-                    tokenIn: address(want),
-                    tokenOut: GMD,
-                    fee: GMD_USDC_UNI_FEE,
+            IV3SwapRouter.ExactInputParams memory params = IV3SwapRouter
+                .ExactInputParams({
+                    path: abi.encodePacked(
+                        address(want),
+                        ETH_USDC_UNI_FEE,
+                        WETH,
+                        GMD_ETH_UNI_FEE,
+                        GMD
+                    ),
                     recipient: address(this),
                     amountIn: _excessWant,
-                    amountOutMinimum: minAmountOut,
-                    sqrtPriceLimitX96: 0
+                    amountOutMinimum: minAmountOut
                 });
-            IV3SwapRouter(UNISWAP_V3_ROUTER).exactInputSingle(params);
+            IV3SwapRouter(UNISWAP_V3_ROUTER).exactInput(params);
         }
 
         uint256 gmdBal = balanceOfGmd();
