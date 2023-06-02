@@ -399,7 +399,7 @@
                     "chainId": "42161",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "USDC",
-                    "wantTokenAddress": "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
                     "protocols": [
                         {
                             "name": "GMX",
@@ -424,7 +424,7 @@
                     "chainId": "42161",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "USDC",
-                    "wantTokenAddress": "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
                     "protocols": [
                         {
                             "name": "GNS",
@@ -454,7 +454,7 @@
                     "chainId": "42161",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "USDC",
-                    "wantTokenAddress": "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
                     "protocols": [
                         {
                             "name": "JOE",
@@ -467,7 +467,7 @@
                                 {
                                     "name": "USDC",
                                     "type": "Reward Token",
-                                    "address": "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8"
+                                    "address": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8"
                                 }
                             ]
                         }
