@@ -448,6 +448,36 @@
                         }
                     ]
                 },
+                "GMDStrategy": {
+                    "address": "",
+                    "network": "Arbitrum One",
+                    "chainId": "42161",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+                    "protocols": [
+                        {
+                            "name": "GMD",
+                            "addresses": [
+                                {
+                                    "name": "GMD",
+                                    "type": "Token",
+                                    "address": "0x4945970EfeEc98D393b4b979b9bE265A3aE28A8B"
+                                },
+                                {
+                                    "name": "WETH",
+                                    "type": "Reward Token",
+                                    "address": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1"
+                                },
+                                {
+                                    "name": "GMD Staking",
+                                    "type": "Staking pool",
+                                    "address": "0x48C81451D1FDdecA84b47ff86F91708fa5c32e93"
+                                }
+                            ]
+                        }
+                    ]
+                },
                 "JOEStrategy": {
                     "address": "",
                     "network": "Arbitrum One",
