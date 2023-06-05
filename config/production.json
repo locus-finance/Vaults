@@ -388,7 +388,7 @@
             },
             "wantTokenTicker": "USDC",
             "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
-            "address": " ",
+            "address": "0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B",
             "decimals": "6",
             "managementFee": "2",
             "performanceFee": "15",
