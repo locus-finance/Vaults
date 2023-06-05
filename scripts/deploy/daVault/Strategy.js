@@ -8,25 +8,25 @@ const TARGET_STRATEGY = getEnv("TARGET_STRATEGY");
 const DEPLOY_SETTINGS = {
     vaultAddress: getEnv("DAVAULT_ADDRESS"),
     GMXStrategy: {
-        ratio: "2500",
+        ratio: "3300",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000",
     },
     GNSStrategy: {
-        ratio: "2500",
+        ratio: "2200",
         minDebtHarvestUsdc: "0",
-        maxDebtHarvestUsdc: "10000000",
+        maxDebtHarvestUsdc: "1000000",
     },
     JOEStrategy: {
-        ratio: "2500",
+        ratio: "2600",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000",
     },
     GMDStrategy: {
-        ratio: "2500",
+        ratio: "1400",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000",
-    },
+    }
 };
 
 async function main() {
