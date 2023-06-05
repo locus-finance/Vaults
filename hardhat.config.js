@@ -107,7 +107,7 @@ module.exports = {
             chainId: 137,
             accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`]
         },
-        arbitrum: {
+        arbitrumOne: {
             url: `https://arb1.arbitrum.io/rpc`,
             chainId: 42161,
             accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY   }`]
@@ -117,6 +117,7 @@ module.exports = {
         apiKey: {
             mainnet: process.env.ETHERSCAN_API_KEY,
             sepolia: process.env.ETHERSCAN_API_KEY,
+            arbitrumOne: process.env.ARBISCAN_API_KEY,
         }
     },
     gasReporter: {
