@@ -38,8 +38,6 @@ contract AuraWETHStrategy is BaseStrategy {
     address internal constant BAL = 0xba100000625a3754423978a60c9317c58a424e3D;
     address internal constant AURA_BOOSTER =
         0xA57b8d98dAE62B26Ec3bcC4a365338157060B234;
-    address internal constant AURA_WETH_REWARDS =
-        0x712CC5BeD99aA06fC4D5FB50Aea3750fA5161D0f;
     address internal constant WETH_BAL_BALANCER_POOL =
         0x5c6Ee304399DBdB9C8Ef030aB642B10820DB8F56;
 
@@ -54,6 +52,10 @@ contract AuraWETHStrategy is BaseStrategy {
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
     uint256 public slippage = 9700; // 3%
+
+    uint256 public AURA_PID = 100;
+    address public AURA_WETH_REWARDS =
+        0x1204f5060bE8b716F5A62b4Df4cE32acD01a69f5;
 
     constructor(address _vault) BaseStrategy(_vault) {
         want.approve(address(balancerVault), type(uint256).max);
@@ -74,6 +76,16 @@ contract AuraWETHStrategy is BaseStrategy {
     function setSlippage(uint256 _slippage) external onlyStrategist {
         require(_slippage < 10_000, "!_slippage");
         slippage = _slippage;
+    }
+
+    function setAuraPid(uint256 _pid) external onlyStrategist {
+        AURA_PID = _pid;
+    }
+
+    function setAuraWethRewards(
+        address _auraWethRewards
+    ) external onlyStrategist {
+        AURA_WETH_REWARDS = _auraWethRewards;
     }
 
     function balanceOfWant() public view returns (uint256) {
@@ -356,7 +368,7 @@ contract AuraWETHStrategy is BaseStrategy {
 
         if (balanceOfUnstakedBpt() > 0) {
             bool auraSuccess = IConvexDeposit(AURA_BOOSTER).depositAll(
-                0, // PID
+                AURA_PID, // PID
                 true // stake
             );
             require(auraSuccess, "Aura deposit failed");
