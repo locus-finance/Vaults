@@ -33,8 +33,6 @@ contract LidoAuraStrategy is BaseStrategy {
 
     address internal constant bStethStable =
         0x32296969Ef14EB0c6d29669C550D4a0449130230;
-    address internal constant auraBStethStable =
-        0xe4683Fe8F53da14cA5DAc4251EaDFb3aa614d528;
     address internal constant auraToken =
         0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF;
     address internal constant balToken =
@@ -58,7 +56,11 @@ contract LidoAuraStrategy is BaseStrategy {
         );
 
     uint256 public bptSlippage = 9900; // 1%
-    uint256 public rewardsSlippage = 9000; // 10%
+    uint256 public rewardsSlippage = 8000; // 20%
+
+    uint256 public AURA_PID = 115;
+    address public auraBStethStable =
+        0x59D66C58E83A26d6a0E35114323f65c3945c89c1;
 
     constructor(address _vault) BaseStrategy(_vault) {
         want.approve(address(balancerVault), type(uint256).max);
@@ -69,6 +71,16 @@ contract LidoAuraStrategy is BaseStrategy {
 
     function name() external view override returns (string memory) {
         return "StrategyLidoAura";
+    }
+
+    function setAuraPid(uint256 _pid) external onlyStrategist {
+        AURA_PID = _pid;
+    }
+
+    function setAuraBStethStable(
+        address _auraBStethStable
+    ) external onlyStrategist {
+        auraBStethStable = _auraBStethStable;
     }
 
     /// @notice Balance of want sitting in our strategy.
@@ -300,7 +312,7 @@ contract LidoAuraStrategy is BaseStrategy {
         }
         if (_wethBal > _debtOutstanding || balanceOfUnstakedBpt() > 0) {
             bool auraSuccess = IConvexDeposit(auraBooster).deposit(
-                29, // PID
+                AURA_PID, // PID
                 IBalancerPool(bStethStable).balanceOf(address(this)),
                 true // stake
             );

@@ -1,7 +1,7 @@
 const { loadFixture, mine, time } = require("@nomicfoundation/hardhat-network-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
-const { BigNumber } = require("ethers");
+const { constants } = require("ethers");
 const { ethers } = require("hardhat");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
@@ -11,7 +11,7 @@ const dai = "0x6b175474e89094c44da98b954eedeac495271d0f";
 const bal = "0xba100000625a3754423978a60c9317c58a424e3D";
 const aura = "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF";
 const bStethStable = "0x32296969Ef14EB0c6d29669C550D4a0449130230";
-const auraBStethStable = "0xe4683Fe8F53da14cA5DAc4251EaDFb3aa614d528";
+const auraBStethStable = "0x59d66c58e83a26d6a0e35114323f65c3945c89c1";
 
 describe("LidoAuraStrategy", function () {
     async function deployContractAndSetVariables() {
@@ -428,6 +428,31 @@ describe("LidoAuraStrategy", function () {
 
         await expect(vault.connect(whale)['withdraw()']()).not.to.be.reverted;
     });
+
+    it("should change AURA PID and AURA rewards", async function () {
+        const { strategy, whale, deployer } = await loadFixture(
+            deployContractAndSetVariables
+        );
+
+        expect(await strategy.AURA_PID()).to.be.equal(115);
+        await expect(strategy.connect(whale)["setAuraPid(uint256)"](200)).to.be
+            .reverted;
+        await strategy.connect(deployer)["setAuraPid(uint256)"](200);
+        expect(await strategy.AURA_PID()).to.be.equal(200);
+
+        expect(
+            (await strategy.auraBStethStable()).toLocaleLowerCase()
+        ).to.be.equal(auraBStethStable.toLocaleLowerCase());
+        await expect(
+            strategy
+                .connect(whale)
+                ["setAuraBStethStable(address)"](constants.AddressZero)
+        ).to.be.reverted;
+        await strategy
+            .connect(deployer)
+            ["setAuraBStethStable(address)"](constants.AddressZero);
+        expect(await strategy.auraBStethStable()).to.be.equal(
+            constants.AddressZero
+        );
+    });
 });
-
-
