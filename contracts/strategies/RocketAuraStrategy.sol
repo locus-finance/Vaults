@@ -33,8 +33,6 @@ contract RocketAuraStrategy is BaseStrategy {
 
     address internal constant bRethStable =
         0x1E19CF2D73a72Ef1332C882F20534B6519Be0276;
-    address internal constant auraBRethStable =
-        0x001B78CEC62DcFdc660E06A91Eb1bC966541d758;
     address internal constant auraToken =
         0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF;
     address internal constant balToken =
@@ -59,6 +57,9 @@ contract RocketAuraStrategy is BaseStrategy {
     uint256 public bptSlippage = 9900; // 1%
     uint256 public rewardsSlippage = 9700; // 3%
 
+    uint256 public AURA_PID = 109;
+    address public auraBRethStable = 0xDd1fE5AD401D4777cE89959b7fa587e569Bf125D;
+
     constructor(address _vault) BaseStrategy(_vault) {
         want.approve(address(balancerVault), type(uint256).max);
         IERC20(bRethStable).approve(auraBooster, type(uint256).max);
@@ -68,6 +69,16 @@ contract RocketAuraStrategy is BaseStrategy {
 
     function name() external view override returns (string memory) {
         return "StrategyRocketAura";
+    }
+
+    function setAuraPid(uint256 _pid) external onlyStrategist {
+        AURA_PID = _pid;
+    }
+
+    function setAuraBRethStable(
+        address _auraBRethStable
+    ) external onlyStrategist {
+        auraBRethStable = _auraBRethStable;
     }
 
     /// @notice Balance of want sitting in our strategy.
@@ -298,7 +309,7 @@ contract RocketAuraStrategy is BaseStrategy {
         }
         if (_wethBal > _debtOutstanding || balanceOfUnstakedBpt() > 0) {
             bool auraSuccess = IConvexDeposit(auraBooster).deposit(
-                15, // PID
+                AURA_PID, // PID
                 IBalancerPool(bRethStable).balanceOf(address(this)),
                 true // stake
             );

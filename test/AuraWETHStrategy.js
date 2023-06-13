@@ -5,10 +5,12 @@ const {
 } = require("@nomicfoundation/hardhat-network-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
-const { utils } = require("ethers");
+const { utils, constants } = require("ethers");
 const { ethers } = require("hardhat");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
+
+const AURA_WETH_REWARDS = "0x1204f5060be8b716f5a62b4df4ce32acd01a69f5";
 
 describe("AuraWETHStrategy", function () {
     const TOKENS = {
@@ -662,5 +664,32 @@ describe("AuraWETHStrategy", function () {
 
         expect(Number(await strategy.balRewards())).to.be.greaterThan(0);
         expect(Number(await strategy.auraRewards())).to.be.greaterThan(0);
+    });
+
+    it("should change AURA PID and AURA rewards", async function () {
+        const { strategy, whale, deployer } = await loadFixture(
+            deployContractAndSetVariables
+        );
+
+        expect(await strategy.AURA_PID()).to.be.equal(100);
+        await expect(strategy.connect(whale)["setAuraPid(uint256)"](200)).to.be
+            .reverted;
+        await strategy.connect(deployer)["setAuraPid(uint256)"](200);
+        expect(await strategy.AURA_PID()).to.be.equal(200);
+
+        expect(
+            (await strategy.AURA_WETH_REWARDS()).toLocaleLowerCase()
+        ).to.be.equal(AURA_WETH_REWARDS.toLocaleLowerCase());
+        await expect(
+            strategy
+                .connect(whale)
+                ["setAuraWethRewards(address)"](constants.AddressZero)
+        ).to.be.reverted;
+        await strategy
+            .connect(deployer)
+            ["setAuraWethRewards(address)"](constants.AddressZero);
+        expect(await strategy.AURA_WETH_REWARDS()).to.be.equal(
+            constants.AddressZero
+        );
     });
 });
