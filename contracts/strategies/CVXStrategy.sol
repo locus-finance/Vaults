@@ -43,7 +43,7 @@ contract CVXStrategy is BaseStrategy {
         0x834B9147Fd23bF131644aBC6e557Daf99C5cDa15;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
-    uint256 public slippage = 9500; // 5%
+    uint256 public slippage = 9300; // 7%
 
     constructor(address _vault) BaseStrategy(_vault) {
         want.approve(CURVE_SWAP_ROUTER, type(uint256).max);

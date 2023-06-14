@@ -1,12 +1,15 @@
 const {
     loadFixture,
     mine,
+    reset,
     time,
 } = require("@nomicfoundation/hardhat-network-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
 const { BigNumber, constants } = require("ethers");
 const { ethers } = require("hardhat");
+
+const { getEnv } = require("../scripts/utils");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 
@@ -16,6 +19,9 @@ const bal = "0xba100000625a3754423978a60c9317c58a424e3D";
 const aura = "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF";
 const bRethStable = "0x1E19CF2D73a72Ef1332C882F20534B6519Be0276";
 const auraBRethStable = "0xDd1fE5AD401D4777cE89959b7fa587e569Bf125D";
+
+const ETH_NODE_URL = getEnv("ETH_NODE");
+const ETH_FORK_BLOCK = getEnv("ETH_FORK_BLOCK");
 
 describe("RocketAuraStrategy", function () {
     const TOKENS = {
@@ -52,6 +58,8 @@ describe("RocketAuraStrategy", function () {
     };
 
     async function deployContractAndSetVariables() {
+        await reset(ETH_NODE_URL, Number(ETH_FORK_BLOCK));
+
         const [deployer, governance, treasury, whale] =
             await ethers.getSigners();
         const WETH_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";

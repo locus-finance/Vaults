@@ -15,7 +15,7 @@ require('solidity-coverage');
 const fs = require("fs");
 
 
-const {   DEPLOYER_PRIVATE_KEY, PROD_DEPLOYER_PRIVATE_KEY, ETH_NODE, ARBITRUM_NODE, IS_ARB
+const {   DEPLOYER_PRIVATE_KEY, PROD_DEPLOYER_PRIVATE_KEY, ETH_NODE, ETH_FORK_BLOCK
     } = process.env;
 
 task("fork_reset", "Reset to local fork", async (taskArgs) => {
@@ -57,7 +57,7 @@ module.exports = {
             chainId: 43114,
             forking: {
                 url: ETH_NODE,
-                blockNumber: 17471109,
+                blockNumber: Number(ETH_FORK_BLOCK),
             },
             allowUnlimitedContractSize: true,
         },

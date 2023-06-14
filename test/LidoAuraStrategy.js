@@ -1,8 +1,10 @@
-const { loadFixture, mine, time } = require("@nomicfoundation/hardhat-network-helpers");
+const { loadFixture, mine, reset } = require("@nomicfoundation/hardhat-network-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
 const { constants } = require("ethers");
 const { ethers } = require("hardhat");
+
+const { getEnv } = require("../scripts/utils");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 
@@ -13,8 +15,13 @@ const aura = "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF";
 const bStethStable = "0x32296969Ef14EB0c6d29669C550D4a0449130230";
 const auraBStethStable = "0x59d66c58e83a26d6a0e35114323f65c3945c89c1";
 
+const ETH_NODE_URL = getEnv("ETH_NODE");
+const ETH_FORK_BLOCK = getEnv("ETH_FORK_BLOCK");
+
 describe("LidoAuraStrategy", function () {
     async function deployContractAndSetVariables() {
+        await reset(ETH_NODE_URL, Number(ETH_FORK_BLOCK));
+
         const [deployer, governance, treasury, whale] = await ethers.getSigners();
         const WETH_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
         const want = await ethers.getContractAt("IWETH", WETH_ADDRESS);

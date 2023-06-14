@@ -61,7 +61,7 @@ contract FXSStrategy is BaseStrategy {
         0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
-    uint256 public slippage = 9500; // 5%
+    uint256 public slippage = 9300; // 7%
 
     constructor(address _vault) BaseStrategy(_vault) {
         ERC20(CRV).approve(CURVE_SWAP_ROUTER, type(uint256).max);

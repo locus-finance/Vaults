@@ -30,7 +30,7 @@ contract FraxStrategy is BaseStrategy {
     address internal constant curveSwapRouter =
         0x99a58482BD75cbab83b27EC03CA68fF489b5788f;
 
-    uint256 public slippage = 9990; // 0.1%
+    uint256 public slippage = 9900; // 1%
 
     constructor(address _vault) BaseStrategy(_vault) {
         IERC20(frxEth).approve(curveSwapRouter, type(uint256).max);

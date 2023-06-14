@@ -1,6 +1,7 @@
 const {
     loadFixture,
     mine,
+    reset,
     time,
 } = require("@nomicfoundation/hardhat-network-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
@@ -8,7 +9,12 @@ const { expect } = require("chai");
 const { utils } = require("ethers");
 const { ethers } = require("hardhat");
 
+const { getEnv } = require("../scripts/utils");
+
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
+
+const ETH_NODE_URL = getEnv("ETH_NODE");
+const ETH_FORK_BLOCK = getEnv("ETH_FORK_BLOCK");
 
 describe("FXSStrategy", function () {
     const TOKENS = {
@@ -50,6 +56,8 @@ describe("FXSStrategy", function () {
     };
 
     async function deployContractAndSetVariables() {
+        await reset(ETH_NODE_URL, Number(ETH_FORK_BLOCK));
+
         const [deployer, governance, treasury, whale] =
             await ethers.getSigners();
         const USDC_ADDRESS = TOKENS.USDC.address;
@@ -272,8 +280,6 @@ describe("FXSStrategy", function () {
             ethers.utils.parseUnits("100", 6)
         );
 
-        await strategy.connect(deployer).tend();
-
         await vault
             .connect(whale)
             ["withdraw(uint256,address,uint256)"](
@@ -304,8 +310,6 @@ describe("FXSStrategy", function () {
             balanceBefore,
             ethers.utils.parseUnits("100", 6)
         );
-
-        await strategy.connect(deployer).tend();
 
         await expect(
             vault

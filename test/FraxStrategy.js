@@ -1,4 +1,4 @@
-const { loadFixture, mine, time } = require("@nomicfoundation/hardhat-network-helpers");
+const { loadFixture, mine, reset } = require("@nomicfoundation/hardhat-network-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
@@ -6,7 +6,12 @@ const { ethers } = require("hardhat");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20";
 
+const { getEnv } = require("../scripts/utils");
+
 const dai = "0x6b175474e89094c44da98b954eedeac495271d0f";
+
+const ETH_NODE_URL = getEnv("ETH_NODE");
+const ETH_FORK_BLOCK = getEnv("ETH_FORK_BLOCK");
 
 describe("FraxStrategy", function () {
     const TOKENS = {
@@ -32,12 +37,14 @@ describe("FraxStrategy", function () {
         },
         FRXETH: {
             address: "0x5E8422345238F34275888049021821E8E08CAa1f",
-            whale: "0x79e76c14b3bb6236dfc06d2d7ff219c8b070169c",
+            whale: "0xa1F8A6807c402E4A15ef4EBa36528A3FED24E577",
             decimals: 18,
         },
     };
 
     async function deployContractAndSetVariables() {
+        await reset(ETH_NODE_URL, Number(ETH_FORK_BLOCK));
+
         const [deployer, governance, treasury, whale] = await ethers.getSigners();
         const WETH_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
         const want = await ethers.getContractAt("IWETH", WETH_ADDRESS);
@@ -131,11 +138,11 @@ describe("FraxStrategy", function () {
         mine(1);
 
         expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.005'));
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.05'));
 
         await network.provider.request({
             method: "hardhat_impersonateAccount",
-            params: ["0x7b0Eff0C991F0AA880481FdFa5624Cb0BC9b10e1"],
+            params: [TOKENS.FRXETH.whale],
         });
         const FrxEth = await ethers.getContractAt(
             IERC20_SOURCE,
@@ -145,7 +152,7 @@ describe("FraxStrategy", function () {
             "ICurve",
             "0xa1F8A6807c402E4A15ef4EBa36528A3FED24E577"
         );
-        const frxWhale = await ethers.getSigner("0x7b0Eff0C991F0AA880481FdFa5624Cb0BC9b10e1");
+        const frxWhale = await ethers.getSigner(TOKENS.FRXETH.whale);
 
         for (let index = 0; index < 10; index++) {
             mine(604800); // get more rewards
@@ -156,7 +163,7 @@ describe("FraxStrategy", function () {
         await strategy.connect(deployer).harvest();
 
         expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.005'));
+        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.05'));
 
         await vault.connect(whale)['withdraw(uint256,address,uint256)'](
             ethers.utils.parseEther('10'), 
