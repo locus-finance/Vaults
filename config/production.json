@@ -14,7 +14,7 @@
             "performanceFee": "5",
             "strategies": {
                 "RocketAuraStrategy": {
-                    "address": "0xF31080aF7871567bce197793439d28eb99DFae27",
+                    "address": "0x7e0567FEA3c539DE2cEe8842Bbe2Ec636C1C33B5",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -69,7 +69,7 @@
                     ]
                 },
                 "LidoAuraStrategy": {
-                    "address": "0xf0bFd2a1d8a4105c84a855Dbc24f852a55EAAda3",
+                    "address": "0x8ebd7860B0a48A4301F1Eaa723C18a417D9212f5",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -219,7 +219,7 @@
                     ]
                 },
                 "AuraWETHStrategy": {
-                    "address": "0x99A4810E9c0DBD489EDABD009530bf5695731b23",
+                    "address": "0x8E46aa20Fd8Fdf48a77Cf7cDeff2761af03C195C",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
