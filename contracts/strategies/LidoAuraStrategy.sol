@@ -56,7 +56,7 @@ contract LidoAuraStrategy is BaseStrategy {
         );
 
     uint256 public bptSlippage = 9900; // 1%
-    uint256 public rewardsSlippage = 8000; // 20%
+    uint256 public rewardsSlippage = 7000; // 30%
 
     uint256 public AURA_PID = 115;
     address public auraBStethStable =
@@ -377,7 +377,7 @@ contract LidoAuraStrategy is BaseStrategy {
             _sellBalAndAura(balanceOfBal(), balanceOfAura());
         } else {
             uint256 bptToUnstake = Math.min(
-                wantToBpt(_amountNeeded),
+                wantToBpt(_amountNeeded - rewardsTotal),
                 IERC20(auraBStethStable).balanceOf(address(this))
             );
 
@@ -407,17 +407,16 @@ contract LidoAuraStrategy is BaseStrategy {
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        IConvexRewards(auraBStethStable).getReward(address(this), true);
-        _sellBalAndAura(
-            IERC20(balToken).balanceOf(address(this)),
-            IERC20(auraToken).balanceOf(address(this))
-        );
         _exitPosition(IERC20(auraBStethStable).balanceOf(address(this)));
         return want.balanceOf(address(this));
     }
 
     function _exitPosition(uint256 bptAmount) internal {
-        IConvexRewards(auraBStethStable).withdrawAndUnwrap(bptAmount, false);
+        IConvexRewards(auraBStethStable).withdrawAndUnwrap(bptAmount, true);
+        _sellBalAndAura(
+            IERC20(balToken).balanceOf(address(this)),
+            IERC20(auraToken).balanceOf(address(this))
+        );
 
         address[] memory _assets = new address[](2);
         _assets[0] = wstETH;
