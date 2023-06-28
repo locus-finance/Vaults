@@ -25,6 +25,8 @@ contract CVXStrategy is BaseStrategy {
         0x9445bd19767F73DCaE6f2De90e6cd31192F62589;
     address internal constant CVX_USDC_UNI_V3_POOL =
         0x575e96f61656b275CA1e0a67d9B68387ABC1d09C;
+    address internal constant CVX_CRV_UNI_V3_POOL =
+        0x645c3A387b8633dF1D4D71CA4b50D27233Bcb887;
     address internal constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address internal constant CRV = 0xD533a949740bb3306d119CC777fa900bA034cd52;
     address internal constant CVX = 0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B;
@@ -181,6 +183,20 @@ contract CVXStrategy is BaseStrategy {
             );
     }
 
+    function cvxToCrv(uint256 cvxTokens) public view returns (uint256) {
+        (int24 meanTick, ) = OracleLibrary.consult(
+            CVX_CRV_UNI_V3_POOL,
+            TWAP_RANGE_SECS
+        );
+        return
+            OracleLibrary.getQuoteAtTick(
+                meanTick,
+                uint128(cvxTokens),
+                CVX,
+                CRV
+            );
+    }
+
     function estimatedTotalAssets()
         public
         view
@@ -329,7 +345,7 @@ contract CVXStrategy is BaseStrategy {
                 [uint256(0), uint256(0), uint256(0)],
                 [uint256(0), uint256(0), uint256(0)]
             ];
-            uint256 _expected = (cvxToWant(_cvxAmount) * slippage) / 10000;
+            uint256 _expected = (cvxToCrv(_cvxAmount) * slippage) / 10000;
             address[4] memory _pools = [
                 address(0),
                 address(0),
