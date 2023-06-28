@@ -25,6 +25,7 @@
   "function creditThreshold() view returns (uint256)",
   "function crvToWant(uint256) view returns (uint256)",
   "function curveLPToWant(uint256) view returns (uint256)",
+  "function cvxToCrv(uint256) view returns (uint256)",
   "function cvxToWant(uint256) view returns (uint256)",
   "function delegatedAssets() view returns (uint256)",
   "function doHealthCheck() view returns (bool)",
