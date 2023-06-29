@@ -264,7 +264,7 @@ contract FXSStrategy is BaseStrategy {
             _loss = _totalDebt - _totalAssets;
         }
 
-        _withdrawSome(_debtOutstanding + _profit);
+        _withdrawSome(_debtOutstanding + _profit - balanceOfWant());
 
         uint256 _liquidWant = want.balanceOf(address(this));
 

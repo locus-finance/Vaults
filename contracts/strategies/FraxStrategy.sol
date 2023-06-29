@@ -92,7 +92,7 @@ contract FraxStrategy is BaseStrategy {
             _loss = _totalDebt - _totalAssets;
         }
 
-        withdrawSome(_debtOutstanding + _profit);
+        withdrawSome(_debtOutstanding + _profit - balanceOfWant());
 
         uint256 _liquidWant = want.balanceOf(address(this));
 
