@@ -229,6 +229,10 @@ contract CVXStrategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
+        if (emergencyExit) {
+            return;
+        }
+
         IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).getReward(
             address(this),
             true

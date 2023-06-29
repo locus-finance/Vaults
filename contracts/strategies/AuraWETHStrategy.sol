@@ -272,6 +272,10 @@ contract AuraWETHStrategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
+        if (emergencyExit) {
+            return;
+        }
+
         if (balRewards() > 0) {
             IConvexRewards(AURA_WETH_REWARDS).getReward(address(this), true);
         }

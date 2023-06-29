@@ -279,6 +279,10 @@ contract FXSStrategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
+        if (emergencyExit) {
+            return;
+        }
+
         IConvexRewards(FXS_CONVEX_CRV_REWARDS).getReward(address(this), true);
         _sellCrvAndCvx(
             ERC20(CRV).balanceOf(address(this)),
