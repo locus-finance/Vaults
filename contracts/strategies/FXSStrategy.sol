@@ -138,11 +138,31 @@ contract FXSStrategy is BaseStrategy {
         if (_amountNeeded == 0) {
             return;
         }
-        uint256 lpTokensToWithdraw = Math.min(
-            wantToCurveLP(_amountNeeded),
-            balanceOfCurveLPStaked()
-        );
-        _exitPosition(lpTokensToWithdraw);
+
+        uint256 earnedCrv = balanceOfCrvRewards();
+        uint256 earnedCvx = balanceOfCvxRewards();
+        uint256 earnedFxs = balanceOfFxsRewards();
+        uint256 rewardsTotal = crvToWant(earnedCrv) +
+            cvxToWant(earnedCvx) +
+            fxsToWant(earnedFxs);
+
+        if (rewardsTotal >= _amountNeeded) {
+            IConvexRewards(FXS_CONVEX_CRV_REWARDS).getReward(
+                address(this),
+                true
+            );
+            _sellCrvAndCvx(
+                ERC20(CRV).balanceOf(address(this)),
+                ERC20(CVX).balanceOf(address(this))
+            );
+            _sellFxs(ERC20(FXS).balanceOf(address(this)));
+        } else {
+            uint256 lpTokensToWithdraw = Math.min(
+                wantToCurveLP(_amountNeeded - rewardsTotal),
+                balanceOfCurveLPStaked()
+            );
+            _exitPosition(lpTokensToWithdraw);
+        }
     }
 
     function ethToWant(
