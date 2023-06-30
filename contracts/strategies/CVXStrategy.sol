@@ -329,7 +329,8 @@ contract CVXStrategy is BaseStrategy {
                 [uint256(0), uint256(0), uint256(0)],
                 [uint256(0), uint256(0), uint256(0)]
             ];
-            uint256 _expected = (cvxToWant(_cvxAmount) * slippage) / 10000;
+            uint256 _expected = (CVXRewardsMath.cvxToCrv(_cvxAmount) *
+                slippage) / 10000;
             address[4] memory _pools = [
                 address(0),
                 address(0),
