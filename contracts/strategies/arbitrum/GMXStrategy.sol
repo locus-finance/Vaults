@@ -264,6 +264,10 @@ contract GMXStrategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
+        if (emergencyExit) {
+            return;
+        }
+
         IRewardRouterV2(GMX_REWARD_ROUTER).handleRewards(
             /* _shouldClaimGmx= */ false,
             /* _shouldStakeGmx= */ false,

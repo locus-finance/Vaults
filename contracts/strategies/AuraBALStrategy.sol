@@ -263,6 +263,10 @@ contract AuraBALStrategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
+        if (emergencyExit) {
+            return;
+        }
+
         if (balRewards() > 0) {
             IConvexRewards(AURA_BASE_REWARD).getReward(address(this), true);
         }

@@ -228,6 +228,10 @@ contract YCRVStrategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
+        if (emergencyExit) {
+            return;
+        }
+
         uint256 _wantBal = balanceOfWant();
 
         if (_wantBal > _debtOutstanding) {

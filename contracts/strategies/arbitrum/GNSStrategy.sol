@@ -258,6 +258,10 @@ contract GNSStrategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
+        if (emergencyExit) {
+            return;
+        }
+
         _sellRewards();
 
         uint256 _wantBal = balanceOfWant();

@@ -259,6 +259,10 @@ contract RocketAuraStrategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
+        if (emergencyExit) {
+            return;
+        }
+
         if (balRewards() > 0) {
             IConvexRewards(auraBRethStable).getReward(address(this), true);
         }
