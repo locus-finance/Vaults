@@ -114,9 +114,6 @@ contract FraxStrategy is BaseStrategy {
             return;
         }
 
-        if (IERC20(frxEth).balanceOf(address(this)) > 0) {
-            _sellAllFrx();
-        }
         uint256 _wethBal = want.balanceOf(address(this));
         if (_wethBal > _debtOutstanding) {
             uint256 _excessWeth = _wethBal - _debtOutstanding;
