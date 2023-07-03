@@ -328,10 +328,21 @@ contract LidoAuraStrategy is BaseStrategy {
     }
 
     function _sellBalAndAura(uint256 _balAmount, uint256 _auraAmount) internal {
-        if (_balAmount == 0 || _auraAmount == 0) return;
+        if (_balAmount == 0) return;
 
-        IBalancerV2Vault.BatchSwapStep[]
-            memory swaps = new IBalancerV2Vault.BatchSwapStep[](2);
+        IBalancerV2Vault.BatchSwapStep[] memory swaps;
+        if (_auraAmount == 0) {
+            swaps = new IBalancerV2Vault.BatchSwapStep[](1);
+        } else {
+            swaps = new IBalancerV2Vault.BatchSwapStep[](2);
+            swaps[1] = IBalancerV2Vault.BatchSwapStep({
+                poolId: auraEthPoolId,
+                assetInIndex: 1,
+                assetOutIndex: 2,
+                amount: _auraAmount,
+                userData: abi.encode(0)
+            });
+        }
 
         // bal to weth
         swaps[0] = IBalancerV2Vault.BatchSwapStep({
@@ -339,15 +350,6 @@ contract LidoAuraStrategy is BaseStrategy {
             assetInIndex: 0,
             assetOutIndex: 2,
             amount: _balAmount,
-            userData: abi.encode(0)
-        });
-
-        // aura to Weth
-        swaps[1] = IBalancerV2Vault.BatchSwapStep({
-            poolId: auraEthPoolId,
-            assetInIndex: 1,
-            assetOutIndex: 2,
-            amount: _auraAmount,
             userData: abi.encode(0)
         });
 
