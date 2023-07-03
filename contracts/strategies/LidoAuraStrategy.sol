@@ -55,7 +55,7 @@ contract LidoAuraStrategy is BaseStrategy {
             0xc29562b045d80fd77c69bec09541f5c16fe20d9d000200000000000000000251
         );
 
-    uint256 public bptSlippage = 9900; // 1%
+    uint256 public bptSlippage = 9850; // 1.5%
     uint256 public rewardsSlippage = 7000; // 30%
 
     uint256 public AURA_PID = 115;
@@ -143,9 +143,7 @@ contract LidoAuraStrategy is BaseStrategy {
     }
 
     function wantToBpt(uint _amountWant) public view returns (uint _amount) {
-        uint unscaled = _amountWant.mul(1e18).div(
-            IBalancerPool(bStethStable).getRate()
-        );
+        uint unscaled = _amountWant.mul(1e18).div(getBptPrice());
         return
             Utils.scaleDecimals(
                 unscaled,
