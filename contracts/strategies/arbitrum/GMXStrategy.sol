@@ -249,9 +249,12 @@ contract GMXStrategy is BaseStrategy {
             _loss = _totalDebt - _totalAssets;
         }
 
-        _withdrawSome(_debtOutstanding + _profit - balanceOfWant());
-
-        uint256 _liquidWant = want.balanceOf(address(this));
+        uint256 _liquidWant = balanceOfWant();
+        uint256 _amountNeeded = _debtOutstanding + _profit;
+        if(_liquidWant <= _amountNeeded){
+            _withdrawSome(_amountNeeded - _liquidWant);
+            _liquidWant = balanceOfWant();
+        }
 
         // enough to pay profit (partial or full) only
         if (_liquidWant <= _profit) {
