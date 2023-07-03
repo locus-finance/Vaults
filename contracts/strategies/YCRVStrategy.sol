@@ -32,9 +32,9 @@ contract YCRVStrategy is BaseStrategy {
     uint256 public slippage = 9500; // 5%
 
     constructor(address _vault) BaseStrategy(_vault) {
-        want.approve(CURVE_SWAP_ROUTER, type(uint256).max);
-        ERC20(yCRV).approve(CURVE_SWAP_ROUTER, type(uint256).max);
-        ERC20(yCRV).approve(yCRVVault, type(uint256).max);
+        want.safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
+        IERC20(yCRV).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
+        IERC20(yCRV).safeApprove(yCRVVault, type(uint256).max);
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {

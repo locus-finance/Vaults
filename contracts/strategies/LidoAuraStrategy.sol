@@ -63,10 +63,10 @@ contract LidoAuraStrategy is BaseStrategy {
         0x59D66C58E83A26d6a0E35114323f65c3945c89c1;
 
     constructor(address _vault) BaseStrategy(_vault) {
-        want.approve(address(balancerVault), type(uint256).max);
-        IERC20(bStethStable).approve(auraBooster, type(uint256).max);
-        IERC20(auraToken).approve(address(balancerVault), type(uint256).max);
-        IERC20(balToken).approve(address(balancerVault), type(uint256).max);
+        want.safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(bStethStable).safeApprove(auraBooster, type(uint256).max);
+        IERC20(auraToken).safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(balToken).safeApprove(address(balancerVault), type(uint256).max);
     }
 
     function name() external view override returns (string memory) {

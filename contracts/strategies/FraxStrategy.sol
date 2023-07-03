@@ -33,7 +33,7 @@ contract FraxStrategy is BaseStrategy {
     uint256 public slippage = 9900; // 1%
 
     constructor(address _vault) BaseStrategy(_vault) {
-        IERC20(frxEth).approve(curveSwapRouter, type(uint256).max);
+        IERC20(frxEth).safeApprove(curveSwapRouter, type(uint256).max);
     }
 
     function name() external view override returns (string memory) {

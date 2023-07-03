@@ -58,15 +58,15 @@ contract AuraWETHStrategy is BaseStrategy {
         0x1204f5060bE8b716F5A62b4Df4cE32acD01a69f5;
 
     constructor(address _vault) BaseStrategy(_vault) {
-        want.approve(address(balancerVault), type(uint256).max);
-        ERC20(BAL).approve(address(balancerVault), type(uint256).max);
-        ERC20(AURA).approve(address(balancerVault), type(uint256).max);
-        ERC20(WETH).approve(address(balancerVault), type(uint256).max);
-        ERC20(WETH_AURA_BALANCER_POOL).approve(
+        want.safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(BAL).safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(AURA).safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(WETH).safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(WETH_AURA_BALANCER_POOL).safeApprove(
             address(balancerVault),
             type(uint256).max
         );
-        ERC20(WETH_AURA_BALANCER_POOL).approve(AURA_BOOSTER, type(uint256).max);
+        IERC20(WETH_AURA_BALANCER_POOL).safeApprove(AURA_BOOSTER, type(uint256).max);
     }
 
     function name() external pure override returns (string memory) {
