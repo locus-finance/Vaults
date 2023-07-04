@@ -259,7 +259,7 @@ contract AuraWETHStrategy is BaseStrategy {
 
         uint256 _liquidWant = balanceOfWant();
         uint256 _amountNeeded = _debtOutstanding + _profit;
-        if(_liquidWant <= _amountNeeded){
+        if (_liquidWant <= _amountNeeded) {
             withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = balanceOfWant();
         }
@@ -282,10 +282,7 @@ contract AuraWETHStrategy is BaseStrategy {
         if (balRewards() > 0) {
             IConvexRewards(AURA_WETH_REWARDS).getReward(address(this), true);
         }
-        _sellBalAndAura(
-            IERC20(BAL).balanceOf(address(this)),
-            IERC20(AURA).balanceOf(address(this))
-        );
+        _sellBalAndAura(IERC20(BAL).balanceOf(address(this)), 0);
 
         uint256 _wantBal = want.balanceOf(address(this));
         if (_wantBal > _debtOutstanding) {
@@ -317,7 +314,7 @@ contract AuraWETHStrategy is BaseStrategy {
                 assets[2] = WETH;
 
                 uint256 wethExpected = (_excessWant *
-                    10 ** ERC20(address(want)).decimals()) / ethToWant(1 ether);
+                    10 ** ERC20(WETH).decimals()) / ethToWant(1 ether);
 
                 int[] memory limits = new int[](3);
                 limits[0] = int(_excessWant);
@@ -336,10 +333,11 @@ contract AuraWETHStrategy is BaseStrategy {
         }
 
         uint256 wethBalance = IERC20(WETH).balanceOf(address(this));
+        uint256 auraBalance = IERC20(AURA).balanceOf(address(this));
         if (wethBalance > 0) {
             uint256[] memory _amountsIn = new uint256[](2);
             _amountsIn[0] = wethBalance;
-            _amountsIn[1] = 0;
+            _amountsIn[1] = auraBalance;
 
             address[] memory _assets = new address[](2);
             _assets[0] = WETH;
@@ -347,10 +345,10 @@ contract AuraWETHStrategy is BaseStrategy {
 
             uint256[] memory _maxAmountsIn = new uint256[](2);
             _maxAmountsIn[0] = wethBalance;
-            _maxAmountsIn[1] = 0;
+            _maxAmountsIn[1] = auraBalance;
 
-            uint256 _bptExpected = (ethToWant(wethBalance) /
-                bptToWant(1 ether)) * (10 ** ERC20(address(want)).decimals());
+            uint256 _bptExpected = ((ethToWant(wethBalance) *
+                ERC20(address(want)).decimals()) / bptToWant(1 ether));
             bytes memory _userData = abi.encode(
                 IBalancerV2Vault.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT,
                 _amountsIn,
