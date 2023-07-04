@@ -320,7 +320,7 @@ contract RocketAuraStrategy is BaseStrategy {
                 IBalancerPool(bRethStable).balanceOf(address(this)),
                 true // stake
             );
-            assert(auraSuccess);
+            require(auraSuccess, "Aura deposit failed");
         }
     }
 
