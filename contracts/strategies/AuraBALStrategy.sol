@@ -250,7 +250,7 @@ contract AuraBALStrategy is BaseStrategy {
 
         uint256 _liquidWant = balanceOfWant();
         uint256 _amountNeeded = _debtOutstanding + _profit;
-        if(_liquidWant <= _amountNeeded){
+        if (_liquidWant <= _amountNeeded) {
             withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = balanceOfWant();
         }
@@ -273,10 +273,7 @@ contract AuraBALStrategy is BaseStrategy {
         if (balRewards() > 0) {
             IConvexRewards(AURA_BASE_REWARD).getReward(address(this), true);
         }
-        _sellBalAndAura(
-            IERC20(BAL).balanceOf(address(this)),
-            IERC20(AURA).balanceOf(address(this))
-        );
+        _sellBalAndAura(0, IERC20(AURA).balanceOf(address(this)));
 
         uint256 _wantBal = want.balanceOf(address(this));
         if (_wantBal > _debtOutstanding) {
