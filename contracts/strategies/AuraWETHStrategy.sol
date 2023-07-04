@@ -259,7 +259,7 @@ contract AuraWETHStrategy is BaseStrategy {
 
         uint256 _liquidWant = balanceOfWant();
         uint256 _amountNeeded = _debtOutstanding + _profit;
-        if(_liquidWant <= _amountNeeded){
+        if (_liquidWant <= _amountNeeded) {
             withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = balanceOfWant();
         }
@@ -530,11 +530,6 @@ contract AuraWETHStrategy is BaseStrategy {
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        IConvexRewards(AURA_WETH_REWARDS).getReward(address(this), true);
-        _sellBalAndAura(
-            IERC20(BAL).balanceOf(address(this)),
-            IERC20(AURA).balanceOf(address(this))
-        );
         _exitPosition(IERC20(AURA_WETH_REWARDS).balanceOf(address(this)));
         return want.balanceOf(address(this));
     }
