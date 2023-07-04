@@ -33,8 +33,11 @@ library CVXRewardsMath {
             if (_amount > amtTillMax) {
                 _amount = amtTillMax;
             }
+
+            return _amount;
         }
-        return _amount;
+
+        return 0;
     }
 
     function cvxToCrv(uint256 cvxTokens) internal view returns (uint256) {
