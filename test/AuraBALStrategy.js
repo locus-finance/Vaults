@@ -679,6 +679,6 @@ describe("AuraBALStrategy", function () {
         await mine(300, { interval: 20 });
 
         expect(Number(await strategy.balRewards())).to.be.greaterThan(0);
-        expect(Number(await strategy.auraRewards())).to.be.greaterThan(0);
+        expect(Number(await strategy.auraRewards(await strategy.balRewards()))).to.be.greaterThan(0);
     });
 });

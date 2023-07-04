@@ -104,8 +104,8 @@ contract AuraWETHStrategy is BaseStrategy {
         return IERC20(AURA_WETH_REWARDS).balanceOf(address(this));
     }
 
-    function auraRewards() public view returns (uint256) {
-        return AuraRewardsMath.convertCrvToCvx(balRewards());
+    function auraRewards(uint256 balTokens) public view returns (uint256) {
+        return AuraRewardsMath.convertCrvToCvx(balTokens);
     }
 
     function auraBptToBpt(uint _amountAuraBpt) public pure returns (uint256) {
@@ -174,12 +174,13 @@ contract AuraWETHStrategy is BaseStrategy {
         uint256 bptTokens = balanceOfUnstakedBpt() +
             auraBptToBpt(balanceOfAuraBpt());
         _wants += bptToWant(bptTokens);
-        uint256 balTokens = balRewards() + ERC20(BAL).balanceOf(address(this));
+        uint256 balRewardTokens = balRewards();
+        uint256 balTokens = balRewardTokens + ERC20(BAL).balanceOf(address(this));
         if (balTokens > 0) {
             _wants += balToWant(balTokens);
         }
 
-        uint256 auraTokens = auraRewards() +
+        uint256 auraTokens = auraRewards(balRewardTokens) +
             ERC20(AURA).balanceOf(address(this));
         if (auraTokens > 0) {
             _wants += auraToWant(auraTokens);
@@ -487,8 +488,9 @@ contract AuraWETHStrategy is BaseStrategy {
             return;
         }
 
-        uint256 balTokens = balRewards() + ERC20(BAL).balanceOf(address(this));
-        uint256 auraTokens = auraRewards() +
+        uint256 balRewardTokens = balRewards();
+        uint256 balTokens = balRewardTokens + ERC20(BAL).balanceOf(address(this));
+        uint256 auraTokens = auraRewards(balRewardTokens) +
             ERC20(AURA).balanceOf(address(this));
         uint256 rewardsTotal = balToWant(balTokens) + auraToWant(auraTokens);
 
