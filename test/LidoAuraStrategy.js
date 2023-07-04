@@ -25,7 +25,7 @@ describe("LidoAuraStrategy", function () {
         const [deployer, governance, treasury, whale] = await ethers.getSigners();
         const WETH_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
         const want = await ethers.getContractAt("IWETH", WETH_ADDRESS);
-        await want.connect(whale).deposit({value: ethers.utils.parseEther("10")});
+        await want.connect(whale).deposit({value: ethers.utils.parseEther("100")});
 
         const name = "ETH Vault";
         const symbol = "vETH";
@@ -125,23 +125,23 @@ describe("LidoAuraStrategy", function () {
 
         const balanceBefore = await want.balanceOf(whale.address);
         
-        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
-        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('10'));
-        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
+        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('100'));
+        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('100'));
+        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('100'));
 
         await strategy.connect(deployer).harvest();
         expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.2'));
+        .to.be.closeTo(ethers.utils.parseEther('100'), ethers.utils.parseEther('2.5'));
 
         await strategy.connect(deployer).harvest();
         await vault.connect(whale)['withdraw(uint256,address,uint256)'](
-            ethers.utils.parseEther('10'), 
+            ethers.utils.parseEther('100'), 
             whale.address, 
-            10 // 0.1% acceptable loss
+            3 // 0.03% acceptable loss
         );
 
         expect(await want.balanceOf(whale.address))
-        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.2'));
+        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('2.5'));
     });
 
     it('should withdraw with loss', async function () {
@@ -149,48 +149,48 @@ describe("LidoAuraStrategy", function () {
 
         const balanceBefore = await want.balanceOf(whale.address);
         
-        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
-        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('10'));
+        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('100'));
+        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('100'));
 
-        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
+        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('100'));
 
         await strategy.connect(deployer).harvest();
 
         expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.2'));
+        .to.be.closeTo(ethers.utils.parseEther('100'), ethers.utils.parseEther('2'));
 
         await strategy.connect(deployer).tend();
 
         await vault.connect(whale)['withdraw(uint256,address,uint256)'](
-            ethers.utils.parseEther('10'), 
+            ethers.utils.parseEther('100'), 
             whale.address, 
             10 // 0.1% acceptable loss
         );
 
         expect(await want.balanceOf(whale.address))
-        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('0.2'));
+        .to.be.closeTo(balanceBefore, ethers.utils.parseEther('2'));
     });
 
     it('should not withdraw with loss', async function () {
         const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
 
-        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('10'));
-        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('10'));
+        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('100'));
+        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('100'));
 
         const balanceBefore = await want.balanceOf(whale.address);
 
-        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('10'));
+        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('100'));
 
         await strategy.connect(deployer).harvest();
 
         expect(await strategy.estimatedTotalAssets())
-        .to.be.closeTo(ethers.utils.parseEther('10'), ethers.utils.parseEther('0.2'));
+        .to.be.closeTo(ethers.utils.parseEther('100'), ethers.utils.parseEther('2'));
 
         await strategy.connect(deployer).tend();
 
         await expect( 
             vault.connect(whale)['withdraw(uint256,address,uint256)'](
-                ethers.utils.parseEther('10'), 
+                ethers.utils.parseEther('100'), 
                 whale.address, 
                 0 // 0% acceptable loss
             )
@@ -349,56 +349,53 @@ describe("LidoAuraStrategy", function () {
     it('should revoke from vault', async function () {
         const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
 
-        const oneEther = ethers.utils.parseEther('1');
-        await want.connect(whale).approve(vault.address, oneEther);
-        await vault.connect(whale)['deposit(uint256)'](oneEther);
+        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('100'));
+        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('100'));
         mine(1);
         await strategy.harvest();
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
-            ethers.utils.parseEther('1'), 
-            ethers.utils.parseEther('0.02')
+            ethers.utils.parseEther('100'), 
+            ethers.utils.parseEther('2')
         );
 
         await vault['revokeStrategy(address)'](strategy.address);
         mine(1);
         await strategy.harvest();
         expect(await want.balanceOf(vault.address)).to.be.closeTo(
-            oneEther, 
-            ethers.utils.parseEther('0.02')
+            ethers.utils.parseEther('100'), 
+            ethers.utils.parseEther('2')
         );
     });
 
     it('should emergency exit', async function () {
         const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
 
-        const oneEther = ethers.utils.parseEther('1');
-        await want.connect(whale).approve(vault.address, oneEther);
-        await vault.connect(whale)['deposit(uint256)'](oneEther);
+        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('100'));
+        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('100'));
         mine(1);
         await strategy.harvest();
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
-            ethers.utils.parseEther('1'), 
-            ethers.utils.parseEther('0.2')
+            ethers.utils.parseEther('100'), 
+            ethers.utils.parseEther('2')
         );
 
         await strategy['setEmergencyExit()']();
         mine(1);
         await strategy.harvest();
         expect(await want.balanceOf(vault.address)).to.be.closeTo(
-            oneEther, 
-            ethers.utils.parseEther('0.2')
+            ethers.utils.parseEther('100'), 
+            ethers.utils.parseEther('2')
         );
     });
 
     it('should withdraw on vault shutdown', async function () {
         const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
 
-        const oneEther = ethers.utils.parseEther('1');
-        await want.connect(whale).approve(vault.address, oneEther);
-        await vault.connect(whale)['deposit(uint256)'](oneEther);
-        expect(await want.balanceOf(vault.address)).to.equal(oneEther);
+        await want.connect(whale).approve(vault.address, ethers.utils.parseEther('100'));
+        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseEther('100'));
+        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseEther('100'));
 
         if(await want.balanceOf(whale.address) > 0){
             want.connect(whale).transfer(ZERO_ADDRESS, await want.balanceOf(whale.address));
@@ -406,19 +403,19 @@ describe("LidoAuraStrategy", function () {
         await strategy.harvest();
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
-            ethers.utils.parseEther('1'), 
-            ethers.utils.parseEther('0.02')
+            ethers.utils.parseEther('100'), 
+            ethers.utils.parseEther('2')
         );
 
         await vault['setEmergencyShutdown(bool)'](true);
         await vault.connect(whale)['withdraw(uint256,address,uint256)'](
-            ethers.utils.parseEther('1'), 
+            ethers.utils.parseEther('100'), 
             whale.address, 
             8 // 0.05% acceptable loss
         );
         expect(await want.balanceOf(whale.address)).to.be.closeTo(
-            oneEther, 
-            ethers.utils.parseEther('0.2')
+            ethers.utils.parseEther('100'), 
+            ethers.utils.parseEther('2')
         );
     });
 

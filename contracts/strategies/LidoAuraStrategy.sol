@@ -56,7 +56,7 @@ contract LidoAuraStrategy is BaseStrategy {
         );
 
     uint256 public bptSlippage = 9850; // 1.5%
-    uint256 public rewardsSlippage = 7000; // 30%
+    uint256 public rewardsSlippage = 9700; // 3%
 
     uint256 public AURA_PID = 115;
     address public auraBStethStable =
