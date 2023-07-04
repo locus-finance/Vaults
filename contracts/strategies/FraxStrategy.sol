@@ -52,7 +52,6 @@ contract FraxStrategy is BaseStrategy {
         returns (uint256 _wants)
     {
         _wants = balanceOfWant();
-        _wants += address(this).balance;
         _wants += sfrxToWant(IERC20(sfrxEth).balanceOf(address(this)));
         _wants += frxToWant(IERC20(frxEth).balanceOf(address(this)));
         return _wants;
