@@ -457,6 +457,10 @@ contract CVXStrategy is BaseStrategy {
             _newStrategy,
             IERC20(CURVE_CVX_ETH_LP).balanceOf(address(this))
         );
+        uint256 ethBal = address(this).balance;
+        if (ethBal > 0) {
+            payable(_newStrategy).transfer(ethBal);
+        }
     }
 
     function protectedTokens()
