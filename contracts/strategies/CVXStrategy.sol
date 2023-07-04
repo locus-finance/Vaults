@@ -46,14 +46,14 @@ contract CVXStrategy is BaseStrategy {
     uint256 public slippage = 9300; // 7%
 
     constructor(address _vault) BaseStrategy(_vault) {
-        want.approve(CURVE_SWAP_ROUTER, type(uint256).max);
-        ERC20(CRV).approve(CURVE_SWAP_ROUTER, type(uint256).max);
-        ERC20(CVX).approve(CURVE_SWAP_ROUTER, type(uint256).max);
-        ERC20(CURVE_CVX_ETH_LP).approve(
+        want.safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
+        IERC20(CRV).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
+        IERC20(CVX).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
+        IERC20(CURVE_CVX_ETH_LP).safeApprove(
             ETH_CVX_CONVEX_DEPOSIT,
             type(uint256).max
         );
-        ERC20(CURVE_CVX_ETH_LP).approve(CURVE_CVX_ETH_POOL, type(uint256).max);
+        IERC20(CURVE_CVX_ETH_LP).safeApprove(CURVE_CVX_ETH_POOL, type(uint256).max);
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {

@@ -61,10 +61,10 @@ contract RocketAuraStrategy is BaseStrategy {
     address public auraBRethStable = 0xDd1fE5AD401D4777cE89959b7fa587e569Bf125D;
 
     constructor(address _vault) BaseStrategy(_vault) {
-        want.approve(address(balancerVault), type(uint256).max);
-        IERC20(bRethStable).approve(auraBooster, type(uint256).max);
-        IERC20(auraToken).approve(address(balancerVault), type(uint256).max);
-        IERC20(balToken).approve(address(balancerVault), type(uint256).max);
+        want.safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(bRethStable).safeApprove(auraBooster, type(uint256).max);
+        IERC20(auraToken).safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(balToken).safeApprove(address(balancerVault), type(uint256).max);
     }
 
     function name() external view override returns (string memory) {

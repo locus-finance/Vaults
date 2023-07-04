@@ -42,10 +42,10 @@ contract GNSStrategy is BaseStrategy {
     uint256 public slippage = 9900; // 1%
 
     constructor(address _vault) BaseStrategy(_vault) {
-        want.approve(UNISWAP_V3_ROUTER, type(uint256).max);
-        ERC20(DAI).approve(UNISWAP_V3_ROUTER, type(uint256).max);
-        ERC20(GNS).approve(UNISWAP_V3_ROUTER, type(uint256).max);
-        ERC20(GNS).approve(GNS_VAULT, type(uint256).max);
+        want.safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
+        IERC20(DAI).safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
+        IERC20(GNS).safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
+        IERC20(GNS).safeApprove(GNS_VAULT, type(uint256).max);
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {

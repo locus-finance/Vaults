@@ -64,14 +64,14 @@ contract FXSStrategy is BaseStrategy {
     uint256 public slippage = 9300; // 7%
 
     constructor(address _vault) BaseStrategy(_vault) {
-        ERC20(CRV).approve(CURVE_SWAP_ROUTER, type(uint256).max);
-        ERC20(CVX).approve(CURVE_SWAP_ROUTER, type(uint256).max);
-        ERC20(CURVE_FXS_LP).approve(FXS_CONVEX_DEPOSIT, type(uint256).max);
-        ERC20(CURVE_FXS_LP).approve(CURVE_FXS_POOL, type(uint256).max);
-        ERC20(FXS).approve(CURVE_FXS_POOL, type(uint256).max);
-        ERC20(FXS).approve(UNISWAP_V3_ROUTER, type(uint256).max);
+        IERC20(CRV).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
+        IERC20(CVX).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
+        IERC20(CURVE_FXS_LP).safeApprove(FXS_CONVEX_DEPOSIT, type(uint256).max);
+        IERC20(CURVE_FXS_LP).safeApprove(CURVE_FXS_POOL, type(uint256).max);
+        IERC20(FXS).safeApprove(CURVE_FXS_POOL, type(uint256).max);
+        IERC20(FXS).safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
 
-        want.approve(UNISWAP_V3_ROUTER, type(uint256).max);
+        want.safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {
