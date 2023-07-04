@@ -374,14 +374,6 @@ describe("FraxStrategy", function () {
 
         await network.provider.request({
             method: "hardhat_impersonateAccount",
-            params: [TOKENS.FRXETH.whale],
-        });
-        const FrxEth = await ethers.getContractAt(IERC20_SOURCE, TOKENS.FRXETH.address);
-        const frxWhale = await ethers.getSigner(TOKENS.FRXETH.whale);
-        await FrxEth.connect(frxWhale).transfer(strategy.address, ethers.utils.parseEther('0.0001'));
-
-        await network.provider.request({
-            method: "hardhat_impersonateAccount",
             params: [TOKENS.ETH.whale],
         });
         const ethWhale = await ethers.getSigner(TOKENS.ETH.whale);
@@ -394,18 +386,15 @@ describe("FraxStrategy", function () {
         const newStrategy = await FraxStrategy.deploy(vault.address);
         await newStrategy.deployed();
 
-        const frxethToken = await hre.ethers.getContractAt(IERC20_SOURCE, TOKENS.FRXETH.address);
         const sfrxethToken = await hre.ethers.getContractAt(IERC20_SOURCE, TOKENS.SFRXETH.address);
 
         expect(Number(await sfrxethToken.balanceOf(strategy.address))).to.be.greaterThan(0);
-        expect(Number(await frxethToken.balanceOf(strategy.address))).to.be.greaterThan(0);
         expect(Number(await ethers.provider.getBalance(strategy.address))).to.be.greaterThan(0);
 
         await vault['migrateStrategy(address,address)'](strategy.address, newStrategy.address);
 
         expect(await strategy.estimatedTotalAssets()).to.be.equal(0);
         expect(Number(await sfrxethToken.balanceOf(strategy.address))).to.be.equal(0);
-        expect(Number(await frxethToken.balanceOf(strategy.address))).to.be.equal(0);
         expect(Number(await ethers.provider.getBalance(strategy.address))).to.be.equal(0);
 
         expect(await newStrategy.estimatedTotalAssets()).to.be.closeTo(
@@ -413,13 +402,10 @@ describe("FraxStrategy", function () {
             ethers.utils.parseEther('0.0025')
         );
         expect(Number(await sfrxethToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
-        expect(Number(await frxethToken.balanceOf(newStrategy.address))).to.be.greaterThan(0);
         expect(Number(await ethers.provider.getBalance(newStrategy.address))).to.be.greaterThan(0);
 
         mine(100);
         await newStrategy.harvest();
-
-        expect(Number(await frxethToken.balanceOf(newStrategy.address))).to.be.equal(0);
 
         expect(await newStrategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther('1'), 
