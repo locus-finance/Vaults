@@ -63,6 +63,8 @@ contract FXSStrategy is BaseStrategy {
     uint32 internal constant TWAP_RANGE_SECS = 1800;
     uint256 public slippage = 9300; // 7%
 
+    uint256 private immutable WANT_DECIMALS;
+
     constructor(address _vault) BaseStrategy(_vault) {
         ERC20(CRV).approve(CURVE_SWAP_ROUTER, type(uint256).max);
         ERC20(CVX).approve(CURVE_SWAP_ROUTER, type(uint256).max);
@@ -72,6 +74,7 @@ contract FXSStrategy is BaseStrategy {
         ERC20(FXS).approve(UNISWAP_V3_ROUTER, type(uint256).max);
 
         want.approve(UNISWAP_V3_ROUTER, type(uint256).max);
+        WANT_DECIMALS = ERC20(address(want)).decimals();
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {
@@ -298,7 +301,7 @@ contract FXSStrategy is BaseStrategy {
             uint256 _excessWant = _wantBal - _debtOutstanding;
 
             uint256 fxsExpectedUnscaled = (_excessWant *
-                (10 ** ERC20(address(want)).decimals())) / fxsToWant(1 ether);
+                (10 ** WANT_DECIMALS)) / fxsToWant(1 ether);
             uint256 fxsExpectedScaled = Utils.scaleDecimals(
                 fxsExpectedUnscaled,
                 ERC20(address(want)),
