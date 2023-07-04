@@ -185,18 +185,11 @@ contract FraxStrategy is BaseStrategy {
             [uint256(0), uint256(0), uint256(0)],
             [uint256(0), uint256(0), uint256(0)]
         ];
-        address[4] memory _pools = [
-            address(0),
-            address(0),
-            address(0),
-            address(0)
-        ];
         ICurveSwapRouter(curveSwapRouter).exchange_multiple(
             _route,
             _swap_params,
             _frxAmount,
-            _minAmountOut,
-            _pools
+            _minAmountOut
         );
     }
 

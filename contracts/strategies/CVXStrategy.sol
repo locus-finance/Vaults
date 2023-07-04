@@ -274,18 +274,11 @@ contract CVXStrategy is BaseStrategy {
                 [uint256(0), uint256(0), uint256(0)],
                 [uint256(0), uint256(0), uint256(0)]
             ];
-            address[4] memory _pools = [
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            ];
             ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
                 _route,
                 _swap_params,
                 _excessWant,
-                (_ethExpectedScaled * slippage) / 10000,
-                _pools
+                (_ethExpectedScaled * slippage) / 10000
             );
         }
 
@@ -338,19 +331,12 @@ contract CVXStrategy is BaseStrategy {
             ];
             uint256 _expected = (CVXRewardsMath.cvxToCrv(_cvxAmount) *
                 slippage) / 10000;
-            address[4] memory _pools = [
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            ];
 
             _crvAmount += ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
                 _route,
                 _swap_params,
                 _cvxAmount,
-                _expected,
-                _pools
+                _expected
             );
         }
 
@@ -373,19 +359,12 @@ contract CVXStrategy is BaseStrategy {
                 [uint256(0), uint256(0), uint256(0)]
             ];
             uint256 _expected = (crvToWant(_crvAmount) * slippage) / 10000;
-            address[4] memory _pools = [
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            ];
 
             ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
                 _route,
                 _swap_params,
                 _crvAmount,
-                _expected,
-                _pools
+                _expected
             );
         }
     }
@@ -431,15 +410,9 @@ contract CVXStrategy is BaseStrategy {
                 [uint256(0), uint256(0), uint256(0)]
             ];
             uint256 _expected = (ethToWant(ethAmount) * slippage) / 10000;
-            address[4] memory _pools = [
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            ];
             ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple{
                 value: ethAmount
-            }(_route, _swap_params, ethAmount, _expected, _pools);
+            }(_route, _swap_params, ethAmount, _expected);
         }
     }
 
