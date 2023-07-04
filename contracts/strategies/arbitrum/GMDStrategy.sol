@@ -38,10 +38,10 @@ contract GMDStrategy is BaseStrategy {
     uint256 public slippage = 9900; // 1%
 
     constructor(address _vault) BaseStrategy(_vault) {
-        want.approve(UNISWAP_V3_ROUTER, type(uint256).max);
-        ERC20(WETH).approve(UNISWAP_V3_ROUTER, type(uint256).max);
-        ERC20(GMD).approve(UNISWAP_V3_ROUTER, type(uint256).max);
-        ERC20(GMD).approve(GMD_POOL, type(uint256).max);
+        want.safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
+        IERC20(WETH).safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
+        IERC20(GMD).safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
+        IERC20(GMD).safeApprove(GMD_POOL, type(uint256).max);
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {

@@ -60,15 +60,15 @@ contract AuraWETHStrategy is BaseStrategy {
     uint256 private immutable WANT_DECIMALS;
 
     constructor(address _vault) BaseStrategy(_vault) {
-        want.approve(address(balancerVault), type(uint256).max);
-        ERC20(BAL).approve(address(balancerVault), type(uint256).max);
-        ERC20(AURA).approve(address(balancerVault), type(uint256).max);
-        ERC20(WETH).approve(address(balancerVault), type(uint256).max);
-        ERC20(WETH_AURA_BALANCER_POOL).approve(
+        want.safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(BAL).safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(AURA).safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(WETH).safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(WETH_AURA_BALANCER_POOL).safeApprove(
             address(balancerVault),
             type(uint256).max
         );
-        ERC20(WETH_AURA_BALANCER_POOL).approve(AURA_BOOSTER, type(uint256).max);
+        IERC20(WETH_AURA_BALANCER_POOL).safeApprove(AURA_BOOSTER, type(uint256).max);
         WANT_DECIMALS = ERC20(address(want)).decimals();
     }
 
@@ -254,7 +254,7 @@ contract AuraWETHStrategy is BaseStrategy {
 
         uint256 _liquidWant = balanceOfWant();
         uint256 _amountNeeded = _debtOutstanding + _profit;
-        if(_liquidWant <= _amountNeeded){
+        if (_liquidWant <= _amountNeeded) {
             withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = balanceOfWant();
         }
@@ -524,11 +524,6 @@ contract AuraWETHStrategy is BaseStrategy {
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        IConvexRewards(AURA_WETH_REWARDS).getReward(address(this), true);
-        _sellBalAndAura(
-            IERC20(BAL).balanceOf(address(this)),
-            IERC20(AURA).balanceOf(address(this))
-        );
         _exitPosition(IERC20(AURA_WETH_REWARDS).balanceOf(address(this)));
         return want.balanceOf(address(this));
     }

@@ -48,14 +48,14 @@ contract CVXStrategy is BaseStrategy {
     uint256 private immutable WANT_DECIMALS;
 
     constructor(address _vault) BaseStrategy(_vault) {
-        want.approve(CURVE_SWAP_ROUTER, type(uint256).max);
-        ERC20(CRV).approve(CURVE_SWAP_ROUTER, type(uint256).max);
-        ERC20(CVX).approve(CURVE_SWAP_ROUTER, type(uint256).max);
-        ERC20(CURVE_CVX_ETH_LP).approve(
+        want.safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
+        IERC20(CRV).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
+        IERC20(CVX).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
+        IERC20(CURVE_CVX_ETH_LP).safeApprove(
             ETH_CVX_CONVEX_DEPOSIT,
             type(uint256).max
         );
-        ERC20(CURVE_CVX_ETH_LP).approve(CURVE_CVX_ETH_POOL, type(uint256).max);
+        IERC20(CURVE_CVX_ETH_LP).safeApprove(CURVE_CVX_ETH_POOL, type(uint256).max);
         WANT_DECIMALS = ERC20(address(want)).decimals();
     }
 
@@ -276,18 +276,11 @@ contract CVXStrategy is BaseStrategy {
                 [uint256(0), uint256(0), uint256(0)],
                 [uint256(0), uint256(0), uint256(0)]
             ];
-            address[4] memory _pools = [
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            ];
             ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
                 _route,
                 _swap_params,
                 _excessWant,
-                (_ethExpectedScaled * slippage) / 10000,
-                _pools
+                (_ethExpectedScaled * slippage) / 10000
             );
         }
 
@@ -339,19 +332,12 @@ contract CVXStrategy is BaseStrategy {
             ];
             uint256 _expected = (CVXRewardsMath.cvxToCrv(_cvxAmount) *
                 slippage) / 10000;
-            address[4] memory _pools = [
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            ];
 
             _crvAmount += ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
                 _route,
                 _swap_params,
                 _cvxAmount,
-                _expected,
-                _pools
+                _expected
             );
         }
 
@@ -374,19 +360,12 @@ contract CVXStrategy is BaseStrategy {
                 [uint256(0), uint256(0), uint256(0)]
             ];
             uint256 _expected = (crvToWant(_crvAmount) * slippage) / 10000;
-            address[4] memory _pools = [
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            ];
 
             ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
                 _route,
                 _swap_params,
                 _crvAmount,
-                _expected,
-                _pools
+                _expected
             );
         }
     }
@@ -432,15 +411,9 @@ contract CVXStrategy is BaseStrategy {
                 [uint256(0), uint256(0), uint256(0)]
             ];
             uint256 _expected = (ethToWant(ethAmount) * slippage) / 10000;
-            address[4] memory _pools = [
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            ];
             ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple{
                 value: ethAmount
-            }(_route, _swap_params, ethAmount, _expected, _pools);
+            }(_route, _swap_params, ethAmount, _expected);
         }
     }
 

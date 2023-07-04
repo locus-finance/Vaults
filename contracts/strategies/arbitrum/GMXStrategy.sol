@@ -44,12 +44,12 @@ contract GMXStrategy is BaseStrategy {
     uint256 public slippage = 9500; // 5%
 
     constructor(address _vault) BaseStrategy(_vault) {
-        ERC20(GMX).approve(STAKED_GMX_TRACKER, type(uint256).max);
-        ERC20(ES_GMX).approve(STAKED_GMX_TRACKER, type(uint256).max);
-        ERC20(WETH).approve(UNISWAP_V3_ROUTER, type(uint256).max);
-        ERC20(GMX).approve(UNISWAP_V3_ROUTER, type(uint256).max);
+        IERC20(GMX).safeApprove(STAKED_GMX_TRACKER, type(uint256).max);
+        IERC20(ES_GMX).safeApprove(STAKED_GMX_TRACKER, type(uint256).max);
+        IERC20(WETH).safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
+        IERC20(GMX).safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
 
-        want.approve(UNISWAP_V3_ROUTER, type(uint256).max);
+        want.safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {

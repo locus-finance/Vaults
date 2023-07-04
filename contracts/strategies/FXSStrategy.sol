@@ -66,14 +66,14 @@ contract FXSStrategy is BaseStrategy {
     uint256 private immutable WANT_DECIMALS;
 
     constructor(address _vault) BaseStrategy(_vault) {
-        ERC20(CRV).approve(CURVE_SWAP_ROUTER, type(uint256).max);
-        ERC20(CVX).approve(CURVE_SWAP_ROUTER, type(uint256).max);
-        ERC20(CURVE_FXS_LP).approve(FXS_CONVEX_DEPOSIT, type(uint256).max);
-        ERC20(CURVE_FXS_LP).approve(CURVE_FXS_POOL, type(uint256).max);
-        ERC20(FXS).approve(CURVE_FXS_POOL, type(uint256).max);
-        ERC20(FXS).approve(UNISWAP_V3_ROUTER, type(uint256).max);
+        IERC20(CRV).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
+        IERC20(CVX).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
+        IERC20(CURVE_FXS_LP).safeApprove(FXS_CONVEX_DEPOSIT, type(uint256).max);
+        IERC20(CURVE_FXS_LP).safeApprove(CURVE_FXS_POOL, type(uint256).max);
+        IERC20(FXS).safeApprove(CURVE_FXS_POOL, type(uint256).max);
+        IERC20(FXS).safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
 
-        want.approve(UNISWAP_V3_ROUTER, type(uint256).max);
+        want.safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
         WANT_DECIMALS = ERC20(address(want)).decimals();
     }
 
@@ -269,7 +269,7 @@ contract FXSStrategy is BaseStrategy {
 
         uint256 _liquidWant = balanceOfWant();
         uint256 _amountNeeded = _debtOutstanding + _profit;
-        if(_liquidWant <= _amountNeeded){
+        if (_liquidWant <= _amountNeeded) {
             _withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = balanceOfWant();
         }
@@ -368,19 +368,12 @@ contract FXSStrategy is BaseStrategy {
             ];
             uint256 _expected = (CVXRewardsMath.cvxToCrv(_cvxAmount) *
                 slippage) / 10000;
-            address[4] memory _pools = [
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            ];
 
             _crvAmount += ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
                 _route,
                 _swap_params,
                 _cvxAmount,
-                _expected,
-                _pools
+                _expected
             );
         }
 
@@ -403,19 +396,11 @@ contract FXSStrategy is BaseStrategy {
                 [uint256(0), uint256(0), uint256(0)]
             ];
             uint256 _expected = (crvToWant(_crvAmount) * slippage) / 10000;
-            address[4] memory _pools = [
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            ];
-
             ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
                 _route,
                 _swap_params,
                 _crvAmount,
-                _expected,
-                _pools
+                _expected
             );
         }
     }
@@ -495,6 +480,10 @@ contract FXSStrategy is BaseStrategy {
             true
         );
         IERC20(CRV).safeTransfer(
+            _newStrategy,
+            IERC20(CRV).balanceOf(address(this))
+        );
+        IERC20(FXS).safeTransfer(
             _newStrategy,
             IERC20(CRV).balanceOf(address(this))
         );

@@ -62,13 +62,13 @@ contract AuraBALStrategy is BaseStrategy {
     uint256 private immutable WANT_DECIMALS;
 
     constructor(address _vault) BaseStrategy(_vault) {
-        want.approve(address(balancerVault), type(uint256).max);
-        ERC20(BAL).approve(address(balancerVault), type(uint256).max);
-        ERC20(AURA).approve(address(balancerVault), type(uint256).max);
-        ERC20(WETH).approve(address(balancerVault), type(uint256).max);
-        ERC20(AURA_BAL).approve(address(balancerVault), type(uint256).max);
-        ERC20(AURA_BAL).approve(AURA_BASE_REWARD, type(uint256).max);
-        ERC20(BAL).approve(AURA_BAL_DEPOSIT_WRAPPER, type(uint256).max);
+        want.safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(BAL).safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(AURA).safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(WETH).safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(AURA_BAL).safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(AURA_BAL).safeApprove(AURA_BASE_REWARD, type(uint256).max);
+        IERC20(BAL).safeApprove(AURA_BAL_DEPOSIT_WRAPPER, type(uint256).max);
         WANT_DECIMALS = ERC20(address(want)).decimals();
     }
 

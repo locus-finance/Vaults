@@ -32,9 +32,9 @@ contract YCRVStrategy is BaseStrategy {
     uint256 public slippage = 9500; // 5%
 
     constructor(address _vault) BaseStrategy(_vault) {
-        want.approve(CURVE_SWAP_ROUTER, type(uint256).max);
-        ERC20(yCRV).approve(CURVE_SWAP_ROUTER, type(uint256).max);
-        ERC20(yCRV).approve(yCRVVault, type(uint256).max);
+        want.safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
+        IERC20(yCRV).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
+        IERC20(yCRV).safeApprove(yCRVVault, type(uint256).max);
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {
@@ -144,19 +144,12 @@ contract YCRVStrategy is BaseStrategy {
             [uint256(2), uint256(1), uint256(1)] // USDT -> USDC, stable swap exchange
         ];
         uint256 _expected = (yCrvToWant(yCrvBalance) * slippage) / 10000;
-        address[4] memory _pools = [
-            address(0),
-            address(0),
-            address(0),
-            address(0)
-        ];
 
         ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
             _route,
             _swap_params,
             yCrvBalance,
-            _expected,
-            _pools
+            _expected
         );
     }
 
@@ -258,19 +251,11 @@ contract YCRVStrategy is BaseStrategy {
                 [uint256(0), uint256(1), uint256(1)] // CRV -> yCRV, stable swap exchange
             ];
             uint256 _expected = (wantToYCrv(_excessWant) * slippage) / 10000;
-            address[4] memory _pools = [
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            ];
-
             ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
                 _route,
                 _swap_params,
                 _excessWant,
-                _expected,
-                _pools
+                _expected
             );
         }
 

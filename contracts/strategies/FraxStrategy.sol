@@ -33,7 +33,7 @@ contract FraxStrategy is BaseStrategy {
     uint256 public slippage = 9900; // 1%
 
     constructor(address _vault) BaseStrategy(_vault) {
-        IERC20(frxEth).approve(curveSwapRouter, type(uint256).max);
+        IERC20(frxEth).safeApprove(curveSwapRouter, type(uint256).max);
     }
 
     function name() external view override returns (string memory) {
@@ -114,9 +114,6 @@ contract FraxStrategy is BaseStrategy {
             return;
         }
 
-        if (IERC20(frxEth).balanceOf(address(this)) > 0) {
-            _sellAllFrx();
-        }
         uint256 _wethBal = want.balanceOf(address(this));
         if (_wethBal > _debtOutstanding) {
             uint256 _excessWeth = _wethBal - _debtOutstanding;
@@ -188,18 +185,11 @@ contract FraxStrategy is BaseStrategy {
             [uint256(0), uint256(0), uint256(0)],
             [uint256(0), uint256(0), uint256(0)]
         ];
-        address[4] memory _pools = [
-            address(0),
-            address(0),
-            address(0),
-            address(0)
-        ];
         ICurveSwapRouter(curveSwapRouter).exchange_multiple(
             _route,
             _swap_params,
             _frxAmount,
-            _minAmountOut,
-            _pools
+            _minAmountOut
         );
     }
 

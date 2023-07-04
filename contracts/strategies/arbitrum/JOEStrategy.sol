@@ -39,10 +39,10 @@ contract JOEStrategy is BaseStrategy {
     uint256 public slippage = 9500; // 5%
 
     constructor(address _vault) BaseStrategy(_vault) {
-        ERC20(JOE).approve(STABLE_JOE_STAKING, type(uint256).max);
-        ERC20(JOE).approve(JOE_LB_ROUTER, type(uint256).max);
+        IERC20(JOE).safeApprove(STABLE_JOE_STAKING, type(uint256).max);
+        IERC20(JOE).safeApprove(JOE_LB_ROUTER, type(uint256).max);
 
-        want.approve(JOE_LB_ROUTER, type(uint256).max);
+        want.safeApprove(JOE_LB_ROUTER, type(uint256).max);
     }
 
     function setRewardToken(address _rewardToken) external onlyStrategist {

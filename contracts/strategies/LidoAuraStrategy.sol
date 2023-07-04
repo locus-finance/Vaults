@@ -55,7 +55,7 @@ contract LidoAuraStrategy is BaseStrategy {
             0xc29562b045d80fd77c69bec09541f5c16fe20d9d000200000000000000000251
         );
 
-    uint256 public bptSlippage = 9900; // 1%
+    uint256 public bptSlippage = 9850; // 1.5%
     uint256 public rewardsSlippage = 7000; // 30%
 
     uint256 public AURA_PID = 115;
@@ -63,10 +63,10 @@ contract LidoAuraStrategy is BaseStrategy {
         0x59D66C58E83A26d6a0E35114323f65c3945c89c1;
 
     constructor(address _vault) BaseStrategy(_vault) {
-        want.approve(address(balancerVault), type(uint256).max);
-        IERC20(bStethStable).approve(auraBooster, type(uint256).max);
-        IERC20(auraToken).approve(address(balancerVault), type(uint256).max);
-        IERC20(balToken).approve(address(balancerVault), type(uint256).max);
+        want.safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(bStethStable).safeApprove(auraBooster, type(uint256).max);
+        IERC20(auraToken).safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(balToken).safeApprove(address(balancerVault), type(uint256).max);
     }
 
     function name() external view override returns (string memory) {
@@ -143,9 +143,7 @@ contract LidoAuraStrategy is BaseStrategy {
     }
 
     function wantToBpt(uint _amountWant) public view returns (uint _amount) {
-        uint unscaled = _amountWant.mul(1e18).div(
-            IBalancerPool(bStethStable).getRate()
-        );
+        uint unscaled = _amountWant.mul(1e18).div(getBptPrice());
         return
             Utils.scaleDecimals(
                 unscaled,
@@ -328,10 +326,21 @@ contract LidoAuraStrategy is BaseStrategy {
     }
 
     function _sellBalAndAura(uint256 _balAmount, uint256 _auraAmount) internal {
-        if (_balAmount == 0 || _auraAmount == 0) return;
+        if (_balAmount == 0) return;
 
-        IBalancerV2Vault.BatchSwapStep[]
-            memory swaps = new IBalancerV2Vault.BatchSwapStep[](2);
+        IBalancerV2Vault.BatchSwapStep[] memory swaps;
+        if (_auraAmount == 0) {
+            swaps = new IBalancerV2Vault.BatchSwapStep[](1);
+        } else {
+            swaps = new IBalancerV2Vault.BatchSwapStep[](2);
+            swaps[1] = IBalancerV2Vault.BatchSwapStep({
+                poolId: auraEthPoolId,
+                assetInIndex: 1,
+                assetOutIndex: 2,
+                amount: _auraAmount,
+                userData: abi.encode(0)
+            });
+        }
 
         // bal to weth
         swaps[0] = IBalancerV2Vault.BatchSwapStep({
@@ -339,15 +348,6 @@ contract LidoAuraStrategy is BaseStrategy {
             assetInIndex: 0,
             assetOutIndex: 2,
             amount: _balAmount,
-            userData: abi.encode(0)
-        });
-
-        // aura to Weth
-        swaps[1] = IBalancerV2Vault.BatchSwapStep({
-            poolId: auraEthPoolId,
-            assetInIndex: 1,
-            assetOutIndex: 2,
-            amount: _auraAmount,
             userData: abi.encode(0)
         });
 
