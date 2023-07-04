@@ -321,7 +321,7 @@ contract LidoAuraStrategy is BaseStrategy {
                 IBalancerPool(bStethStable).balanceOf(address(this)),
                 true // stake
             );
-            assert(auraSuccess);
+            require(auraSuccess, "Aura deposit failed");
         }
     }
 
