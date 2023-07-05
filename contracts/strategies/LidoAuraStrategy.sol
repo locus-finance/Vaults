@@ -56,7 +56,7 @@ contract LidoAuraStrategy is BaseStrategy {
         );
 
     uint256 public bptSlippage = 9850; // 1.5%
-    uint256 public rewardsSlippage = 7000; // 30%
+    uint256 public rewardsSlippage = 9700; // 3%
 
     uint256 public AURA_PID = 115;
     address public auraBStethStable =
@@ -108,8 +108,8 @@ contract LidoAuraStrategy is BaseStrategy {
         return IConvexRewards(auraBStethStable).earned(address(this));
     }
 
-    function auraRewards() public view returns (uint256) {
-        return AuraRewardsMath.convertCrvToCvx(balRewards());
+    function auraRewards(uint256 balTokens) public view returns (uint256) {
+        return AuraRewardsMath.convertCrvToCvx(balTokens);
     }
 
     function auraBptToBpt(uint _amountAuraBpt) public pure returns (uint256) {
@@ -134,7 +134,7 @@ contract LidoAuraStrategy is BaseStrategy {
             _wants += balToWant(balTokens);
         }
 
-        uint256 auraTokens = auraRewards();
+        uint256 auraTokens = auraRewards(balTokens);
         if (auraTokens > 0) {
             _wants += auraToWant(auraTokens);
         }
@@ -321,7 +321,7 @@ contract LidoAuraStrategy is BaseStrategy {
                 IBalancerPool(bStethStable).balanceOf(address(this)),
                 true // stake
             );
-            assert(auraSuccess);
+            require(auraSuccess, "Aura deposit failed");
         }
     }
 
@@ -375,8 +375,9 @@ contract LidoAuraStrategy is BaseStrategy {
     }
 
     function withdrawSome(uint256 _amountNeeded) internal {
-        uint256 balTokens = balRewards() + balanceOfBal();
-        uint256 auraTokens = auraRewards() + balanceOfAura();
+        uint256 balRewardsTokens = balRewards();
+        uint256 balTokens = balRewardsTokens + balanceOfBal();
+        uint256 auraTokens = auraRewards(balRewardsTokens) + balanceOfAura();
         uint256 rewardsTotal = balToWant(balTokens) + auraToWant(auraTokens);
 
         if (rewardsTotal >= _amountNeeded) {

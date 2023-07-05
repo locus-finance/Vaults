@@ -97,8 +97,8 @@ contract AuraBALStrategy is BaseStrategy {
         return IERC20(AURA_BAL).balanceOf(address(this));
     }
 
-    function auraRewards() public view returns (uint256) {
-        return AuraRewardsMath.convertCrvToCvx(balRewards());
+    function auraRewards(uint256 balTokens) public view returns (uint256) {
+        return AuraRewardsMath.convertCrvToCvx(balTokens);
     }
 
     function balanceOfAura() public view returns (uint256) {
@@ -164,12 +164,13 @@ contract AuraBALStrategy is BaseStrategy {
         uint256 auraBalTokens = balanceOfStakedAuraBal() +
             balanceOfUnstakedAuraBal();
         _wants += auraBalToWant(auraBalTokens);
-        uint256 balTokens = balRewards() + balanceOfBal();
+        uint256 balRewardTokens = balRewards();
+        uint256 balTokens = balRewardTokens + balanceOfBal();
         if (balTokens > 0) {
             _wants += balToWant(balTokens);
         }
 
-        uint256 auraTokens = auraRewards() + balanceOfAura();
+        uint256 auraTokens = auraRewards(balRewardTokens) + balanceOfAura();
         if (auraTokens > 0) {
             _wants += auraToWant(auraTokens);
         }
@@ -244,7 +245,7 @@ contract AuraBALStrategy is BaseStrategy {
 
         uint256 _liquidWant = balanceOfWant();
         uint256 _amountNeeded = _debtOutstanding + _profit;
-        if(_liquidWant <= _amountNeeded){
+        if (_liquidWant <= _amountNeeded) {
             withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = balanceOfWant();
         }
@@ -267,10 +268,7 @@ contract AuraBALStrategy is BaseStrategy {
         if (balRewards() > 0) {
             IConvexRewards(AURA_BASE_REWARD).getReward(address(this), true);
         }
-        _sellBalAndAura(
-            IERC20(BAL).balanceOf(address(this)),
-            IERC20(AURA).balanceOf(address(this))
-        );
+        _sellBalAndAura(0, IERC20(AURA).balanceOf(address(this)));
 
         uint256 _wantBal = want.balanceOf(address(this));
         if (_wantBal > _debtOutstanding) {
@@ -454,8 +452,9 @@ contract AuraBALStrategy is BaseStrategy {
             return;
         }
 
-        uint256 balTokens = balRewards() + ERC20(BAL).balanceOf(address(this));
-        uint256 auraTokens = auraRewards() +
+        uint256 balRewardTokens = balRewards();
+        uint256 balTokens = balRewardTokens + ERC20(BAL).balanceOf(address(this));
+        uint256 auraTokens = auraRewards(balRewardTokens) +
             ERC20(AURA).balanceOf(address(this));
         uint256 rewardsTotal = balToWant(balTokens) + auraToWant(auraTokens);
 

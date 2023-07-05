@@ -107,8 +107,8 @@ contract AuraWETHStrategy is BaseStrategy {
         return IERC20(AURA_WETH_REWARDS).balanceOf(address(this));
     }
 
-    function auraRewards() public view returns (uint256) {
-        return AuraRewardsMath.convertCrvToCvx(balRewards());
+    function auraRewards(uint256 balTokens) public view returns (uint256) {
+        return AuraRewardsMath.convertCrvToCvx(balTokens);
     }
 
     function auraBptToBpt(uint _amountAuraBpt) public pure returns (uint256) {
@@ -170,12 +170,13 @@ contract AuraWETHStrategy is BaseStrategy {
         uint256 bptTokens = balanceOfUnstakedBpt() +
             auraBptToBpt(balanceOfAuraBpt());
         _wants += bptToWant(bptTokens);
-        uint256 balTokens = balRewards() + ERC20(BAL).balanceOf(address(this));
+        uint256 balRewardTokens = balRewards();
+        uint256 balTokens = balRewardTokens + ERC20(BAL).balanceOf(address(this));
         if (balTokens > 0) {
             _wants += balToWant(balTokens);
         }
 
-        uint256 auraTokens = auraRewards() +
+        uint256 auraTokens = auraRewards(balRewardTokens) +
             ERC20(AURA).balanceOf(address(this));
         if (auraTokens > 0) {
             _wants += auraToWant(auraTokens);
@@ -277,10 +278,7 @@ contract AuraWETHStrategy is BaseStrategy {
         if (balRewards() > 0) {
             IConvexRewards(AURA_WETH_REWARDS).getReward(address(this), true);
         }
-        _sellBalAndAura(
-            IERC20(BAL).balanceOf(address(this)),
-            IERC20(AURA).balanceOf(address(this))
-        );
+        _sellBalAndAura(IERC20(BAL).balanceOf(address(this)), 0);
 
         uint256 _wantBal = want.balanceOf(address(this));
         if (_wantBal > _debtOutstanding) {
@@ -330,10 +328,11 @@ contract AuraWETHStrategy is BaseStrategy {
         }
 
         uint256 wethBalance = IERC20(WETH).balanceOf(address(this));
+        uint256 auraBalance = IERC20(AURA).balanceOf(address(this));
         if (wethBalance > 0) {
             uint256[] memory _amountsIn = new uint256[](2);
             _amountsIn[0] = wethBalance;
-            _amountsIn[1] = 0;
+            _amountsIn[1] = auraBalance;
 
             address[] memory _assets = new address[](2);
             _assets[0] = WETH;
@@ -341,7 +340,7 @@ contract AuraWETHStrategy is BaseStrategy {
 
             uint256[] memory _maxAmountsIn = new uint256[](2);
             _maxAmountsIn[0] = wethBalance;
-            _maxAmountsIn[1] = 0;
+            _maxAmountsIn[1] = auraBalance;
 
             uint256 _bptExpected = (ethToWant(wethBalance) /
                 bptToWant(1 ether)) * (10 ** WANT_DECIMALS);
@@ -481,8 +480,9 @@ contract AuraWETHStrategy is BaseStrategy {
             return;
         }
 
-        uint256 balTokens = balRewards() + ERC20(BAL).balanceOf(address(this));
-        uint256 auraTokens = auraRewards() +
+        uint256 balRewardTokens = balRewards();
+        uint256 balTokens = balRewardTokens + ERC20(BAL).balanceOf(address(this));
+        uint256 auraTokens = auraRewards(balRewardTokens) +
             ERC20(AURA).balanceOf(address(this));
         uint256 rewardsTotal = balToWant(balTokens) + auraToWant(auraTokens);
 

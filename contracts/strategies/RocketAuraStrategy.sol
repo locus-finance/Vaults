@@ -106,8 +106,8 @@ contract RocketAuraStrategy is BaseStrategy {
         return IConvexRewards(auraBRethStable).earned(address(this));
     }
 
-    function auraRewards() public view returns (uint256) {
-        return AuraRewardsMath.convertCrvToCvx(balRewards());
+    function auraRewards(uint256 balTokens) public view returns (uint256) {
+        return AuraRewardsMath.convertCrvToCvx(balTokens);
     }
 
     function auraBptToBpt(uint _amountAuraBpt) public pure returns (uint256) {
@@ -125,12 +125,13 @@ contract RocketAuraStrategy is BaseStrategy {
         uint256 bptTokens = balanceOfUnstakedBpt() +
             auraBptToBpt(balanceOfAuraBpt());
         _wants += bptToWant(bptTokens);
-        uint256 balTokens = balRewards() + balanceOfBal();
+        uint256 balRewardTokens = balRewards();
+        uint256 balTokens = balRewardTokens + balanceOfBal();
         if (balTokens > 0) {
             _wants += balToWant(balTokens);
         }
 
-        uint256 auraTokens = auraRewards() + balanceOfAura();
+        uint256 auraTokens = auraRewards(balRewardTokens) + balanceOfAura();
         if (auraTokens > 0) {
             _wants += auraToWant(auraTokens);
         }
@@ -246,7 +247,7 @@ contract RocketAuraStrategy is BaseStrategy {
 
         uint256 _liquidWant = balanceOfWant();
         uint256 _amountNeeded = _debtOutstanding + _profit;
-        if(_liquidWant <= _amountNeeded){
+        if (_liquidWant <= _amountNeeded) {
             withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = balanceOfWant();
         }
@@ -320,7 +321,7 @@ contract RocketAuraStrategy is BaseStrategy {
                 IBalancerPool(bRethStable).balanceOf(address(this)),
                 true // stake
             );
-            assert(auraSuccess);
+            require(auraSuccess, "Aura deposit failed");
         }
     }
 
@@ -372,8 +373,9 @@ contract RocketAuraStrategy is BaseStrategy {
     }
 
     function withdrawSome(uint256 _amountNeeded) internal {
-        uint256 balTokens = balRewards() + balanceOfBal();
-        uint256 auraTokens = auraRewards() + balanceOfAura();
+        uint256 balRewardTokens = balRewards();
+        uint256 balTokens = balRewardTokens + balanceOfBal();
+        uint256 auraTokens = auraRewards(balRewardTokens) + balanceOfAura();
         uint256 rewardsTotal = balToWant(balTokens) + auraToWant(auraTokens);
 
         if (rewardsTotal >= _amountNeeded) {
@@ -381,7 +383,7 @@ contract RocketAuraStrategy is BaseStrategy {
             _sellBalAndAura(balanceOfBal(), balanceOfAura());
         } else {
             uint256 bptToUnstake = Math.min(
-                wantToBpt(_amountNeeded),
+                wantToBpt(_amountNeeded - rewardsTotal),
                 IERC20(auraBRethStable).balanceOf(address(this))
             );
 
@@ -411,17 +413,16 @@ contract RocketAuraStrategy is BaseStrategy {
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        IConvexRewards(auraBRethStable).getReward(address(this), true);
-        _sellBalAndAura(
-            IERC20(balToken).balanceOf(address(this)),
-            IERC20(auraToken).balanceOf(address(this))
-        );
         _exitPosition(IERC20(auraBRethStable).balanceOf(address(this)));
         return want.balanceOf(address(this));
     }
 
     function _exitPosition(uint256 bptAmount) internal {
-        IConvexRewards(auraBRethStable).withdrawAndUnwrap(bptAmount, false);
+        IConvexRewards(auraBRethStable).withdrawAndUnwrap(bptAmount, true);
+        _sellBalAndAura(
+            IERC20(balToken).balanceOf(address(this)),
+            IERC20(auraToken).balanceOf(address(this))
+        );
 
         address[] memory _assets = new address[](2);
         _assets[0] = rETH;
