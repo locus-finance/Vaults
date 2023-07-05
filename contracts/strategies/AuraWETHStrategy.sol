@@ -508,13 +508,11 @@ contract AuraWETHStrategy is BaseStrategy {
         uint256 _amountNeeded
     ) internal override returns (uint256 _liquidatedAmount, uint256 _loss) {
         uint256 _wantBal = want.balanceOf(address(this));
-        if (_wantBal >= _amountNeeded) {
-            return (_amountNeeded, 0);
+        if(_wantBal < _amountNeeded){
+            withdrawSome(_amountNeeded - _wantBal);
+            _wantBal = balanceOfWant();
         }
 
-        withdrawSome(_amountNeeded);
-
-        _wantBal = want.balanceOf(address(this));
         if (_amountNeeded > _wantBal) {
             _liquidatedAmount = _wantBal;
             _loss = _amountNeeded - _wantBal;

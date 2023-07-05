@@ -399,13 +399,11 @@ contract LidoAuraStrategy is BaseStrategy {
         uint256 _amountNeeded
     ) internal override returns (uint256 _liquidatedAmount, uint256 _loss) {
         uint256 _wethBal = want.balanceOf(address(this));
-        if (_wethBal >= _amountNeeded) {
-            return (_amountNeeded, 0);
+        if(_wethBal < _amountNeeded){
+            withdrawSome(_amountNeeded - _wethBal);
+            _wethBal = balanceOfWant();
         }
 
-        withdrawSome(_amountNeeded);
-
-        _wethBal = want.balanceOf(address(this));
         if (_amountNeeded > _wethBal) {
             _liquidatedAmount = _wethBal;
             _loss = _amountNeeded - _wethBal;
