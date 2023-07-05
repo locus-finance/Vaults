@@ -57,6 +57,8 @@ contract AuraWETHStrategy is BaseStrategy {
     address public AURA_WETH_REWARDS =
         0x1204f5060bE8b716F5A62b4Df4cE32acD01a69f5;
 
+    uint256 private immutable WANT_DECIMALS;
+
     constructor(address _vault) BaseStrategy(_vault) {
         want.safeApprove(address(balancerVault), type(uint256).max);
         IERC20(BAL).safeApprove(address(balancerVault), type(uint256).max);
@@ -67,6 +69,7 @@ contract AuraWETHStrategy is BaseStrategy {
             type(uint256).max
         );
         IERC20(WETH_AURA_BALANCER_POOL).safeApprove(AURA_BOOSTER, type(uint256).max);
+        WANT_DECIMALS = ERC20(address(want)).decimals();
     }
 
     function name() external pure override returns (string memory) {
@@ -119,9 +122,7 @@ contract AuraWETHStrategy is BaseStrategy {
             ERC20(address(want))
         );
         return
-            scaledAmount.mul(getAuraPrice()).div(
-                10 ** ERC20(address(want)).decimals()
-            );
+            scaledAmount.mul(getAuraPrice()).div(10 ** WANT_DECIMALS);
     }
 
     function balToWant(uint256 balTokens) public view returns (uint256) {
@@ -131,17 +132,14 @@ contract AuraWETHStrategy is BaseStrategy {
             ERC20(address(want))
         );
         return
-            scaledAmount.mul(getBalPrice()).div(
-                10 ** ERC20(address(want)).decimals()
-            );
+            scaledAmount.mul(getBalPrice()).div(10 ** WANT_DECIMALS);
     }
 
     function wantToBpt(
         uint _amountWant
     ) public view virtual returns (uint _amount) {
         uint256 oneBptPrice = bptToWant(1 ether);
-        uint256 bptAmountUnscaled = (_amountWant *
-            10 ** ERC20(address(want)).decimals()) / oneBptPrice;
+        uint256 bptAmountUnscaled = (_amountWant * 10 ** WANT_DECIMALS) / oneBptPrice;
         return
             Utils.scaleDecimals(
                 bptAmountUnscaled,
@@ -157,9 +155,7 @@ contract AuraWETHStrategy is BaseStrategy {
             ERC20(address(want))
         );
         return
-            scaledAmount.mul(getBptPrice()).div(
-                10 ** ERC20(address(want)).decimals()
-            );
+            scaledAmount.mul(getBptPrice()).div(10 ** WANT_DECIMALS);
     }
 
     function estimatedTotalAssets()
@@ -236,8 +232,7 @@ contract AuraWETHStrategy is BaseStrategy {
 
         return
             (Utils.scaleDecimals(ratio, ERC20(WETH), ERC20(address(want))) *
-                auraComponent *
-                wethComponent) / (10 ** ERC20(address(want)).decimals());
+                auraComponent * wethComponent) / (10 ** WANT_DECIMALS);
     }
 
     function prepareReturn(
@@ -314,8 +309,7 @@ contract AuraWETHStrategy is BaseStrategy {
                 assets[1] = STABLE_POOL_BALANCER_POOL;
                 assets[2] = WETH;
 
-                uint256 wethExpected = (_excessWant *
-                    10 ** ERC20(WETH).decimals()) / ethToWant(1 ether);
+                uint256 wethExpected = (_excessWant * 10 ** WANT_DECIMALS) / ethToWant(1 ether);
 
                 int[] memory limits = new int[](3);
                 limits[0] = int(_excessWant);
@@ -348,8 +342,8 @@ contract AuraWETHStrategy is BaseStrategy {
             _maxAmountsIn[0] = wethBalance;
             _maxAmountsIn[1] = auraBalance;
 
-            uint256 _bptExpected = ((ethToWant(wethBalance) *
-                ERC20(address(want)).decimals()) / bptToWant(1 ether));
+            uint256 _bptExpected = (ethToWant(wethBalance) /
+                bptToWant(1 ether)) * (10 ** WANT_DECIMALS);
             bytes memory _userData = abi.encode(
                 IBalancerV2Vault.JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT,
                 _amountsIn,
@@ -585,8 +579,7 @@ contract AuraWETHStrategy is BaseStrategy {
             IERC20(AURA).balanceOf(address(this))
         );
 
-        uint256 wethAmount = (bptToWant(bptAmount) *
-            10 ** ERC20(address(want)).decimals()) / ethToWant(1 ether);
+        uint256 wethAmount = (bptToWant(bptAmount) * 10 ** WANT_DECIMALS) / ethToWant(1 ether);
         uint256 wethScaled = Utils.scaleDecimals(
             wethAmount,
             ERC20(address(want)),

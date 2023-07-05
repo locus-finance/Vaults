@@ -45,6 +45,8 @@ contract CVXStrategy is BaseStrategy {
     uint32 internal constant TWAP_RANGE_SECS = 1800;
     uint256 public slippage = 9300; // 7%
 
+    uint256 private immutable WANT_DECIMALS;
+
     constructor(address _vault) BaseStrategy(_vault) {
         want.safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
         IERC20(CRV).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
@@ -54,6 +56,7 @@ contract CVXStrategy is BaseStrategy {
             type(uint256).max
         );
         IERC20(CURVE_CVX_ETH_LP).safeApprove(CURVE_CVX_ETH_POOL, type(uint256).max);
+        WANT_DECIMALS = ERC20(address(want)).decimals();
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {
@@ -249,8 +252,7 @@ contract CVXStrategy is BaseStrategy {
 
         if (_wantBal > _debtOutstanding) {
             uint256 _excessWant = _wantBal - _debtOutstanding;
-            uint256 _ethExpected = (_excessWant *
-                (10 ** ERC20(address(want)).decimals())) / ethToWant(1 ether);
+            uint256 _ethExpected = (_excessWant * (10 ** WANT_DECIMALS)) / ethToWant(1 ether);
             uint256 _ethExpectedScaled = Utils.scaleDecimals(
                 _ethExpected,
                 ERC20(address(want)),
@@ -285,8 +287,7 @@ contract CVXStrategy is BaseStrategy {
         if (address(this).balance > 0) {
             uint256 ethPrice = ethToWant(address(this).balance);
             uint256 lpPrice = curveLPToWant(1e18);
-            uint256 lpTokensExpectedUnscaled = (ethPrice *
-                (10 ** ERC20(address(want)).decimals())) / lpPrice;
+            uint256 lpTokensExpectedUnscaled = (ethPrice * (10 ** WANT_DECIMALS)) / lpPrice;
             uint256 lpTokensExpectedScaled = Utils.scaleDecimals(
                 lpTokensExpectedUnscaled,
                 ERC20(address(want)),

@@ -59,6 +59,8 @@ contract AuraBALStrategy is BaseStrategy {
     uint32 internal constant TWAP_RANGE_SECS = 1800;
     uint256 public slippage = 9700; // 3%
 
+    uint256 private immutable WANT_DECIMALS;
+
     constructor(address _vault) BaseStrategy(_vault) {
         want.safeApprove(address(balancerVault), type(uint256).max);
         IERC20(BAL).safeApprove(address(balancerVault), type(uint256).max);
@@ -67,6 +69,7 @@ contract AuraBALStrategy is BaseStrategy {
         IERC20(AURA_BAL).safeApprove(address(balancerVault), type(uint256).max);
         IERC20(AURA_BAL).safeApprove(AURA_BASE_REWARD, type(uint256).max);
         IERC20(BAL).safeApprove(AURA_BAL_DEPOSIT_WRAPPER, type(uint256).max);
+        WANT_DECIMALS = ERC20(address(want)).decimals();
     }
 
     function name() external pure override returns (string memory) {
@@ -112,10 +115,7 @@ contract AuraBALStrategy is BaseStrategy {
             ERC20(AURA),
             ERC20(address(want))
         );
-        return
-            scaledAmount.mul(getAuraPrice()).div(
-                10 ** ERC20(address(want)).decimals()
-            );
+        return scaledAmount.mul(getAuraPrice()).div(10 ** WANT_DECIMALS);
     }
 
     function balToWant(uint256 balTokens) public view returns (uint256) {
@@ -124,10 +124,7 @@ contract AuraBALStrategy is BaseStrategy {
             ERC20(AURA),
             ERC20(address(want))
         );
-        return
-            scaledAmount.mul(getBalPrice()).div(
-                10 ** ERC20(address(want)).decimals()
-            );
+        return scaledAmount.mul(getBalPrice()).div(10 ** WANT_DECIMALS);
     }
 
     function auraBalToWant(
@@ -139,17 +136,14 @@ contract AuraBALStrategy is BaseStrategy {
             ERC20(address(want))
         );
         return
-            scaledAmount.mul(getBalWethBptPrice()).div(
-                10 ** ERC20(address(want)).decimals()
-            );
+            scaledAmount.mul(getBalWethBptPrice()).div(10 ** WANT_DECIMALS);
     }
 
     function wantToAuraBal(
         uint256 _amountWant
     ) public view virtual returns (uint _amount) {
         uint256 oneAuraBalPrice = auraBalToWant(1 ether);
-        uint256 auraBalAmountUnscaled = (_amountWant *
-            (10 ** ERC20(address(want)).decimals())) / oneAuraBalPrice;
+        uint256 auraBalAmountUnscaled = (_amountWant * (10 ** WANT_DECIMALS)) / oneAuraBalPrice;
         return
             Utils.scaleDecimals(
                 auraBalAmountUnscaled,
@@ -313,8 +307,7 @@ contract AuraBALStrategy is BaseStrategy {
             assets[2] = WETH;
             assets[3] = BAL;
 
-            uint256 balExpected = (_excessWant *
-                10 ** ERC20(address(want)).decimals()) / balToWant(1 ether);
+            uint256 balExpected = (_excessWant * 10 ** WANT_DECIMALS) / balToWant(1 ether);
 
             int[] memory limits = new int[](4);
             limits[0] = int(_excessWant);
@@ -334,7 +327,7 @@ contract AuraBALStrategy is BaseStrategy {
 
         if (balanceOfBal() > 0) {
             uint256 auraBalExpected = (balToWant(balanceOfBal()) *
-                (10 ** ERC20(address(want)).decimals())) /
+                (10 ** WANT_DECIMALS)) /
                 auraBalToWant(1 ether);
             uint256 auraBalExpectedScaled = Utils.scaleDecimals(
                 auraBalExpected,
@@ -546,8 +539,7 @@ contract AuraBALStrategy is BaseStrategy {
             address(this)
         );
         uint256 wantExpected = auraBalToWant(wethBalAmount);
-        uint256 wethExpected = (wantExpected *
-            (10 ** ERC20(address(want)).decimals())) / ethToWant(1 ether);
+        uint256 wethExpected = (wantExpected * (10 ** WANT_DECIMALS)) / ethToWant(1 ether);
         uint256 wethScaled = Utils.scaleDecimals(
             wethExpected,
             ERC20(address(want)),
