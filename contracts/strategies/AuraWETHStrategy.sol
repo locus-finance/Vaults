@@ -68,7 +68,10 @@ contract AuraWETHStrategy is BaseStrategy {
             address(balancerVault),
             type(uint256).max
         );
-        IERC20(WETH_AURA_BALANCER_POOL).safeApprove(AURA_BOOSTER, type(uint256).max);
+        IERC20(WETH_AURA_BALANCER_POOL).safeApprove(
+            AURA_BOOSTER,
+            type(uint256).max
+        );
         WANT_DECIMALS = ERC20(address(want)).decimals();
     }
 
@@ -121,8 +124,7 @@ contract AuraWETHStrategy is BaseStrategy {
             ERC20(AURA),
             ERC20(address(want))
         );
-        return
-            scaledAmount.mul(getAuraPrice()).div(10 ** WANT_DECIMALS);
+        return scaledAmount.mul(getAuraPrice()).div(10 ** WANT_DECIMALS);
     }
 
     function balToWant(uint256 balTokens) public view returns (uint256) {
@@ -131,15 +133,15 @@ contract AuraWETHStrategy is BaseStrategy {
             ERC20(AURA),
             ERC20(address(want))
         );
-        return
-            scaledAmount.mul(getBalPrice()).div(10 ** WANT_DECIMALS);
+        return scaledAmount.mul(getBalPrice()).div(10 ** WANT_DECIMALS);
     }
 
     function wantToBpt(
         uint _amountWant
     ) public view virtual returns (uint _amount) {
         uint256 oneBptPrice = bptToWant(1 ether);
-        uint256 bptAmountUnscaled = (_amountWant * 10 ** WANT_DECIMALS) / oneBptPrice;
+        uint256 bptAmountUnscaled = (_amountWant * 10 ** WANT_DECIMALS) /
+            oneBptPrice;
         return
             Utils.scaleDecimals(
                 bptAmountUnscaled,
@@ -154,8 +156,7 @@ contract AuraWETHStrategy is BaseStrategy {
             ERC20(WETH_AURA_BALANCER_POOL),
             ERC20(address(want))
         );
-        return
-            scaledAmount.mul(getBptPrice()).div(10 ** WANT_DECIMALS);
+        return scaledAmount.mul(getBptPrice()).div(10 ** WANT_DECIMALS);
     }
 
     function estimatedTotalAssets()
@@ -171,7 +172,8 @@ contract AuraWETHStrategy is BaseStrategy {
             auraBptToBpt(balanceOfAuraBpt());
         _wants += bptToWant(bptTokens);
         uint256 balRewardTokens = balRewards();
-        uint256 balTokens = balRewardTokens + ERC20(BAL).balanceOf(address(this));
+        uint256 balTokens = balRewardTokens +
+            ERC20(BAL).balanceOf(address(this));
         if (balTokens > 0) {
             _wants += balToWant(balTokens);
         }
@@ -217,11 +219,29 @@ contract AuraWETHStrategy is BaseStrategy {
         return ethToWant(price);
     }
 
+    modifier ensureNotInVaultContext() {
+        (, bytes memory revertData) = address(balancerVault).staticcall{
+            gas: 10_000
+        }(abi.encodeWithSelector(balancerVault.manageUserBalance.selector, 0));
+        require(
+            revertData.length == 0,
+            "AuraWETHStrategy::ensureNotInVaultContext"
+        );
+
+        _;
+    }
+
     /// @notice Safely returns price of LP WETH-50/AURA-50 BPT token in arbitrary want tokens.
     /// @dev This function is intended to be safe against flash loan attacks.
-    /// @dev Inspired by formula from Balancer docs: https://docs.balancer.fi/concepts/advanced/valuing-bpt.html
+    /// @dev Inspired by formula from Balancer docs: https://docs.balancer.fi/concepts/advanced/valuing-bpt/valuing-bpt.html
+    /// @dev Protected by Balancer's recommended way against read-only reentrancy from VaultReentrancyLib.
     /// @return price Price of LP BPT token in USDC want tokens.
-    function getBptPrice() public view returns (uint256 price) {
+    function getBptPrice()
+        public
+        view
+        ensureNotInVaultContext
+        returns (uint256 price)
+    {
         uint256 invariant = IBalancerPool(WETH_AURA_BALANCER_POOL)
             .getInvariant();
         uint256 totalSupply = IERC20(WETH_AURA_BALANCER_POOL).totalSupply();
@@ -232,7 +252,8 @@ contract AuraWETHStrategy is BaseStrategy {
 
         return
             (Utils.scaleDecimals(ratio, ERC20(WETH), ERC20(address(want))) *
-                auraComponent * wethComponent) / (10 ** WANT_DECIMALS);
+                auraComponent *
+                wethComponent) / (10 ** WANT_DECIMALS);
     }
 
     function prepareReturn(
@@ -309,7 +330,8 @@ contract AuraWETHStrategy is BaseStrategy {
                 assets[1] = STABLE_POOL_BALANCER_POOL;
                 assets[2] = WETH;
 
-                uint256 wethExpected = (_excessWant * 10 ** WANT_DECIMALS) / ethToWant(1 ether);
+                uint256 wethExpected = (_excessWant * 10 ** WANT_DECIMALS) /
+                    ethToWant(1 ether);
 
                 int[] memory limits = new int[](3);
                 limits[0] = int(_excessWant);
@@ -481,7 +503,8 @@ contract AuraWETHStrategy is BaseStrategy {
         }
 
         uint256 balRewardTokens = balRewards();
-        uint256 balTokens = balRewardTokens + ERC20(BAL).balanceOf(address(this));
+        uint256 balTokens = balRewardTokens +
+            ERC20(BAL).balanceOf(address(this));
         uint256 auraTokens = auraRewards(balRewardTokens) +
             ERC20(AURA).balanceOf(address(this));
         uint256 rewardsTotal = balToWant(balTokens) + auraToWant(auraTokens);
@@ -508,7 +531,7 @@ contract AuraWETHStrategy is BaseStrategy {
         uint256 _amountNeeded
     ) internal override returns (uint256 _liquidatedAmount, uint256 _loss) {
         uint256 _wantBal = want.balanceOf(address(this));
-        if(_wantBal < _amountNeeded){
+        if (_wantBal < _amountNeeded) {
             withdrawSome(_amountNeeded - _wantBal);
             _wantBal = balanceOfWant();
         }
@@ -577,7 +600,8 @@ contract AuraWETHStrategy is BaseStrategy {
             IERC20(AURA).balanceOf(address(this))
         );
 
-        uint256 wethAmount = (bptToWant(bptAmount) * 10 ** WANT_DECIMALS) / ethToWant(1 ether);
+        uint256 wethAmount = (bptToWant(bptAmount) * 10 ** WANT_DECIMALS) /
+            ethToWant(1 ether);
         uint256 wethScaled = Utils.scaleDecimals(
             wethAmount,
             ERC20(address(want)),

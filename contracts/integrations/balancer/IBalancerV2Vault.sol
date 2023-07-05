@@ -60,6 +60,21 @@ interface IBalancerV2Vault {
         bool toInternalBalance;
     }
 
+    enum UserBalanceOpKind {
+        DEPOSIT_INTERNAL,
+        WITHDRAW_INTERNAL,
+        TRANSFER_INTERNAL,
+        TRANSFER_EXTERNAL
+    }
+
+    struct UserBalanceOp {
+        UserBalanceOpKind kind;
+        address asset;
+        uint256 amount;
+        address sender;
+        address payable recipient;
+    }
+
     function getPool(bytes32 poolId) external view returns (address pool);
 
     function swap(
@@ -110,4 +125,6 @@ interface IBalancerV2Vault {
         IAsset[] memory assets,
         FundManagement memory funds
     ) external returns (int256[] memory assetDeltas);
+
+    function manageUserBalance(UserBalanceOp[] memory ops) external payable;
 }
