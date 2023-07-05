@@ -246,7 +246,7 @@ contract RocketAuraStrategy is BaseStrategy {
 
         uint256 _liquidWant = balanceOfWant();
         uint256 _amountNeeded = _debtOutstanding + _profit;
-        if(_liquidWant <= _amountNeeded){
+        if (_liquidWant <= _amountNeeded) {
             withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = balanceOfWant();
         }
@@ -381,7 +381,7 @@ contract RocketAuraStrategy is BaseStrategy {
             _sellBalAndAura(balanceOfBal(), balanceOfAura());
         } else {
             uint256 bptToUnstake = Math.min(
-                wantToBpt(_amountNeeded),
+                wantToBpt(_amountNeeded - rewardsTotal),
                 IERC20(auraBRethStable).balanceOf(address(this))
             );
 
@@ -411,17 +411,16 @@ contract RocketAuraStrategy is BaseStrategy {
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        IConvexRewards(auraBRethStable).getReward(address(this), true);
-        _sellBalAndAura(
-            IERC20(balToken).balanceOf(address(this)),
-            IERC20(auraToken).balanceOf(address(this))
-        );
         _exitPosition(IERC20(auraBRethStable).balanceOf(address(this)));
         return want.balanceOf(address(this));
     }
 
     function _exitPosition(uint256 bptAmount) internal {
-        IConvexRewards(auraBRethStable).withdrawAndUnwrap(bptAmount, false);
+        IConvexRewards(auraBRethStable).withdrawAndUnwrap(bptAmount, true);
+        _sellBalAndAura(
+            IERC20(balToken).balanceOf(address(this)),
+            IERC20(auraToken).balanceOf(address(this))
+        );
 
         address[] memory _assets = new address[](2);
         _assets[0] = rETH;
