@@ -55,7 +55,10 @@ contract CVXStrategy is BaseStrategy {
             ETH_CVX_CONVEX_DEPOSIT,
             type(uint256).max
         );
-        IERC20(CURVE_CVX_ETH_LP).safeApprove(CURVE_CVX_ETH_POOL, type(uint256).max);
+        IERC20(CURVE_CVX_ETH_LP).safeApprove(
+            CURVE_CVX_ETH_POOL,
+            type(uint256).max
+        );
         WANT_DECIMALS = ERC20(address(want)).decimals();
     }
 
@@ -82,18 +85,13 @@ contract CVXStrategy is BaseStrategy {
     }
 
     function balanceOfCrvRewards() public view virtual returns (uint256) {
-        return
-            ERC20(CRV).balanceOf(address(this)) +
-            IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).earned(address(this));
+        return IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).earned(address(this));
     }
 
-    function balanceOfCvxRewards() public view virtual returns (uint256) {
-        uint256 crvRewards = IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).earned(
-            address(this)
-        );
-
+    function balanceOfCvxRewards(
+        uint256 crvRewards
+    ) public view virtual returns (uint256) {
         return
-            ERC20(CVX).balanceOf(address(this)) +
             IConvexRewards(CONVEX_CVX_REWARD_POOL).earned(address(this)) +
             CVXRewardsMath.convertCrvToCvx(crvRewards);
     }
@@ -119,8 +117,10 @@ contract CVXStrategy is BaseStrategy {
             return;
         }
         uint256 earnedCrv = balanceOfCrvRewards();
-        uint256 earnedCvx = balanceOfCvxRewards();
-        uint256 rewardsTotal = crvToWant(earnedCrv) + cvxToWant(earnedCvx);
+        uint256 earnedCvx = balanceOfCvxRewards(earnedCrv);
+        uint256 totalCrv = earnedCrv + ERC20(CRV).balanceOf(address(this));
+        uint256 totalCvx = earnedCvx + ERC20(CVX).balanceOf(address(this));
+        uint256 rewardsTotal = crvToWant(totalCrv) + cvxToWant(totalCvx);
 
         if (rewardsTotal >= _amountNeeded) {
             IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).getReward(
@@ -195,8 +195,14 @@ contract CVXStrategy is BaseStrategy {
         _wants += curveLPToWant(
             balanceOfCurveLPStaked() + balanceOfCurveLPUnstaked()
         );
-        _wants += crvToWant(balanceOfCrvRewards());
-        _wants += cvxToWant(balanceOfCvxRewards());
+
+        uint256 earnedCrv = balanceOfCrvRewards();
+        uint256 earnedCvx = balanceOfCvxRewards(earnedCrv);
+        uint256 totalCrv = earnedCrv + ERC20(CRV).balanceOf(address(this));
+        uint256 totalCvx = earnedCvx + ERC20(CVX).balanceOf(address(this));
+
+        _wants += crvToWant(totalCrv);
+        _wants += cvxToWant(totalCvx);
     }
 
     function prepareReturn(
@@ -219,7 +225,7 @@ contract CVXStrategy is BaseStrategy {
 
         uint256 _liquidWant = balanceOfWant();
         uint256 _amountNeeded = _debtOutstanding + _profit;
-        if(_liquidWant <= _amountNeeded){
+        if (_liquidWant <= _amountNeeded) {
             _withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = balanceOfWant();
         }
@@ -252,7 +258,8 @@ contract CVXStrategy is BaseStrategy {
 
         if (_wantBal > _debtOutstanding) {
             uint256 _excessWant = _wantBal - _debtOutstanding;
-            uint256 _ethExpected = (_excessWant * (10 ** WANT_DECIMALS)) / ethToWant(1 ether);
+            uint256 _ethExpected = (_excessWant * (10 ** WANT_DECIMALS)) /
+                ethToWant(1 ether);
             uint256 _ethExpectedScaled = Utils.scaleDecimals(
                 _ethExpected,
                 ERC20(address(want)),
@@ -287,7 +294,8 @@ contract CVXStrategy is BaseStrategy {
         if (address(this).balance > 0) {
             uint256 ethPrice = ethToWant(address(this).balance);
             uint256 lpPrice = curveLPToWant(1e18);
-            uint256 lpTokensExpectedUnscaled = (ethPrice * (10 ** WANT_DECIMALS)) / lpPrice;
+            uint256 lpTokensExpectedUnscaled = (ethPrice *
+                (10 ** WANT_DECIMALS)) / lpPrice;
             uint256 lpTokensExpectedScaled = Utils.scaleDecimals(
                 lpTokensExpectedUnscaled,
                 ERC20(address(want)),
