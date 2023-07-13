@@ -63,7 +63,10 @@ contract RocketAuraStrategy is BaseStrategy {
     constructor(address _vault) BaseStrategy(_vault) {
         want.safeApprove(address(balancerVault), type(uint256).max);
         IERC20(bRethStable).safeApprove(auraBooster, type(uint256).max);
-        IERC20(auraToken).safeApprove(address(balancerVault), type(uint256).max);
+        IERC20(auraToken).safeApprove(
+            address(balancerVault),
+            type(uint256).max
+        );
         IERC20(balToken).safeApprove(address(balancerVault), type(uint256).max);
     }
 

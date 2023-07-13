@@ -135,15 +135,15 @@ contract AuraBALStrategy is BaseStrategy {
             ERC20(AURA_BAL),
             ERC20(address(want))
         );
-        return
-            scaledAmount.mul(getBalWethBptPrice()).div(10 ** WANT_DECIMALS);
+        return scaledAmount.mul(getBalWethBptPrice()).div(10 ** WANT_DECIMALS);
     }
 
     function wantToAuraBal(
         uint256 _amountWant
     ) public view virtual returns (uint _amount) {
         uint256 oneAuraBalPrice = auraBalToWant(1 ether);
-        uint256 auraBalAmountUnscaled = (_amountWant * (10 ** WANT_DECIMALS)) / oneAuraBalPrice;
+        uint256 auraBalAmountUnscaled = (_amountWant * (10 ** WANT_DECIMALS)) /
+            oneAuraBalPrice;
         return
             Utils.scaleDecimals(
                 auraBalAmountUnscaled,
@@ -307,7 +307,8 @@ contract AuraBALStrategy is BaseStrategy {
             assets[2] = WETH;
             assets[3] = BAL;
 
-            uint256 balExpected = (_excessWant * 10 ** WANT_DECIMALS) / balToWant(1 ether);
+            uint256 balExpected = (_excessWant * 10 ** WANT_DECIMALS) /
+                balToWant(1 ether);
 
             int[] memory limits = new int[](4);
             limits[0] = int(_excessWant);
@@ -327,8 +328,7 @@ contract AuraBALStrategy is BaseStrategy {
 
         if (balanceOfBal() > 0) {
             uint256 auraBalExpected = (balToWant(balanceOfBal()) *
-                (10 ** WANT_DECIMALS)) /
-                auraBalToWant(1 ether);
+                (10 ** WANT_DECIMALS)) / auraBalToWant(1 ether);
             uint256 auraBalExpectedScaled = Utils.scaleDecimals(
                 auraBalExpected,
                 ERC20(address(want)),
@@ -453,7 +453,8 @@ contract AuraBALStrategy is BaseStrategy {
         }
 
         uint256 balRewardTokens = balRewards();
-        uint256 balTokens = balRewardTokens + ERC20(BAL).balanceOf(address(this));
+        uint256 balTokens = balRewardTokens +
+            ERC20(BAL).balanceOf(address(this));
         uint256 auraTokens = auraRewards(balRewardTokens) +
             ERC20(AURA).balanceOf(address(this));
         uint256 rewardsTotal = balToWant(balTokens) + auraToWant(auraTokens);
@@ -480,7 +481,7 @@ contract AuraBALStrategy is BaseStrategy {
         uint256 _amountNeeded
     ) internal override returns (uint256 _liquidatedAmount, uint256 _loss) {
         uint256 _wantBal = want.balanceOf(address(this));
-        if(_wantBal < _amountNeeded){
+        if (_wantBal < _amountNeeded) {
             withdrawSome(_amountNeeded - _wantBal);
             _wantBal = balanceOfWant();
         }
@@ -537,7 +538,8 @@ contract AuraBALStrategy is BaseStrategy {
             address(this)
         );
         uint256 wantExpected = auraBalToWant(wethBalAmount);
-        uint256 wethExpected = (wantExpected * (10 ** WANT_DECIMALS)) / ethToWant(1 ether);
+        uint256 wethExpected = (wantExpected * (10 ** WANT_DECIMALS)) /
+            ethToWant(1 ether);
         uint256 wethScaled = Utils.scaleDecimals(
             wethExpected,
             ERC20(address(want)),

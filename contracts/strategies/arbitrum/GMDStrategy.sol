@@ -19,7 +19,7 @@ contract GMDStrategy is BaseStrategy {
     address internal constant GMD = 0x4945970EfeEc98D393b4b979b9bE265A3aE28A8B;
     address internal constant WETH = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
 
-    uint256 internal constant GMD_PID = 0; 
+    uint256 internal constant GMD_PID = 0;
     address internal constant GMD_POOL =
         0x48C81451D1FDdecA84b47ff86F91708fa5c32e93;
     address internal constant UNISWAP_V3_ROUTER =
@@ -66,7 +66,10 @@ contract GMDStrategy is BaseStrategy {
     }
 
     function balanceOfStakedGmd() public view returns (uint256) {
-        (,uint256 amount,,) = IGMDStaking(GMD_POOL).userInfo(GMD_PID,address(this));
+        (, uint256 amount, , ) = IGMDStaking(GMD_POOL).userInfo(
+            GMD_PID,
+            address(this)
+        );
         return amount;
     }
 
@@ -90,7 +93,7 @@ contract GMDStrategy is BaseStrategy {
             _exitPosition(gmdToUnstake);
         }
 
-        if(balanceOfWant() < _amountNeeded) {
+        if (balanceOfWant() < _amountNeeded) {
             _sellRewards();
         }
     }
@@ -203,7 +206,6 @@ contract GMDStrategy is BaseStrategy {
         override
         returns (uint256 _wants)
     {
-
         _wants = balanceOfWant();
         _wants += gmdToWant(balanceOfGmd());
         _wants += gmdToWant(balanceOfStakedGmd());
@@ -231,7 +233,7 @@ contract GMDStrategy is BaseStrategy {
 
         uint256 _liquidWant = balanceOfWant();
         uint256 _amountNeeded = _debtOutstanding + _profit;
-        if(_liquidWant <= _amountNeeded){
+        if (_liquidWant <= _amountNeeded) {
             _withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = balanceOfWant();
         }

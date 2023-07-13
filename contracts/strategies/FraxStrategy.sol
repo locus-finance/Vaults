@@ -93,7 +93,7 @@ contract FraxStrategy is BaseStrategy {
 
         uint256 _liquidWant = balanceOfWant();
         uint256 _amountNeeded = _debtOutstanding + _profit;
-        if(_liquidWant <= _amountNeeded){
+        if (_liquidWant <= _amountNeeded) {
             withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = balanceOfWant();
         }
@@ -139,7 +139,7 @@ contract FraxStrategy is BaseStrategy {
         uint256 _amountNeeded
     ) internal override returns (uint256 _liquidatedAmount, uint256 _loss) {
         uint256 _wethBal = want.balanceOf(address(this));
-        if(_wethBal < _amountNeeded){
+        if (_wethBal < _amountNeeded) {
             withdrawSome(_amountNeeded - _wethBal);
             _wethBal = balanceOfWant();
         }
