@@ -99,24 +99,17 @@ contract FXSStrategy is BaseStrategy {
     }
 
     function balanceOfCrvRewards() public view virtual returns (uint256) {
-        return
-            ERC20(CRV).balanceOf(address(this)) +
-            IConvexRewards(FXS_CONVEX_CRV_REWARDS).earned(address(this));
+        return IConvexRewards(FXS_CONVEX_CRV_REWARDS).earned(address(this));
     }
 
     function balanceOfFxsRewards() public view returns (uint256) {
-        return
-            ERC20(FXS).balanceOf(address(this)) +
-            IConvexRewards(CONVEX_FXS_REWARD_POOL).earned(address(this));
+        return IConvexRewards(CONVEX_FXS_REWARD_POOL).earned(address(this));
     }
 
-    function balanceOfCvxRewards() public view virtual returns (uint256) {
-        uint256 crvRewards = IConvexRewards(FXS_CONVEX_CRV_REWARDS).earned(
-            address(this)
-        );
-
+    function balanceOfCvxRewards(
+        uint256 crvRewards
+    ) public view virtual returns (uint256) {
         return
-            ERC20(CVX).balanceOf(address(this)) +
             IConvexRewards(CONVEX_CVX_REWARD_POOL).earned(address(this)) +
             CVXRewardsMath.convertCrvToCvx(crvRewards);
     }
@@ -143,11 +136,14 @@ contract FXSStrategy is BaseStrategy {
         }
 
         uint256 earnedCrv = balanceOfCrvRewards();
-        uint256 earnedCvx = balanceOfCvxRewards();
+        uint256 earnedCvx = balanceOfCvxRewards(earnedCrv);
         uint256 earnedFxs = balanceOfFxsRewards();
-        uint256 rewardsTotal = crvToWant(earnedCrv) +
-            cvxToWant(earnedCvx) +
-            fxsToWant(earnedFxs);
+        uint256 totalCrv = earnedCrv + ERC20(CRV).balanceOf(address(this));
+        uint256 totalCvx = earnedCvx + ERC20(CVX).balanceOf(address(this));
+        uint256 totalFxs = earnedFxs + ERC20(FXS).balanceOf(address(this));
+        uint256 rewardsTotal = crvToWant(totalCrv) +
+            cvxToWant(totalCvx) +
+            fxsToWant(totalFxs);
 
         if (rewardsTotal >= _amountNeeded) {
             IConvexRewards(FXS_CONVEX_CRV_REWARDS).getReward(
@@ -244,9 +240,17 @@ contract FXSStrategy is BaseStrategy {
         _wants += curveLPToWant(
             balanceOfCurveLPStaked() + balanceOfCurveLPUnstaked()
         );
-        _wants += crvToWant(balanceOfCrvRewards());
-        _wants += cvxToWant(balanceOfCvxRewards());
-        _wants += fxsToWant(balanceOfFxsRewards());
+
+        uint256 earnedCrv = balanceOfCrvRewards();
+        uint256 earnedCvx = balanceOfCvxRewards(earnedCrv);
+        uint256 earnedFxs = balanceOfFxsRewards();
+        uint256 totalCrv = earnedCrv + ERC20(CRV).balanceOf(address(this));
+        uint256 totalCvx = earnedCvx + ERC20(CVX).balanceOf(address(this));
+        uint256 totalFxs = earnedFxs + ERC20(FXS).balanceOf(address(this));
+
+        _wants += crvToWant(totalCrv);
+        _wants += cvxToWant(totalCvx);
+        _wants += fxsToWant(totalFxs);
     }
 
     function prepareReturn(

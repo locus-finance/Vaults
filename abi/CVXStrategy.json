@@ -18,7 +18,7 @@
   "function balanceOfCrvRewards() view returns (uint256)",
   "function balanceOfCurveLPStaked() view returns (uint256)",
   "function balanceOfCurveLPUnstaked() view returns (uint256)",
-  "function balanceOfCvxRewards() view returns (uint256)",
+  "function balanceOfCvxRewards(uint256) view returns (uint256)",
   "function balanceOfWant() view returns (uint256)",
   "function baseFeeOracle() view returns (address)",
   "function creditThreshold() view returns (uint256)",

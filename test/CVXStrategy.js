@@ -682,11 +682,10 @@ describe("CVXStrategy", function () {
 
         await mine(300, { interval: 20 });
 
-        expect(Number(await strategy.balanceOfCrvRewards())).to.be.greaterThan(
-            0
-        );
-        expect(Number(await strategy.balanceOfCvxRewards())).to.be.greaterThan(
-            0
-        );
+        const crvRewards = await strategy.balanceOfCrvRewards();
+        expect(Number(crvRewards)).to.be.greaterThan(0);
+        expect(
+            Number(await strategy.balanceOfCvxRewards(crvRewards))
+        ).to.be.greaterThan(0);
     });
 });

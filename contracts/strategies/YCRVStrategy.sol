@@ -208,7 +208,7 @@ contract YCRVStrategy is BaseStrategy {
 
         uint256 _liquidWant = balanceOfWant();
         uint256 _amountNeeded = _debtOutstanding + _profit;
-        if(_liquidWant <= _amountNeeded){
+        if (_liquidWant <= _amountNeeded) {
             _withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = balanceOfWant();
         }
