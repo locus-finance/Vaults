@@ -138,11 +138,12 @@ contract FXSStrategy is BaseStrategy {
         uint256 earnedCrv = balanceOfCrvRewards();
         uint256 earnedCvx = balanceOfCvxRewards(earnedCrv);
         uint256 earnedFxs = balanceOfFxsRewards();
-        uint256 rewardsTotal = crvToWant(
-            earnedCrv + ERC20(CRV).balanceOf(address(this))
-        ) +
-            cvxToWant(earnedCvx + ERC20(CVX).balanceOf(address(this))) +
-            fxsToWant(earnedFxs + ERC20(FXS).balanceOf(address(this)));
+        uint256 totalCrv = earnedCrv + ERC20(CRV).balanceOf(address(this));
+        uint256 totalCvx = earnedCvx + ERC20(CVX).balanceOf(address(this));
+        uint256 totalFxs = earnedFxs + ERC20(FXS).balanceOf(address(this));
+        uint256 rewardsTotal = crvToWant(totalCrv) +
+            cvxToWant(totalCvx) +
+            fxsToWant(totalFxs);
 
         if (rewardsTotal >= _amountNeeded) {
             IConvexRewards(FXS_CONVEX_CRV_REWARDS).getReward(
@@ -242,10 +243,10 @@ contract FXSStrategy is BaseStrategy {
 
         uint256 earnedCrv = balanceOfCrvRewards();
         uint256 earnedCvx = balanceOfCvxRewards(earnedCrv);
+        uint256 earnedFxs = balanceOfFxsRewards();
         uint256 totalCrv = earnedCrv + ERC20(CRV).balanceOf(address(this));
         uint256 totalCvx = earnedCvx + ERC20(CVX).balanceOf(address(this));
-        uint256 totalFxs = balanceOfFxsRewards() +
-            ERC20(FXS).balanceOf(address(this));
+        uint256 totalFxs = earnedFxs + ERC20(FXS).balanceOf(address(this));
 
         _wants += crvToWant(totalCrv);
         _wants += cvxToWant(totalCvx);
