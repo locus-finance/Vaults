@@ -7,8 +7,8 @@ const WETH_ADDRESS = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
 
 const DEPLOY_SETTINGS = {
     want: WETH_ADDRESS,
-    name: "vETHVault",
-    symbol: "vETH",
+    name: "Locus Yield ETH",
+    symbol: "lvETH",
     governance: getEnv("GOVERNANCE_ACCOUNT"),
     treasury: getEnv("TREASURY_ACCOUNT"),
     depositLimitWeth: "1000",

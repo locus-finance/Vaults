@@ -7,8 +7,8 @@ const USDC_ADDRESS = "0xaf88d065e77c8cc2239327c5edb3a432268e5831";
 
 const DEPLOY_SETTINGS = {
     want: USDC_ADDRESS,
-    name: "daVault",
-    symbol: "daToken",
+    name: "Arbitrum Yield Index ",
+    symbol: "lvAYI",
     governance: getEnv("GOVERNANCE_ACCOUNT"),
     treasury: getEnv("TREASURY_ACCOUNT"),
     depositLimitUsdc: "1000000000",
