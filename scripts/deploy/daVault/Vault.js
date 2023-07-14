@@ -3,7 +3,7 @@ const hre = require("hardhat");
 const { getEnv } = require("../../utils");
 
 const USDC_DECIMALS = 6;
-const USDC_ADDRESS = "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8";
+const USDC_ADDRESS = "0xaf88d065e77c8cc2239327c5edb3a432268e5831";
 
 const DEPLOY_SETTINGS = {
     want: USDC_ADDRESS,
