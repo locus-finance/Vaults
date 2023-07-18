@@ -57,4 +57,7 @@ TARGET_STRATEGY="CVXStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86F
 TARGET_STRATEGY="FXSStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/dVault/Strategy.js --network mainnet
 
 TARGET_STRATEGY="YCRVStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/dVault/Strategy.js --network mainnet
+
+TARGET_STRATEGY="GMDStrategy" DVAULT_ADDRESS="0xeC0cA44558a46873B47ccC562Fc2A0DD87bb0EE1" npx hardhat run scripts/deploy/daVault/Strategy.js --network arbitrum
+
 ```
