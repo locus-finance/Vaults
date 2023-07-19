@@ -184,7 +184,7 @@
             "performanceFee": "10",
             "strategies": {
                 "AuraBALStrategy": {
-                    "address": "0xC1aaad55E68042e7CecC958a8DB7ca4617B8E148",
+                    "address": "0xae60bf4746c9fc06041207da3ce471e2e375274c",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -219,7 +219,7 @@
                     ]
                 },
                 "AuraWETHStrategy": {
-                    "address": "0x8E46aa20Fd8Fdf48a77Cf7cDeff2761af03C195C",
+                    "address": "0x589f347f67D55cfd0c053b6B569ada34Ac8a1e47",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -259,7 +259,7 @@
                     ]
                 },
                 "CVXStrategy": {
-                    "address": "0x37EE9b268ee9F55C307B6a974496FA733f82C8B3",
+                    "address": "0xE60343a903F0a3122F73B5D2BB9E1bC9491dbf01",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -294,7 +294,7 @@
                     ]
                 },
                 "FXSStrategy": {
-                    "address": "0x6770Ba38F91b9915ea935f39B15ffBB7Dd2622cA",
+                    "address": "0x186C4d1CDDD405E15525DF03f21E3705B9d4F659",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -344,7 +344,7 @@
                     ]
                 },
                 "YCRVStrategy": {
-                    "address": "0xBfcBBF26aCB88D4Fd529DCaeBC3dE6083ccC8746",
+                    "address": "0x4DDeD4525dE7a38AE9273634914194B46d21041a",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
