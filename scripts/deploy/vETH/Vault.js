@@ -11,7 +11,7 @@ const DEPLOY_SETTINGS = {
     symbol: "lvETH",
     governance: getEnv("GOVERNANCE_ACCOUNT"),
     treasury: getEnv("TREASURY_ACCOUNT"),
-    depositLimitWeth: "1000",
+    depositLimitWeth: "750",
     performanceFee: 500,
     managementFee: 70,
 };
