@@ -11,7 +11,7 @@ const DEPLOY_SETTINGS = {
     symbol: "lvAYI",
     governance: getEnv("GOVERNANCE_ACCOUNT"),
     treasury: getEnv("TREASURY_ACCOUNT"),
-    depositLimitUsdc: "500000000",
+    depositLimitUsdc: "500000000000",
     performanceFee: 1500,
     managementFee: 200,
 };
