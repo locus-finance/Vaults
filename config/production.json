@@ -419,7 +419,7 @@
                     ]
                 },
                 "GNSStrategy": {
-                    "address": " ",
+                    "address": "0xF44D535bDEa3733FaDa7CD1d6e3741C7b0fb6346",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "nativeToken": "ETH",
@@ -479,7 +479,7 @@
                     ]
                 },
                 "JOEStrategy": {
-                    "address": " ",
+                    "address": "0x4FE688D11d1606C7a0e801eE98e0245De811b69A",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "nativeToken": "ETH",
