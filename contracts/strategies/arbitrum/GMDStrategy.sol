@@ -80,22 +80,18 @@ contract GMDStrategy is BaseStrategy {
     function _withdrawSome(uint256 _amountNeeded) internal {
         if (_amountNeeded == 0) return;
 
-        if (ethToWant(balanceOfRewards()) >= _amountNeeded) {
+        uint256 rewardsTotal = ethToWant(balanceOfRewards());
+        if (rewardsTotal >= _amountNeeded) {
             _sellRewards();
+            return;
         }
 
         uint256 gmdToUnstake = Math.min(
             balanceOfStakedGmd(),
-            wantToGmd(_amountNeeded - balanceOfWant())
+            wantToGmd(_amountNeeded - rewardsTotal)
         );
 
-        if (gmdToUnstake > 0) {
-            _exitPosition(gmdToUnstake);
-        }
-
-        if (balanceOfWant() < _amountNeeded) {
-            _sellRewards();
-        }
+        _exitPosition(gmdToUnstake);
     }
 
     function _sellRewards() internal {
@@ -120,6 +116,12 @@ contract GMDStrategy is BaseStrategy {
     }
 
     function _exitPosition(uint256 gmdAmount) internal {
+        _sellRewards();
+
+        if (gmdAmount == 0) {
+            return;
+        }
+
         IGMDStaking(GMD_POOL).withdraw(GMD_PID, gmdAmount);
 
         uint256 minAmountOut = (gmdToWant(gmdAmount) * slippage) / 10000;
@@ -282,7 +284,6 @@ contract GMDStrategy is BaseStrategy {
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        _sellRewards();
         _exitPosition(balanceOfStakedGmd());
         return want.balanceOf(address(this));
     }
@@ -291,6 +292,7 @@ contract GMDStrategy is BaseStrategy {
         uint256 _amountNeeded
     ) internal override returns (uint256 _liquidatedAmount, uint256 _loss) {
         uint256 _wantBal = want.balanceOf(address(this));
+
         if (_wantBal >= _amountNeeded) {
             return (_amountNeeded, 0);
         }

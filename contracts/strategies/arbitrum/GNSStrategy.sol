@@ -85,18 +85,18 @@ contract GNSStrategy is BaseStrategy {
     function _withdrawSome(uint256 _amountNeeded) internal {
         if (_amountNeeded == 0) return;
 
-        if (daiToWant(balanceOfRewards()) >= _amountNeeded) {
+        uint256 rewardsTotal = daiToWant(balanceOfRewards());
+        if (rewardsTotal >= _amountNeeded) {
             _sellRewards();
+            return;
         }
 
         uint256 gnsToUnstake = Math.min(
             balanceOfStakedGns(),
-            wantToGns(_amountNeeded - balanceOfWant())
+            wantToGns(_amountNeeded - rewardsTotal)
         );
 
-        if (gnsToUnstake > 0) {
-            _exitPosition(gnsToUnstake);
-        }
+        _exitPosition(gnsToUnstake);
     }
 
     function _sellRewards() internal {
@@ -119,6 +119,12 @@ contract GNSStrategy is BaseStrategy {
     }
 
     function _exitPosition(uint256 gnsAmount) internal {
+        _sellRewards();
+
+        if (gnsAmount == 0) {
+            return;
+        }
+
         IGNSVault(GNS_VAULT).unstakeTokens(gnsAmount);
 
         uint256 minAmountOut = (gnsToWant(gnsAmount) * slippage) / 10000;
@@ -295,7 +301,6 @@ contract GNSStrategy is BaseStrategy {
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        _sellRewards();
         _exitPosition(balanceOfStakedGns());
         return want.balanceOf(address(this));
     }
