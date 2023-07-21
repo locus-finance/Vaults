@@ -479,7 +479,7 @@
                     ]
                 },
                 "JOEStrategy": {
-                    "address": "0x4FE688D11d1606C7a0e801eE98e0245De811b69A",
+                    "address": "0x7dc1376170D033Bfb604B43AAAb7E74824cE2Edf",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "nativeToken": "ETH",
