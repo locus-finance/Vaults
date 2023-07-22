@@ -35,7 +35,7 @@ contract GMDStrategy is BaseStrategy {
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
 
-    uint256 public slippage = 9900; // 1%
+    uint256 public slippage = 9700; // 3%
 
     constructor(address _vault) BaseStrategy(_vault) {
         want.safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);

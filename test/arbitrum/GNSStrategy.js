@@ -29,7 +29,7 @@ describe("GNSStrategy", function () {
         },
         WETH: {
             address: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
-            whale: "0xdc57a80b7ba9ff11b917eea47936ae29eae1ef39",
+            whale: "0x940a7ed683a60220de573ab702ec8f789ef0a402",
             decimals: 18,
         },
         USDT: {
