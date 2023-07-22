@@ -37,7 +37,6 @@ contract GNSStrategy is BaseStrategy {
     uint24 internal constant DAI_USDC_UNI_FEE = 100;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
-    uint32 internal constant DAI_USDC_TWAP_RANGE_SECS = 1200;
 
     uint256 public slippage = 9700; // 3%
 
@@ -205,17 +204,7 @@ contract GNSStrategy is BaseStrategy {
     }
 
     function daiToWant(uint256 daiAmount) public view returns (uint256) {
-        (int24 meanTick, ) = OracleLibrary.consult(
-            DAI_USDC_UNI_V3_POOL,
-            DAI_USDC_TWAP_RANGE_SECS
-        );
-        return
-            OracleLibrary.getQuoteAtTick(
-                meanTick,
-                uint128(daiAmount),
-                DAI,
-                address(want)
-            );
+        return Utils.scaleDecimals(daiAmount, ERC20(DAI), ERC20(address(want)));
     }
 
     function estimatedTotalAssets()
