@@ -390,8 +390,8 @@
             "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
             "address": "0xBE55f53aD3B48B3ca785299f763d39e8a12B1f98",
             "decimals": "6",
-            "managementFee": "2",
-            "performanceFee": "15",
+            "managementFee": "1.5",
+            "performanceFee": "10",
             "strategies": {
                 "GMXStrategy": {
                     "address": "0x8e84FA3F87C4965F91EF5b218891295515d62E85",

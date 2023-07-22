@@ -12,8 +12,8 @@ const DEPLOY_SETTINGS = {
     governance: getEnv("GOVERNANCE_ACCOUNT"),
     treasury: getEnv("TREASURY_ACCOUNT"),
     depositLimitUsdc: "500000000000",
-    performanceFee: 1500,
-    managementFee: 200,
+    performanceFee: 1000,
+    managementFee: 150,
 };
 
 async function main() {
