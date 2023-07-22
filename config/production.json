@@ -387,7 +387,7 @@
                 "name": "ARBITRUM ONE"
             },
             "wantTokenTicker": "USDC",
-            "wantTokenAddress": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+            "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
             "address": "0xBE55f53aD3B48B3ca785299f763d39e8a12B1f98",
             "decimals": "6",
             "managementFee": "2",
@@ -399,7 +399,7 @@
                     "chainId": "42161",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "USDC",
-                    "wantTokenAddress": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
                     "protocols": [
                         {
                             "name": "GMX",
@@ -424,7 +424,7 @@
                     "chainId": "42161",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "USDC",
-                    "wantTokenAddress": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
                     "protocols": [
                         {
                             "name": "GNS",
@@ -454,7 +454,7 @@
                     "chainId": "42161",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "USDC",
-                    "wantTokenAddress": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
                     "protocols": [
                         {
                             "name": "GMD",
@@ -484,7 +484,7 @@
                     "chainId": "42161",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "USDC",
-                    "wantTokenAddress": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
                     "protocols": [
                         {
                             "name": "JOE",
