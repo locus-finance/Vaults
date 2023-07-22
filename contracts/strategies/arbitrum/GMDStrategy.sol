@@ -182,7 +182,7 @@ contract GMDStrategy is BaseStrategy {
                     meanTick,
                     uint128(gmdAmount),
                     GMD,
-                    address(want)
+                    address(WETH)
                 )
             );
     }
@@ -196,7 +196,7 @@ contract GMDStrategy is BaseStrategy {
             OracleLibrary.getQuoteAtTick(
                 meanTick,
                 uint128(wantToEth(wantAmount)),
-                address(want),
+                address(WETH),
                 GMD
             );
     }
