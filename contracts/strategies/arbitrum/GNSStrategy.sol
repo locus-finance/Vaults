@@ -29,8 +29,6 @@ contract GNSStrategy is BaseStrategy {
         0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443;
     address internal constant GNS_ETH_UNI_V3_POOL =
         0xC91B7b39BBB2c733f0e7459348FD0c80259c8471;
-    address internal constant DAI_USDC_UNI_V3_POOL =
-        0xF0428617433652c9dc6D1093A42AdFbF30D29f74;
 
     uint24 internal constant ETH_USDC_UNI_FEE = 500;
     uint24 internal constant GNS_ETH_UNI_FEE = 3000;
