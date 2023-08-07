@@ -216,7 +216,7 @@ contract LidoAuraStrategy is BaseStrategy {
     }
 
     function getBptPrice() public view returns (uint256 price) {
-        address priceOracle = 0x1E19CF2D73a72Ef1332C882F20534B6519Be0276;
+        address priceOracle = 0x32296969Ef14EB0c6d29669C550D4a0449130230;
         IBalancerPriceOracle.OracleAverageQuery[] memory queries;
         queries = new IBalancerPriceOracle.OracleAverageQuery[](1);
         queries[0] = IBalancerPriceOracle.OracleAverageQuery({
