@@ -69,7 +69,7 @@
                     ]
                 },
                 "LidoAuraStrategy": {
-                    "address": "0x05B942FCa75f624e36d1596D2674C834eCd39F8D",
+                    "address": "0x1CB7385AbAF068bD22af4A4D364dE6e583dfce4e",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",

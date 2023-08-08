@@ -57,7 +57,7 @@ describe("YCRVStrategy", function () {
             TOKENS.ST_YCRV.address
         );
 
-        const name = "dVault";
+        const name = "vlDCI";
         const symbol = "vDeFi";
         const Vault = await ethers.getContractFactory("Vault");
         const vault = await Vault.deploy();

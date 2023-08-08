@@ -13,7 +13,7 @@ const DEPLOY_SETTINGS = {
         maxDebtHarvestWeth: "100000",
     },
     LidoAuraStrategy: {
-        ratio: "4700",
+        ratio: "4000",
         minDebtHarvestWeth: "0",
         maxDebtHarvestWeth: "100000",
     },

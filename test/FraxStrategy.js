@@ -51,7 +51,7 @@ describe("FraxStrategy", function () {
         await want.connect(whale).deposit({value: ethers.utils.parseEther("10")});
 
         const name = "ETH Vault";
-        const symbol = "vETH";
+        const symbol = "vlETH";
         const Vault = await ethers.getContractFactory('Vault');
         const vault = await Vault.deploy();
         await vault.deployed();
