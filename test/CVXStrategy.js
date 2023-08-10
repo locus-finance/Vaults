@@ -20,7 +20,7 @@ describe("CVXStrategy", function () {
     const TOKENS = {
         USDC: {
             address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-            whale: "0xf646d9B7d20BABE204a89235774248BA18086dae",
+            whale: "0x47ac0Fb4F2D84898e4D9E7b4DaB3C24507a6D503",
             decimals: 6,
         },
         ETH: {
@@ -274,6 +274,7 @@ describe("CVXStrategy", function () {
             ethers.utils.parseUnits("100", 6)
         );
 
+        await mine(300, { interval: 20 });
         await strategy.connect(deployer).tend();
 
         await vault

@@ -8,7 +8,6 @@ require("@nomiclabs/hardhat-vyper");
 require('hardhat-gas-reporter');
 require('hardhat-log-remover');
 require('hardhat-abi-exporter');
-require("hardhat-tracer");
 require('dotenv').config();
 require('solidity-coverage');
 
@@ -31,21 +30,43 @@ module.exports = {
     },
     solidity: {
         compilers: [
-        {
-            version: "0.8.18",
-            settings: {
-                optimizer: {
-                    enabled: true,
-                    runs: 50,
-                },
-                outputSelection: {
-                    "*": {
-                        "*": ["storageLayout"],
+            {
+                version: "0.8.20",
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 50,
+                    },
+                    outputSelection: {
+                        "*": {
+                            "*": ["storageLayout"],
+                        },
                     },
                 },
             },
-        },
+            {
+                version: "0.8.18",
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 50,
+                    },
+                    outputSelection: {
+                        "*": {
+                            "*": ["storageLayout"],
+                        },
+                    },
+                },
+            },
         ],
+        overrides: {
+            "contracts/strategies/arbitrum/*.sol": {
+                version: "0.8.18",
+            },
+            "contracts/mock/arbitrum/*.sol": {
+                version: "0.8.18",
+            }
+        }
     },
     vyper: {
         version: "0.3.3",

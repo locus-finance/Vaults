@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.18;
 
-import {JOEStrategy, ERC20} from "../strategies/arbitrum/JOEStrategy.sol";
+import {JOEStrategy, ERC20} from "../../strategies/arbitrum/JOEStrategy.sol";
 
 contract MockJOEStrategy is JOEStrategy {
     bool internal _isWantToJoeOverriden;

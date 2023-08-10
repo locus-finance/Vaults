@@ -127,21 +127,21 @@ contract YCRVStrategy is BaseStrategy {
         uint256 yCrvBalance = balanceOfYCrv();
 
         address[9] memory _route = [
-            yCRV,
-            0x453D92C7d4263201C69aACfaf589Ed14202d83a4, // yCRV pool
+            yCRV, // yCRV
+            0x99f5aCc8EC2Da2BC0771c32814EFF52b712de1E5, // yCRV pool
             0xD533a949740bb3306d119CC777fa900bA034cd52, // CRV
-            0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511, // crveth pool
-            0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE, // ETH
-            0xD51a44d3FaE010294C616388b506AcdA1bfAAE46, // tricrypto2 pool
-            0xdAC17F958D2ee523a2206206994597C13D831ec7, // USDT
-            0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7, // 3pool
-            address(want) // USDC
+            0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14, // TriCRV pool
+            0xf939E0A03FB07F59A73314E73794Be0E57ac1b4E, // crvUSD
+            0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E, // crvUSD/USDC pool
+            address(want), // USDC
+            address(0),
+            address(0)
         ];
         uint256[3][4] memory _swap_params = [
             [uint256(1), uint256(0), uint256(1)], // yCRV -> CRV, stable swap exchange
-            [uint256(1), uint256(0), uint256(3)], // CRV -> ETH, cryptoswap exchange
-            [uint256(2), uint256(0), uint256(3)], // ETH -> USDT, cryptoswap exchange
-            [uint256(2), uint256(1), uint256(1)] // USDT -> USDC, stable swap exchange
+            [uint256(2), uint256(0), uint256(3)], // CRV -> crvUSD, cryptoswap exchange
+            [uint256(1), uint256(0), uint256(1)], // crvUSD -> USDC, stable swap exchange
+            [uint256(0), uint256(0), uint256(0)]
         ];
         uint256 _expected = (yCrvToWant(yCrvBalance) * slippage) / 10000;
 
@@ -235,21 +235,22 @@ contract YCRVStrategy is BaseStrategy {
 
             address[9] memory _route = [
                 address(want),
-                0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7, // 3pool
-                0xdAC17F958D2ee523a2206206994597C13D831ec7, // USDT
-                0xD51a44d3FaE010294C616388b506AcdA1bfAAE46, // tricrypto2 pool
-                0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE, // ETH
-                0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511, // crveth pool
+                0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E, // crvUSD/USDC pool
+                0xf939E0A03FB07F59A73314E73794Be0E57ac1b4E, // crvUSD
+                0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14, // TriCRV pool
                 0xD533a949740bb3306d119CC777fa900bA034cd52, // CRV
-                0x453D92C7d4263201C69aACfaf589Ed14202d83a4, // yCRV pool
-                yCRV // yCRV
+                0x99f5aCc8EC2Da2BC0771c32814EFF52b712de1E5, // yCRV pool
+                yCRV, // yCRV
+                address(0),
+                address(0)
             ];
             uint256[3][4] memory _swap_params = [
-                [uint256(1), uint256(2), uint256(1)], // USDC -> USDT, stable swap exchange
-                [uint256(0), uint256(2), uint256(3)], // USDT -> ETH, cryptoswap exchange
-                [uint256(0), uint256(1), uint256(3)], // ETH -> CRV, cryptoswap exchange
-                [uint256(0), uint256(1), uint256(1)] // CRV -> yCRV, stable swap exchange
+                [uint256(0), uint256(1), uint256(1)], // USDC -> crvUSD, stable swap exchange
+                [uint256(0), uint256(2), uint256(3)], // crvUSD -> CRV, cryptoswap exchange
+                [uint256(0), uint256(1), uint256(1)], // CRV -> yCRV, stable swap exchange
+                [uint256(0), uint256(0), uint256(0)]
             ];
+
             uint256 _expected = (wantToYCrv(_excessWant) * slippage) / 10000;
             ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
                 _route,
