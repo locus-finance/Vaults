@@ -28,21 +28,28 @@ contract JOEStrategy is BaseStrategy {
     address internal constant STABLE_JOE_STAKING =
         0x43646A8e839B2f2766392C1BF8f60F6e587B6960;
 
-    // As of moment of writing, this is the only reward token for staking JOE.
-    // It is the same as the want token of this strategy (USDC).
-    // We also support reward token to be JOE as this could happen in the future.
-    // Strategist can set this to JOE if we want to claim JOE rewards.
-    address public JOE_REWARD_TOKEN =
-        0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8;
+    address public JOE_REWARD_TOKEN;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
-    uint256 public slippage = 9500; // 5%
+    uint256 public slippage;
 
-    constructor(address _vault) BaseStrategy(_vault) {
+    constructor(address _vault) BaseStrategy(_vault) {}
+
+    function initialize(address _vault, address _strategist) external {
+        _initialize(_vault, _strategist, _strategist, _strategist);
+
         IERC20(JOE).safeApprove(STABLE_JOE_STAKING, type(uint256).max);
         IERC20(JOE).safeApprove(JOE_LB_ROUTER, type(uint256).max);
 
         want.safeApprove(JOE_LB_ROUTER, type(uint256).max);
+
+        // As of moment of writing, this is the only reward token for staking JOE.
+        // It is the same as the want token of this strategy (USDC).
+        // We also support reward token to be JOE as this could happen in the future.
+        // Strategist can set this to JOE if we want to claim JOE rewards.
+        JOE_REWARD_TOKEN = 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8;
+
+        slippage = 9500; // 5%
     }
 
     function setRewardToken(address _rewardToken) external onlyStrategist {

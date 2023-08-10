@@ -76,7 +76,16 @@ describe("CVXStrategy", function () {
         );
 
         const CVXStrategy = await ethers.getContractFactory("MockCVXStrategy");
-        const strategy = await CVXStrategy.deploy(vault.address);
+        const strategy = await upgrades.deployProxy(
+            CVXStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await strategy.deployed();
 
         await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
@@ -198,7 +207,7 @@ describe("CVXStrategy", function () {
         );
 
         // Mining blocks for unlocking all profit so whale can withdraw
-        mine(36000);
+        mine(36000, { interval: 20 });
 
         await vault
             .connect(whale)
@@ -547,7 +556,16 @@ describe("CVXStrategy", function () {
         );
 
         const CVXStrategy = await ethers.getContractFactory("CVXStrategy");
-        const newStrategy = await CVXStrategy.deploy(vault.address);
+        const newStrategy = await upgrades.deployProxy(
+            CVXStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await newStrategy.deployed();
 
         const curveLPStaked = await strategy.balanceOfCurveLPStaked();

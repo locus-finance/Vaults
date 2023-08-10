@@ -7,7 +7,7 @@ const {
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
 const { utils } = require("ethers");
-const { ethers } = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 
 const { getEnv } = require("../scripts/utils");
 
@@ -77,7 +77,16 @@ describe("YCRVStrategy", function () {
         const YCRVStrategy = await ethers.getContractFactory(
             "MockYCRVStrategy"
         );
-        const strategy = await YCRVStrategy.deploy(vault.address);
+        const strategy = await upgrades.deployProxy(
+            YCRVStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await strategy.deployed();
 
         await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
@@ -535,7 +544,16 @@ describe("YCRVStrategy", function () {
         );
 
         const YCRVStrategy = await ethers.getContractFactory("YCRVStrategy");
-        const newStrategy = await YCRVStrategy.deploy(vault.address);
+        const newStrategy = await upgrades.deployProxy(
+            YCRVStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await newStrategy.deployed();
 
         await vault["migrateStrategy(address,address)"](

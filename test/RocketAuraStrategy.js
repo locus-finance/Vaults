@@ -88,7 +88,16 @@ describe("RocketAuraStrategy", function () {
         const RocketAuraStrategy = await ethers.getContractFactory(
             "RocketAuraStrategy"
         );
-        const strategy = await RocketAuraStrategy.deploy(vault.address);
+        const strategy = await upgrades.deployProxy(
+            RocketAuraStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await strategy.deployed();
 
         await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
@@ -545,7 +554,16 @@ describe("RocketAuraStrategy", function () {
         const RocketAuraStrategy = await ethers.getContractFactory(
             "RocketAuraStrategy"
         );
-        const newStrategy = await RocketAuraStrategy.deploy(vault.address);
+        const newStrategy = await upgrades.deployProxy(
+            RocketAuraStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await newStrategy.deployed();
 
         const auraToken = await hre.ethers.getContractAt(IERC20_SOURCE, aura);

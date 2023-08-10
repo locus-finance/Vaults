@@ -81,7 +81,16 @@ describe("FXSStrategy", function () {
         );
 
         const FXSStrategy = await ethers.getContractFactory("MockFXSStrategy");
-        const strategy = await FXSStrategy.deploy(vault.address);
+        const strategy = await upgrades.deployProxy(
+            FXSStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await strategy.deployed();
 
         await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
@@ -551,7 +560,16 @@ describe("FXSStrategy", function () {
         );
 
         const FXSStrategy = await ethers.getContractFactory("FXSStrategy");
-        const newStrategy = await FXSStrategy.deploy(vault.address);
+        const newStrategy = await upgrades.deployProxy(
+            FXSStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await newStrategy.deployed();
 
         const curveLPStaked = await strategy.balanceOfCurveLPStaked();

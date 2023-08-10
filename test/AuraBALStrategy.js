@@ -77,7 +77,16 @@ describe("AuraBALStrategy", function () {
         const AuraBALStrategy = await ethers.getContractFactory(
             "MockAuraBALStrategy"
         );
-        const strategy = await AuraBALStrategy.deploy(vault.address);
+        const strategy = await upgrades.deployProxy(
+            AuraBALStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await strategy.deployed();
 
         await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
@@ -550,7 +559,16 @@ describe("AuraBALStrategy", function () {
         const AuraBALStrategy = await ethers.getContractFactory(
             "AuraBALStrategy"
         );
-        const newStrategy = await AuraBALStrategy.deploy(vault.address);
+        const newStrategy = await upgrades.deployProxy(
+            AuraBALStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await newStrategy.deployed();
 
         await vault["migrateStrategy(address,address)"](

@@ -43,11 +43,15 @@ contract CVXStrategy is BaseStrategy {
         0x834B9147Fd23bF131644aBC6e557Daf99C5cDa15;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
-    uint256 public slippage = 9300; // 7%
+    uint256 public slippage;
 
-    uint256 private immutable WANT_DECIMALS;
+    uint256 private WANT_DECIMALS;
 
-    constructor(address _vault) BaseStrategy(_vault) {
+    constructor(address _vault) BaseStrategy(_vault) {}
+
+    function initialize(address _vault, address _strategist) external {
+        _initialize(_vault, _strategist, _strategist, _strategist);
+
         want.safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
         IERC20(CRV).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
         IERC20(CVX).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
@@ -60,6 +64,7 @@ contract CVXStrategy is BaseStrategy {
             type(uint256).max
         );
         WANT_DECIMALS = ERC20(address(want)).decimals();
+        slippage = 9300; // 7%
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {

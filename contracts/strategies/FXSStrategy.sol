@@ -61,11 +61,15 @@ contract FXSStrategy is BaseStrategy {
         0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
-    uint256 public slippage = 9300; // 7%
+    uint256 public slippage;
 
-    uint256 private immutable WANT_DECIMALS;
+    uint256 private WANT_DECIMALS;
 
-    constructor(address _vault) BaseStrategy(_vault) {
+    constructor(address _vault) BaseStrategy(_vault) {}
+
+    function initialize(address _vault, address _strategist) external {
+        _initialize(_vault, _strategist, _strategist, _strategist);
+
         IERC20(CRV).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
         IERC20(CVX).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
         IERC20(CURVE_FXS_LP).safeApprove(FXS_CONVEX_DEPOSIT, type(uint256).max);
@@ -75,6 +79,7 @@ contract FXSStrategy is BaseStrategy {
 
         want.safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
         WANT_DECIMALS = ERC20(address(want)).decimals();
+        slippage = 9300; // 7%
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {

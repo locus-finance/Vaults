@@ -29,12 +29,17 @@ contract YCRVStrategy is BaseStrategy {
         0x99a58482BD75cbab83b27EC03CA68fF489b5788f;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
-    uint256 public slippage = 9500; // 5%
+    uint256 public slippage;
 
-    constructor(address _vault) BaseStrategy(_vault) {
+    constructor(address _vault) BaseStrategy(_vault) {}
+
+    function initialize(address _vault, address _strategist) external {
+        _initialize(_vault, _strategist, _strategist, _strategist);
+
         want.safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
         IERC20(yCRV).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
         IERC20(yCRV).safeApprove(yCRVVault, type(uint256).max);
+        slippage = 9500; // 5%
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {

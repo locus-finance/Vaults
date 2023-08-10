@@ -55,14 +55,17 @@ contract LidoAuraStrategy is BaseStrategy {
             0xc29562b045d80fd77c69bec09541f5c16fe20d9d000200000000000000000251
         );
 
-    uint256 public bptSlippage = 9850; // 1.5%
-    uint256 public rewardsSlippage = 9700; // 3%
+    uint256 public bptSlippage;
+    uint256 public rewardsSlippage;
 
-    uint256 public AURA_PID = 115;
-    address public auraBStethStable =
-        0x59D66C58E83A26d6a0E35114323f65c3945c89c1;
+    uint256 public AURA_PID;
+    address public auraBStethStable;
 
-    constructor(address _vault) BaseStrategy(_vault) {
+    constructor(address _vault) BaseStrategy(_vault) {}
+
+    function initialize(address _vault, address _strategist) external {
+        _initialize(_vault, _strategist, _strategist, _strategist);
+
         want.safeApprove(address(balancerVault), type(uint256).max);
         IERC20(bStethStable).safeApprove(auraBooster, type(uint256).max);
         IERC20(auraToken).safeApprove(
@@ -70,6 +73,12 @@ contract LidoAuraStrategy is BaseStrategy {
             type(uint256).max
         );
         IERC20(balToken).safeApprove(address(balancerVault), type(uint256).max);
+
+        bptSlippage = 9850; // 1.5%
+        rewardsSlippage = 9700; // 3%
+
+        AURA_PID = 115;
+        auraBStethStable = 0x59D66C58E83A26d6a0E35114323f65c3945c89c1;
     }
 
     function name() external view override returns (string memory) {

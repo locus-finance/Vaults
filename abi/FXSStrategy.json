@@ -37,6 +37,7 @@
   "function harvest()",
   "function harvestTrigger(uint256) view returns (bool)",
   "function healthCheck() view returns (address)",
+  "function initialize(address,address)",
   "function isActive() view returns (bool)",
   "function isBaseFeeAcceptable() view returns (bool)",
   "function keeper() view returns (address)",

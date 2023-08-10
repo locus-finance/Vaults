@@ -35,13 +35,18 @@ contract GMDStrategy is BaseStrategy {
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
 
-    uint256 public slippage = 9700; // 3%
+    uint256 public slippage;
 
-    constructor(address _vault) BaseStrategy(_vault) {
+    constructor(address _vault) BaseStrategy(_vault) {}
+
+    function initialize(address _vault, address _strategist) external {
+        _initialize(_vault, _strategist, _strategist, _strategist);
         want.safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
         IERC20(WETH).safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
         IERC20(GMD).safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
         IERC20(GMD).safeApprove(GMD_POOL, type(uint256).max);
+
+        slippage = 9700; // 3%
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {
