@@ -64,7 +64,7 @@ contract CVXStrategy is BaseStrategy {
             type(uint256).max
         );
         WANT_DECIMALS = ERC20(address(want)).decimals();
-        slippage = 9300; // 7%
+        slippage = 9500; // 5%
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {
