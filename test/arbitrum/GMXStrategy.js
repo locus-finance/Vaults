@@ -17,6 +17,8 @@ const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 const ARBITRUM_NODE_URL = getEnv("ARBITRUM_NODE");
 const ARBITRUM_FORK_BLOCK = getEnv("ARBITRUM_FORK_BLOCK");
 
+upgrades.silenceWarnings();
+
 describe("GMXStrategy", function () {
     const TOKENS = {
         USDC: {

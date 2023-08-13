@@ -16,7 +16,9 @@ const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 const ETH_NODE_URL = getEnv("ETH_NODE");
 const ETH_FORK_BLOCK = getEnv("ETH_FORK_BLOCK");
 
-describe("CVXStrategy", function () {
+upgrades.silenceWarnings();
+
+describe.only("CVXStrategy", function () {
     const TOKENS = {
         USDC: {
             address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",

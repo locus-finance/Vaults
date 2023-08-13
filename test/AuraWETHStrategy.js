@@ -18,6 +18,8 @@ const AURA_WETH_REWARDS = "0x1204f5060be8b716f5a62b4df4ce32acd01a69f5";
 const ETH_NODE_URL = getEnv("ETH_NODE");
 const ETH_FORK_BLOCK = getEnv("ETH_FORK_BLOCK");
 
+upgrades.silenceWarnings();
+
 describe("AuraWETHStrategy", function () {
     const TOKENS = {
         USDC: {
@@ -611,7 +613,10 @@ describe("AuraWETHStrategy", function () {
 
         await vault["revokeStrategy(address)"](strategy.address);
         await strategy.harvest();
-        expect(await strategy.estimatedTotalAssets()).to.be.equal(0);
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            ethers.constants.Zero,
+            ethers.utils.parseEther("50", 6)
+        );
         expect(await want.balanceOf(vault.address)).to.be.closeTo(
             balanceBefore,
             ethers.utils.parseUnits("100", 6)

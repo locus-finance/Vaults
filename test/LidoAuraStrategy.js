@@ -22,6 +22,8 @@ const auraBStethStable = "0x59d66c58e83a26d6a0e35114323f65c3945c89c1";
 const ETH_NODE_URL = getEnv("ETH_NODE");
 const ETH_FORK_BLOCK = getEnv("ETH_FORK_BLOCK");
 
+upgrades.silenceWarnings();
+
 describe("LidoAuraStrategy", function () {
     async function deployContractAndSetVariables() {
         await reset(ETH_NODE_URL, Number(ETH_FORK_BLOCK));
