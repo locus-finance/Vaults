@@ -67,17 +67,6 @@ async function main() {
         }\n`
     );
 
-    const addStrategyTx = await vault[
-        "addStrategy(address,uint256,uint256,uint256,uint256)"
-    ](
-        strategy.address,
-        Number(ratio),
-        ethers.utils.parseUnits(minDebtHarvestUsdc, USDC_DECIMALS),
-        ethers.utils.parseUnits(maxDebtHarvestUsdc, USDC_DECIMALS),
-        0
-    );
-    await addStrategyTx.wait();
-
     console.log(
         "Vault strategy indicators:",
         await vault.strategies(strategy.address)

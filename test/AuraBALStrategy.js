@@ -59,7 +59,7 @@ describe("AuraBALStrategy", function () {
         const USDC_ADDRESS = TOKENS.USDC.address;
         const want = await ethers.getContractAt(IERC20_SOURCE, USDC_ADDRESS);
 
-        const name = "vlDCI";
+        const name = "lvDCI";
         const symbol = "vDeFi";
         const Vault = await ethers.getContractFactory("Vault");
         const vault = await Vault.deploy();

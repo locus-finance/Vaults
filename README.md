@@ -48,15 +48,15 @@ TARGET_STRATEGY="FraxStrategy" VETH_ADDRESS="0x3edbE670D03C4A71367dedA78E73EA4f8
 
 TARGET_STRATEGY="LidoAuraStrategy" VETH_ADDRESS="0x3edbE670D03C4A71367dedA78E73EA4f8d68F2E4" npx hardhat run scripts/deploy/vETH/Strategy.js --network mainnet
 
-TARGET_STRATEGY="AuraBALStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/dVault/Strategy.js --network mainnet
+TARGET_STRATEGY="AuraBALStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/lvDCI/Strategy.js --network mainnet
 
-TARGET_STRATEGY="AuraWETHStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/dVault/Strategy.js --network mainnet
+TARGET_STRATEGY="AuraWETHStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/lvDCI/Strategy.js --network mainnet
 
-TARGET_STRATEGY="CVXStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/dVault/Strategy.js --network mainnet
+TARGET_STRATEGY="CVXStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/lvDCI/Strategy.js --network mainnet
 
-TARGET_STRATEGY="FXSStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/dVault/Strategy.js --network mainnet
+TARGET_STRATEGY="FXSStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/lvDCI/Strategy.js --network mainnet
 
-TARGET_STRATEGY="YCRVStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/dVault/Strategy.js --network mainnet
+TARGET_STRATEGY="YCRVStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/lvDCI/Strategy.js --network mainnet
 
 TARGET_STRATEGY="GMDStrategy" DVAULT_ADDRESS="0xeC0cA44558a46873B47ccC562Fc2A0DD87bb0EE1" npx hardhat run scripts/deploy/daVault/Strategy.js --network arbitrum
 

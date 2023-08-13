@@ -259,7 +259,7 @@
                     ]
                 },
                 "CVXStrategy": {
-                    "address": "0xE60343a903F0a3122F73B5D2BB9E1bC9491dbf01",
+                    "address": "0x10e17b5aDbccb8B8E9657Fb1Fa5a688f58D88850",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -294,7 +294,7 @@
                     ]
                 },
                 "FXSStrategy": {
-                    "address": "0x186C4d1CDDD405E15525DF03f21E3705B9d4F659",
+                    "address": "0x18b9430d9ab251f7C27b7F2E922d2b0AF7506526",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -344,7 +344,7 @@
                     ]
                 },
                 "YCRVStrategy": {
-                    "address": "0x4DDeD4525dE7a38AE9273634914194B46d21041a",
+                    "address": "0x3E5e9B5E4C08f1d0E7d5a75204edcd57e44ee2cf",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
