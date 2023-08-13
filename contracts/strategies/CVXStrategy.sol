@@ -43,11 +43,15 @@ contract CVXStrategy is BaseStrategy {
         0x834B9147Fd23bF131644aBC6e557Daf99C5cDa15;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
-    uint256 public slippage = 9300; // 7%
+    uint256 public slippage;
 
-    uint256 private immutable WANT_DECIMALS;
+    uint256 private WANT_DECIMALS;
 
-    constructor(address _vault) BaseStrategy(_vault) {
+    constructor(address _vault) BaseStrategy(_vault) {}
+
+    function initialize(address _vault, address _strategist) external {
+        _initialize(_vault, _strategist, _strategist, _strategist);
+
         want.safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
         IERC20(CRV).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
         IERC20(CVX).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
@@ -60,6 +64,7 @@ contract CVXStrategy is BaseStrategy {
             type(uint256).max
         );
         WANT_DECIMALS = ERC20(address(want)).decimals();
+        slippage = 9500; // 5%
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {
@@ -325,7 +330,7 @@ contract CVXStrategy is BaseStrategy {
                 CVX, // CVX
                 0xB576491F1E6e5E62f1d8F26062Ee822B40B0E0d4, // cvxeth pool
                 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE, // ETH
-                0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511, // crveth pool
+                0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14, // TriCRV pool
                 CRV, // CRV
                 address(0),
                 address(0),
@@ -333,8 +338,8 @@ contract CVXStrategy is BaseStrategy {
                 address(0)
             ];
             uint256[3][4] memory _swap_params = [
-                [uint256(1), uint256(0), uint256(3)], // CVX -> ETH, cryptoswap exchange
-                [uint256(0), uint256(1), uint256(3)], // ETH -> CRV, cryptoswap exchange
+                [uint256(1), uint256(0), uint256(3)], // CVX -> WETH, cryptoswap exchange
+                [uint256(1), uint256(2), uint256(3)], // WETH -> CRV, cryptoswap exchange
                 [uint256(0), uint256(0), uint256(0)],
                 [uint256(0), uint256(0), uint256(0)]
             ];
@@ -351,20 +356,20 @@ contract CVXStrategy is BaseStrategy {
 
         if (_crvAmount > 0) {
             address[9] memory _route = [
-                CRV, // CRV
-                0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511, // crveth pool
-                0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE, // ETH
-                0xD51a44d3FaE010294C616388b506AcdA1bfAAE46, // tricrypto2 pool
-                0xdAC17F958D2ee523a2206206994597C13D831ec7, // USDT
-                0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7, // 3pool
-                address(want), // USDC
+                0xD533a949740bb3306d119CC777fa900bA034cd52, // CRV
+                0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14, // TriCRV pool
+                0xf939E0A03FB07F59A73314E73794Be0E57ac1b4E, // crvUSD
+                0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E, // crvUSD/USDC pool
+                address(want),
+                address(0),
+                address(0),
                 address(0),
                 address(0)
             ];
             uint256[3][4] memory _swap_params = [
-                [uint256(1), uint256(0), uint256(3)], // CRV -> ETH, cryptoswap exchange
-                [uint256(2), uint256(0), uint256(3)], // ETH -> USDT, cryptoswap exchange
-                [uint256(2), uint256(1), uint256(1)], // USDT -> USDC, stable swap exchange
+                [uint256(2), uint256(0), uint256(3)], // CRV -> crvUSD, cryptoswap exchange
+                [uint256(1), uint256(0), uint256(1)], // crvUSD -> USDC, stable swap exchange
+                [uint256(0), uint256(0), uint256(0)],
                 [uint256(0), uint256(0), uint256(0)]
             ];
             uint256 _expected = (crvToWant(_crvAmount) * slippage) / 10000;

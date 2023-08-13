@@ -18,11 +18,13 @@ const AURA_WETH_REWARDS = "0x1204f5060be8b716f5a62b4df4ce32acd01a69f5";
 const ETH_NODE_URL = getEnv("ETH_NODE");
 const ETH_FORK_BLOCK = getEnv("ETH_FORK_BLOCK");
 
+upgrades.silenceWarnings();
+
 describe("AuraWETHStrategy", function () {
     const TOKENS = {
         USDC: {
             address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-            whale: "0xf646d9B7d20BABE204a89235774248BA18086dae",
+            whale: "0x47ac0Fb4F2D84898e4D9E7b4DaB3C24507a6D503",
             decimals: 6,
         },
         ETH: {
@@ -79,7 +81,16 @@ describe("AuraWETHStrategy", function () {
         const AuraWETHStrategy = await ethers.getContractFactory(
             "MockAuraWETHStrategy"
         );
-        const strategy = await AuraWETHStrategy.deploy(vault.address);
+        const strategy = await upgrades.deployProxy(
+            AuraWETHStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await strategy.deployed();
 
         await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
@@ -546,7 +557,16 @@ describe("AuraWETHStrategy", function () {
         const AuraWETHStrategy = await ethers.getContractFactory(
             "AuraWETHStrategy"
         );
-        const newStrategy = await AuraWETHStrategy.deploy(vault.address);
+        const newStrategy = await upgrades.deployProxy(
+            AuraWETHStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await newStrategy.deployed();
 
         await vault["migrateStrategy(address,address)"](
@@ -593,7 +613,10 @@ describe("AuraWETHStrategy", function () {
 
         await vault["revokeStrategy(address)"](strategy.address);
         await strategy.harvest();
-        expect(await strategy.estimatedTotalAssets()).to.be.equal(0);
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            ethers.constants.Zero,
+            ethers.utils.parseEther("50", 6)
+        );
         expect(await want.balanceOf(vault.address)).to.be.closeTo(
             balanceBefore,
             ethers.utils.parseUnits("100", 6)

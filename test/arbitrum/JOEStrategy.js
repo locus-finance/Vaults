@@ -17,6 +17,8 @@ const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 const ARBITRUM_NODE_URL = getEnv("ARBITRUM_NODE");
 const ARBITRUM_FORK_BLOCK = getEnv("ARBITRUM_FORK_BLOCK");
 
+upgrades.silenceWarnings();
+
 describe("JOEStrategy", function () {
     const TOKENS = {
         USDC: {
@@ -36,7 +38,7 @@ describe("JOEStrategy", function () {
         },
         JOE: {
             address: "0x371c7ec6D8039ff7933a2AA28EB827Ffe1F52f07",
-            whale: "0x1446e040b1ef8253b48fc09930576d9b67142804",
+            whale: "0xf977814e90da44bfa03b6295a0616a897441acec",
             decimals: 18,
         },
     };
@@ -69,7 +71,16 @@ describe("JOEStrategy", function () {
         );
 
         const JOEStrategy = await ethers.getContractFactory("MockJOEStrategy");
-        const strategy = await JOEStrategy.deploy(vault.address);
+        const strategy = await upgrades.deployProxy(
+            JOEStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await strategy.deployed();
 
         await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
@@ -560,7 +571,16 @@ describe("JOEStrategy", function () {
         );
 
         const JOEStrategy = await ethers.getContractFactory("JOEStrategy");
-        const newStrategy = await JOEStrategy.deploy(vault.address);
+        const newStrategy = await upgrades.deployProxy(
+            JOEStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await newStrategy.deployed();
 
         const joeStaked = await strategy.balanceOfStakedJoe();

@@ -57,11 +57,15 @@ contract AuraBALStrategy is BaseStrategy {
         0x3dd0843a028c86e0b760b1a76929d1c5ef93a2dd000200000000000000000249;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
-    uint256 public slippage = 9700; // 3%
+    uint256 public slippage;
 
-    uint256 private immutable WANT_DECIMALS;
+    uint256 private WANT_DECIMALS;
 
-    constructor(address _vault) BaseStrategy(_vault) {
+    constructor(address _vault) BaseStrategy(_vault) {}
+
+    function initialize(address _vault, address _strategist) external {
+        _initialize(_vault, _strategist, _strategist, _strategist);
+
         want.safeApprove(address(balancerVault), type(uint256).max);
         IERC20(BAL).safeApprove(address(balancerVault), type(uint256).max);
         IERC20(AURA).safeApprove(address(balancerVault), type(uint256).max);
@@ -70,6 +74,8 @@ contract AuraBALStrategy is BaseStrategy {
         IERC20(AURA_BAL).safeApprove(AURA_BASE_REWARD, type(uint256).max);
         IERC20(BAL).safeApprove(AURA_BAL_DEPOSIT_WRAPPER, type(uint256).max);
         WANT_DECIMALS = ERC20(address(want)).decimals();
+
+        slippage = 9700; // 3%
     }
 
     function name() external pure override returns (string memory) {

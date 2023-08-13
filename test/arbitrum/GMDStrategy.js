@@ -15,6 +15,8 @@ const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 const ARBITRUM_NODE_URL = getEnv("ARBITRUM_NODE");
 const ARBITRUM_FORK_BLOCK = getEnv("ARBITRUM_FORK_BLOCK");
 
+upgrades.silenceWarnings();
+
 describe("GMDStrategy", function () {
     const TOKENS = {
         USDC: {
@@ -74,10 +76,17 @@ describe("GMDStrategy", function () {
             ethers.utils.parseEther("10000")
         );
 
-        const GMDStrategy = await ethers.getContractFactory(
-            "GMDStrategy"
+        const GMDStrategy = await ethers.getContractFactory("GMDStrategy");
+        const strategy = await upgrades.deployProxy(
+            GMDStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
         );
-        const strategy = await GMDStrategy.deploy(vault.address);
         await strategy.deployed();
 
         await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
@@ -180,7 +189,9 @@ describe("GMDStrategy", function () {
         await strategy.connect(deployer).harvest();
 
         // Previous harvest indicated some profit and it was withdrawn to vault
-        expect(Number(await want.balanceOf(vault.address))).to.be.greaterThan(0);
+        expect(Number(await want.balanceOf(vault.address))).to.be.greaterThan(
+            0
+        );
 
         // All profit from strategy was withdrawn to vault
         expect(Number(await want.balanceOf(strategy.address))).to.be.equal(0);
@@ -315,13 +326,21 @@ describe("GMDStrategy", function () {
         ).to.be.reverted;
     });
 
-    it('should fail harvest with small slippage', async function () {
-        const { vault, strategy, whale, deployer, want } = await loadFixture(deployContractAndSetVariables); 
-        
-        await strategy.connect(deployer)['setSlippage(uint256)'](9999);
-        await want.connect(whale).approve(vault.address, ethers.utils.parseUnits('1000', 6));
-        await vault.connect(whale)['deposit(uint256)'](ethers.utils.parseUnits('1000', 6));
-        expect(await want.balanceOf(vault.address)).to.equal(ethers.utils.parseUnits('1000', 6));
+    it("should fail harvest with small slippage", async function () {
+        const { vault, strategy, whale, deployer, want } = await loadFixture(
+            deployContractAndSetVariables
+        );
+
+        await strategy.connect(deployer)["setSlippage(uint256)"](9999);
+        await want
+            .connect(whale)
+            .approve(vault.address, ethers.utils.parseUnits("1000", 6));
+        await vault
+            .connect(whale)
+            ["deposit(uint256)"](ethers.utils.parseUnits("1000", 6));
+        expect(await want.balanceOf(vault.address)).to.equal(
+            ethers.utils.parseUnits("1000", 6)
+        );
         await expect(strategy.connect(deployer).harvest()).to.be.reverted;
     });
 
@@ -361,11 +380,11 @@ describe("GMDStrategy", function () {
         await expect(
             strategy.connect(deployer)["sweep(address)"](vault.address)
         ).to.be.revertedWith("!shares");
-        await expect( 
-            strategy.connect(deployer)['sweep(address)'](TOKENS.GMD.address)
+        await expect(
+            strategy.connect(deployer)["sweep(address)"](TOKENS.GMD.address)
         ).to.be.revertedWith("!protected");
-        await expect( 
-            strategy.connect(deployer)['sweep(address)'](TOKENS.WETH.address)
+        await expect(
+            strategy.connect(deployer)["sweep(address)"](TOKENS.WETH.address)
         ).to.be.revertedWith("!protected");
 
         const usdtToken = await hre.ethers.getContractAt(
@@ -387,7 +406,10 @@ describe("GMDStrategy", function () {
         ).to.changeTokenBalances(
             usdtToken,
             [strategy, deployer],
-            [ethers.utils.parseUnits("-10", 6), ethers.utils.parseUnits("10", 6)]
+            [
+                ethers.utils.parseUnits("-10", 6),
+                ethers.utils.parseUnits("10", 6),
+            ]
         );
     });
 
@@ -475,7 +497,16 @@ describe("GMDStrategy", function () {
         );
 
         const GMDStrategy = await ethers.getContractFactory("GMDStrategy");
-        const newStrategy = await GMDStrategy.deploy(vault.address);
+        const newStrategy = await upgrades.deployProxy(
+            GMDStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await newStrategy.deployed();
 
         await vault["migrateStrategy(address,address)"](
@@ -490,8 +521,12 @@ describe("GMDStrategy", function () {
         );
 
         expect(Number(await want.balanceOf(strategy.address))).to.be.equal(0);
-        expect(Number(await want.balanceOf(newStrategy.address))).to.be.equal(0);
-        expect(Number(await GMDToken.balanceOf(strategy.address))).to.be.equal(0);
+        expect(Number(await want.balanceOf(newStrategy.address))).to.be.equal(
+            0
+        );
+        expect(Number(await GMDToken.balanceOf(strategy.address))).to.be.equal(
+            0
+        );
         expect(
             Number(await GMDToken.balanceOf(newStrategy.address))
         ).to.be.greaterThan(0);

@@ -39,7 +39,16 @@ async function main() {
     const vault = Vault.attach(vaultAddress);
 
     const Strategy = await hre.ethers.getContractFactory(TARGET_STRATEGY);
-    const strategy = await Strategy.deploy(vault.address);
+    const strategy = await hre.upgrades.deployProxy(
+        Strategy,
+        [vault.address, deployer.address],
+        {
+            initializer: "initialize",
+            kind: "transparent",
+            constructorArgs: [vault.address],
+            unsafeAllow: ["constructor"],
+        }
+    );
     await strategy.deployed();
 
     console.log(

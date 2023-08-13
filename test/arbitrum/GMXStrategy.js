@@ -17,6 +17,8 @@ const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 const ARBITRUM_NODE_URL = getEnv("ARBITRUM_NODE");
 const ARBITRUM_FORK_BLOCK = getEnv("ARBITRUM_FORK_BLOCK");
 
+upgrades.silenceWarnings();
+
 describe("GMXStrategy", function () {
     const TOKENS = {
         USDC: {
@@ -77,7 +79,16 @@ describe("GMXStrategy", function () {
         );
 
         const GMXStrategy = await ethers.getContractFactory("MockGMXStrategy");
-        const strategy = await GMXStrategy.deploy(vault.address);
+        const strategy = await upgrades.deployProxy(
+            GMXStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await strategy.deployed();
 
         await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
@@ -366,6 +377,8 @@ describe("GMXStrategy", function () {
             ethers.utils.parseUnits("100", 6)
         );
 
+        await mine(300, { interval: 20 });
+
         const gmxStakedBefore = await strategy.balanceOfStakedGmx();
 
         expect(Number(await strategy.estimatedTotalAssets())).to.be.greaterThan(
@@ -541,7 +554,16 @@ describe("GMXStrategy", function () {
         );
 
         const GMXStrategy = await ethers.getContractFactory("GMXStrategy");
-        const newStrategy = await GMXStrategy.deploy(vault.address);
+        const newStrategy = await upgrades.deployProxy(
+            GMXStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await newStrategy.deployed();
 
         const gmxStaked = await strategy.balanceOfStakedGmx();

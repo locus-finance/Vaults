@@ -13,6 +13,7 @@ import "../integrations/curve/ICurve.sol";
 import "../integrations/convex/IConvexRewards.sol";
 import "../integrations/convex/IConvexDeposit.sol";
 import "../integrations/uniswap/v3/IV3SwapRouter.sol";
+import "../integrations/frax/IFraxRouter.sol";
 
 import "../utils/Utils.sol";
 import "../utils/CVXRewards.sol";
@@ -41,11 +42,6 @@ contract FXSStrategy is BaseStrategy {
 
     address internal constant FXS_FRAX_UNI_V3_POOL =
         0xb64508B9f7b81407549e13DB970DD5BB5C19107F;
-    uint24 internal constant FXS_FRAX_UNI_V3_FEE = 10000;
-
-    address internal constant FRAX_USDC_UNI_V3_POOL =
-        0xc63B0708E2F7e69CB8A1df0e1389A98C35A76D52;
-    uint24 internal constant FRAX_USDC_UNI_V3_FEE = 500;
 
     address internal constant CURVE_FXS_POOL =
         0xd658A338613198204DCa1143Ac3F01A722b5d94A;
@@ -57,24 +53,31 @@ contract FXSStrategy is BaseStrategy {
     address internal constant FXS_CONVEX_CRV_REWARDS =
         0xf27AFAD0142393e4b3E5510aBc5fe3743Ad669Cb;
 
-    address internal constant UNISWAP_V3_ROUTER =
-        0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
+    address internal constant FRAX_ROUTER_V2 =
+        0xC14d550632db8592D1243Edc8B95b0Ad06703867;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
-    uint256 public slippage = 9300; // 7%
+    uint256 public slippage;
 
-    uint256 private immutable WANT_DECIMALS;
+    uint256 private WANT_DECIMALS;
 
-    constructor(address _vault) BaseStrategy(_vault) {
+    constructor(address _vault) BaseStrategy(_vault) {}
+
+    function initialize(address _vault, address _strategist) external {
+        _initialize(_vault, _strategist, _strategist, _strategist);
+
         IERC20(CRV).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
         IERC20(CVX).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
         IERC20(CURVE_FXS_LP).safeApprove(FXS_CONVEX_DEPOSIT, type(uint256).max);
         IERC20(CURVE_FXS_LP).safeApprove(CURVE_FXS_POOL, type(uint256).max);
         IERC20(FXS).safeApprove(CURVE_FXS_POOL, type(uint256).max);
-        IERC20(FXS).safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
+        IERC20(FRAX).safeApprove(FRAX_ROUTER_V2, type(uint256).max);
+        IERC20(FRAX).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
+        IERC20(FXS).safeApprove(FRAX_ROUTER_V2, type(uint256).max);
 
-        want.safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
+        want.safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
         WANT_DECIMALS = ERC20(address(want)).decimals();
+        slippage = 9200; // 8%
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {
@@ -88,6 +91,14 @@ contract FXSStrategy is BaseStrategy {
 
     function balanceOfWant() public view returns (uint256) {
         return want.balanceOf(address(this));
+    }
+
+    function balanceOfFrax() public view returns (uint256) {
+        return IERC20(FRAX).balanceOf(address(this));
+    }
+
+    function balanceOfFxs() public view returns (uint256) {
+        return IERC20(FXS).balanceOf(address(this));
     }
 
     function balanceOfCurveLPUnstaked() public view returns (uint256) {
@@ -183,6 +194,39 @@ contract FXSStrategy is BaseStrategy {
     function fraxToWant(uint256 fraxTokens) public view returns (uint256) {
         return
             Utils.scaleDecimals(fraxTokens, ERC20(FRAX), ERC20(address(want)));
+    }
+
+    function wantToFrax(uint256 wantTokens) public view returns (uint256) {
+        return
+            Utils.scaleDecimals(wantTokens, ERC20(address(want)), ERC20(FRAX));
+    }
+
+    function fraxToFxs(uint256 fraxTokens) public view returns (uint256) {
+        (int24 meanTick, ) = OracleLibrary.consult(
+            FXS_FRAX_UNI_V3_POOL,
+            TWAP_RANGE_SECS
+        );
+        return
+            OracleLibrary.getQuoteAtTick(
+                meanTick,
+                uint128(fraxTokens),
+                FRAX,
+                FXS
+            );
+    }
+
+    function fxsToFrax(uint256 fxsTokens) public view returns (uint256) {
+        (int24 meanTick, ) = OracleLibrary.consult(
+            FXS_FRAX_UNI_V3_POOL,
+            TWAP_RANGE_SECS
+        );
+        return
+            OracleLibrary.getQuoteAtTick(
+                meanTick,
+                uint128(fxsTokens),
+                FXS,
+                FRAX
+            );
     }
 
     function fxsToWant(uint256 fxsTokens) public view returns (uint256) {
@@ -303,29 +347,48 @@ contract FXSStrategy is BaseStrategy {
 
         if (_wantBal > _debtOutstanding) {
             uint256 _excessWant = _wantBal - _debtOutstanding;
+            uint256 fraxExpected = (wantToFrax(_excessWant) * slippage) /
+                10_000;
 
-            uint256 fxsExpectedUnscaled = (_excessWant *
-                (10 ** WANT_DECIMALS)) / fxsToWant(1 ether);
-            uint256 fxsExpectedScaled = Utils.scaleDecimals(
-                fxsExpectedUnscaled,
-                ERC20(address(want)),
-                ERC20(FXS)
+            address[9] memory _route = [
+                address(want),
+                0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2, // fraxusdc pool
+                FRAX, // FRAX
+                address(0),
+                address(0),
+                address(0),
+                address(0),
+                address(0),
+                address(0)
+            ];
+            uint256[3][4] memory _swap_params = [
+                [uint256(1), uint256(0), uint256(1)], // USDC -> FRAX, stable swap exchange
+                [uint256(0), uint256(0), uint256(0)],
+                [uint256(0), uint256(0), uint256(0)],
+                [uint256(0), uint256(0), uint256(0)]
+            ];
+            ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
+                _route,
+                _swap_params,
+                _excessWant,
+                fraxExpected
             );
+        }
 
-            IV3SwapRouter.ExactInputParams memory params = IV3SwapRouter
-                .ExactInputParams({
-                    path: abi.encodePacked(
-                        address(want),
-                        FRAX_USDC_UNI_V3_FEE,
-                        FRAX,
-                        FXS_FRAX_UNI_V3_FEE,
-                        FXS
-                    ),
-                    recipient: address(this),
-                    amountIn: _excessWant,
-                    amountOutMinimum: (fxsExpectedScaled * slippage) / 10000
-                });
-            IV3SwapRouter(UNISWAP_V3_ROUTER).exactInput(params);
+        if (balanceOfFrax() > 0) {
+            uint256 fraxBalance = balanceOfFrax();
+            uint256 fxsExpected = (fraxToFxs(fraxBalance) * slippage) / 10_000;
+            address[] memory path = new address[](2);
+            path[0] = FRAX;
+            path[1] = FXS;
+
+            IUniswapV2Router01V5(FRAX_ROUTER_V2).swapExactTokensForTokens(
+                fraxBalance,
+                fxsExpected,
+                path,
+                address(this),
+                block.timestamp
+            );
         }
 
         uint256 fxsBalance = ERC20(FXS).balanceOf(address(this));
@@ -357,7 +420,7 @@ contract FXSStrategy is BaseStrategy {
                 CVX, // CVX
                 0xB576491F1E6e5E62f1d8F26062Ee822B40B0E0d4, // cvxeth pool
                 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE, // ETH
-                0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511, // crveth pool
+                0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14, // TriCRV pool
                 CRV, // CRV
                 address(0),
                 address(0),
@@ -365,8 +428,8 @@ contract FXSStrategy is BaseStrategy {
                 address(0)
             ];
             uint256[3][4] memory _swap_params = [
-                [uint256(1), uint256(0), uint256(3)], // CVX -> ETH, cryptoswap exchange
-                [uint256(0), uint256(1), uint256(3)], // ETH -> CRV, cryptoswap exchange
+                [uint256(1), uint256(0), uint256(3)], // CVX -> WETH, cryptoswap exchange
+                [uint256(1), uint256(2), uint256(3)], // WETH -> CRV, cryptoswap exchange
                 [uint256(0), uint256(0), uint256(0)],
                 [uint256(0), uint256(0), uint256(0)]
             ];
@@ -383,23 +446,24 @@ contract FXSStrategy is BaseStrategy {
 
         if (_crvAmount > 0) {
             address[9] memory _route = [
-                CRV, // CRV
-                0x8301AE4fc9c624d1D396cbDAa1ed877821D7C511, // crveth pool
-                0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE, // ETH
-                0xD51a44d3FaE010294C616388b506AcdA1bfAAE46, // tricrypto2 pool
-                0xdAC17F958D2ee523a2206206994597C13D831ec7, // USDT
-                0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7, // 3pool
-                address(want), // USDC
+                0xD533a949740bb3306d119CC777fa900bA034cd52, // CRV
+                0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14, // TriCRV pool
+                0xf939E0A03FB07F59A73314E73794Be0E57ac1b4E, // crvUSD
+                0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E, // crvUSD/USDC pool
+                address(want),
+                address(0),
+                address(0),
                 address(0),
                 address(0)
             ];
             uint256[3][4] memory _swap_params = [
-                [uint256(1), uint256(0), uint256(3)], // CRV -> ETH, cryptoswap exchange
-                [uint256(2), uint256(0), uint256(3)], // ETH -> USDT, cryptoswap exchange
-                [uint256(2), uint256(1), uint256(1)], // USDT -> USDC, stable swap exchange
+                [uint256(2), uint256(0), uint256(3)], // CRV -> crvUSD, cryptoswap exchange
+                [uint256(1), uint256(0), uint256(1)], // crvUSD -> USDC, stable swap exchange
+                [uint256(0), uint256(0), uint256(0)],
                 [uint256(0), uint256(0), uint256(0)]
             ];
             uint256 _expected = (crvToWant(_crvAmount) * slippage) / 10000;
+
             ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
                 _route,
                 _swap_params,
@@ -437,20 +501,48 @@ contract FXSStrategy is BaseStrategy {
 
     function _sellFxs(uint256 fxsAmount) internal {
         if (fxsAmount > 0) {
-            IV3SwapRouter.ExactInputParams memory params = IV3SwapRouter
-                .ExactInputParams({
-                    path: abi.encodePacked(
-                        FXS,
-                        FXS_FRAX_UNI_V3_FEE,
-                        FRAX,
-                        FRAX_USDC_UNI_V3_FEE,
-                        address(want)
-                    ),
-                    recipient: address(this),
-                    amountIn: fxsAmount,
-                    amountOutMinimum: (fxsToWant(fxsAmount) * slippage) / 10000
-                });
-            IV3SwapRouter(UNISWAP_V3_ROUTER).exactInput(params);
+            uint256 fraxExpected = (fxsToFrax(fxsAmount) * slippage) / 10_000;
+            address[] memory path = new address[](2);
+            path[0] = FXS;
+            path[1] = FRAX;
+
+            IUniswapV2Router01V5(FRAX_ROUTER_V2).swapExactTokensForTokens(
+                fxsAmount,
+                fraxExpected,
+                path,
+                address(this),
+                block.timestamp
+            );
+        }
+
+        uint256 fraxBalance = balanceOfFrax();
+        if (fraxBalance > 0) {
+            uint256 wantExpected = (fraxToWant(fraxBalance) * slippage) /
+                10_000;
+
+            address[9] memory _route = [
+                FRAX, // FRAX
+                0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2, // fraxusdc pool
+                address(want), // USDC
+                address(0),
+                address(0),
+                address(0),
+                address(0),
+                address(0),
+                address(0)
+            ];
+            uint256[3][4] memory _swap_params = [
+                [uint256(0), uint256(1), uint256(1)], // USDC -> FRAX, stable swap exchange
+                [uint256(0), uint256(0), uint256(0)],
+                [uint256(0), uint256(0), uint256(0)],
+                [uint256(0), uint256(0), uint256(0)]
+            ];
+            ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
+                _route,
+                _swap_params,
+                fraxBalance,
+                wantExpected
+            );
         }
     }
 

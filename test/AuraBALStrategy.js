@@ -16,11 +16,13 @@ const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 const ETH_NODE_URL = getEnv("ETH_NODE");
 const ETH_FORK_BLOCK = getEnv("ETH_FORK_BLOCK");
 
+upgrades.silenceWarnings();
+
 describe("AuraBALStrategy", function () {
     const TOKENS = {
         USDC: {
             address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-            whale: "0xf646d9B7d20BABE204a89235774248BA18086dae",
+            whale: "0x47ac0Fb4F2D84898e4D9E7b4DaB3C24507a6D503",
             decimals: 6,
         },
         ETH: {
@@ -77,7 +79,16 @@ describe("AuraBALStrategy", function () {
         const AuraBALStrategy = await ethers.getContractFactory(
             "MockAuraBALStrategy"
         );
-        const strategy = await AuraBALStrategy.deploy(vault.address);
+        const strategy = await upgrades.deployProxy(
+            AuraBALStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await strategy.deployed();
 
         await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
@@ -550,7 +561,16 @@ describe("AuraBALStrategy", function () {
         const AuraBALStrategy = await ethers.getContractFactory(
             "AuraBALStrategy"
         );
-        const newStrategy = await AuraBALStrategy.deploy(vault.address);
+        const newStrategy = await upgrades.deployProxy(
+            AuraBALStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await newStrategy.deployed();
 
         await vault["migrateStrategy(address,address)"](
@@ -679,6 +699,8 @@ describe("AuraBALStrategy", function () {
         await mine(300, { interval: 20 });
 
         expect(Number(await strategy.balRewards())).to.be.greaterThan(0);
-        expect(Number(await strategy.auraRewards(await strategy.balRewards()))).to.be.greaterThan(0);
+        expect(
+            Number(await strategy.auraRewards(await strategy.balRewards()))
+        ).to.be.greaterThan(0);
     });
 });

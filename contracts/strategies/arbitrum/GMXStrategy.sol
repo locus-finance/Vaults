@@ -41,15 +41,20 @@ contract GMXStrategy is BaseStrategy {
     uint24 internal constant ETH_GMX_UNI_V3_FEE = 10000;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
-    uint256 public slippage = 9500; // 5%
+    uint256 public slippage;
 
-    constructor(address _vault) BaseStrategy(_vault) {
+    constructor(address _vault) BaseStrategy(_vault) {}
+
+    function initialize(address _vault, address _strategist) external {
+        _initialize(_vault, _strategist, _strategist, _strategist);
+
         IERC20(GMX).safeApprove(STAKED_GMX_TRACKER, type(uint256).max);
         IERC20(ES_GMX).safeApprove(STAKED_GMX_TRACKER, type(uint256).max);
         IERC20(WETH).safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
         IERC20(GMX).safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
 
         want.safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
+        slippage = 9500; // 5%
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {

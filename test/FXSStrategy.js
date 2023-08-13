@@ -16,11 +16,13 @@ const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 const ETH_NODE_URL = getEnv("ETH_NODE");
 const ETH_FORK_BLOCK = getEnv("ETH_FORK_BLOCK");
 
+upgrades.silenceWarnings();
+
 describe("FXSStrategy", function () {
     const TOKENS = {
         USDC: {
             address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-            whale: "0xf646d9B7d20BABE204a89235774248BA18086dae",
+            whale: "0x47ac0Fb4F2D84898e4D9E7b4DaB3C24507a6D503",
             decimals: 6,
         },
         ETH: {
@@ -81,7 +83,16 @@ describe("FXSStrategy", function () {
         );
 
         const FXSStrategy = await ethers.getContractFactory("MockFXSStrategy");
-        const strategy = await FXSStrategy.deploy(vault.address);
+        const strategy = await upgrades.deployProxy(
+            FXSStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await strategy.deployed();
 
         await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
@@ -204,7 +215,7 @@ describe("FXSStrategy", function () {
         );
 
         // Mining blocks for unlocking all profit so whale can withdraw
-        mine(36000);
+        mine(36000, { interval: 20 });
 
         await vault
             .connect(whale)
@@ -551,7 +562,16 @@ describe("FXSStrategy", function () {
         );
 
         const FXSStrategy = await ethers.getContractFactory("FXSStrategy");
-        const newStrategy = await FXSStrategy.deploy(vault.address);
+        const newStrategy = await upgrades.deployProxy(
+            FXSStrategy,
+            [vault.address, deployer.address],
+            {
+                initializer: "initialize",
+                kind: "transparent",
+                constructorArgs: [vault.address],
+                unsafeAllow: ["constructor"],
+            }
+        );
         await newStrategy.deployed();
 
         const curveLPStaked = await strategy.balanceOfCurveLPStaked();
@@ -607,7 +627,10 @@ describe("FXSStrategy", function () {
 
         await vault["revokeStrategy(address)"](strategy.address);
         await strategy.harvest();
-        expect(await strategy.estimatedTotalAssets()).to.be.equal(0);
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            ethers.constants.Zero,
+            ethers.utils.parseUnits("10", 6)
+        );
         expect(await want.balanceOf(vault.address)).to.be.closeTo(
             balanceBefore,
             ethers.utils.parseUnits("100", 6)

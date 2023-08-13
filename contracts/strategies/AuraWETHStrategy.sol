@@ -51,15 +51,18 @@ contract AuraWETHStrategy is BaseStrategy {
         0x5c6ee304399dbdb9c8ef030ab642b10820db8f56000200000000000000000014;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
-    uint256 public slippage = 9700; // 3%
+    uint256 public slippage;
 
-    uint256 public AURA_PID = 100;
-    address public AURA_WETH_REWARDS =
-        0x1204f5060bE8b716F5A62b4Df4cE32acD01a69f5;
+    uint256 public AURA_PID;
+    address public AURA_WETH_REWARDS;
 
-    uint256 private immutable WANT_DECIMALS;
+    uint256 private WANT_DECIMALS;
 
-    constructor(address _vault) BaseStrategy(_vault) {
+    constructor(address _vault) BaseStrategy(_vault) {}
+
+    function initialize(address _vault, address _strategist) external {
+        _initialize(_vault, _strategist, _strategist, _strategist);
+
         want.safeApprove(address(balancerVault), type(uint256).max);
         IERC20(BAL).safeApprove(address(balancerVault), type(uint256).max);
         IERC20(AURA).safeApprove(address(balancerVault), type(uint256).max);
@@ -73,6 +76,11 @@ contract AuraWETHStrategy is BaseStrategy {
             type(uint256).max
         );
         WANT_DECIMALS = ERC20(address(want)).decimals();
+
+        slippage = 9700; // 3%
+
+        AURA_PID = 100;
+        AURA_WETH_REWARDS = 0x1204f5060bE8b716F5A62b4Df4cE32acD01a69f5;
     }
 
     function name() external pure override returns (string memory) {

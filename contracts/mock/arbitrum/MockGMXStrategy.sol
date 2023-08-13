@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.18;
 
-import {GMXStrategy, ERC20} from "../strategies/arbitrum/GMXStrategy.sol";
+import {GMXStrategy, ERC20} from "../../strategies/arbitrum/GMXStrategy.sol";
 
 contract MockGMXStrategy is GMXStrategy {
     bool internal _isWantToGmxOverriden;

@@ -28,7 +28,7 @@
     "chai": "^4.3.7",
     "ethereum-waffle": "^3.4.4",
     "ethers": "^5.7.2",
-    "hardhat": "^2.13.0",
+    "hardhat": "^2.17.1",
     "hardhat-abi-exporter": "^2.10.1",
     "web3": "^1.9.0"
   },
@@ -61,6 +61,6 @@
     "solhint": "^3.4.1",
     "solhint-plugin-prettier": "^0.0.5",
     "solidity-code-metrics": "^0.0.23",
-    "solidity-coverage": "^0.8.2"
+    "solidity-coverage": "^0.8.4"
   }
 }

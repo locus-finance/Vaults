@@ -54,13 +54,17 @@ contract RocketAuraStrategy is BaseStrategy {
             0xc29562b045d80fd77c69bec09541f5c16fe20d9d000200000000000000000251
         );
 
-    uint256 public bptSlippage = 9900; // 1%
-    uint256 public rewardsSlippage = 9700; // 3%
+    uint256 public bptSlippage;
+    uint256 public rewardsSlippage;
 
-    uint256 public AURA_PID = 109;
-    address public auraBRethStable = 0xDd1fE5AD401D4777cE89959b7fa587e569Bf125D;
+    uint256 public AURA_PID;
+    address public auraBRethStable;
 
-    constructor(address _vault) BaseStrategy(_vault) {
+    constructor(address _vault) BaseStrategy(_vault) {}
+
+    function initialize(address _vault, address _strategist) external {
+        _initialize(_vault, _strategist, _strategist, _strategist);
+
         want.safeApprove(address(balancerVault), type(uint256).max);
         IERC20(bRethStable).safeApprove(auraBooster, type(uint256).max);
         IERC20(auraToken).safeApprove(
@@ -68,6 +72,12 @@ contract RocketAuraStrategy is BaseStrategy {
             type(uint256).max
         );
         IERC20(balToken).safeApprove(address(balancerVault), type(uint256).max);
+
+        bptSlippage = 9900; // 1%
+        rewardsSlippage = 9700; // 3%
+
+        AURA_PID = 109;
+        auraBRethStable = 0xDd1fE5AD401D4777cE89959b7fa587e569Bf125D;
     }
 
     function name() external view override returns (string memory) {
