@@ -19,6 +19,8 @@
   "function balanceOfCurveLPStaked() view returns (uint256)",
   "function balanceOfCurveLPUnstaked() view returns (uint256)",
   "function balanceOfCvxRewards(uint256) view returns (uint256)",
+  "function balanceOfFrax() view returns (uint256)",
+  "function balanceOfFxs() view returns (uint256)",
   "function balanceOfFxsRewards() view returns (uint256)",
   "function balanceOfWant() view returns (uint256)",
   "function baseFeeOracle() view returns (address)",
@@ -32,7 +34,9 @@
   "function estimatedTotalAssets() view returns (uint256)",
   "function ethToWant(uint256) view returns (uint256)",
   "function forceHarvestTriggerOnce() view returns (bool)",
+  "function fraxToFxs(uint256) view returns (uint256)",
   "function fraxToWant(uint256) view returns (uint256)",
+  "function fxsToFrax(uint256) view returns (uint256)",
   "function fxsToWant(uint256) view returns (uint256)",
   "function harvest()",
   "function harvestTrigger(uint256) view returns (bool)",
@@ -68,5 +72,6 @@
   "function vault() view returns (address)",
   "function want() view returns (address)",
   "function wantToCurveLP(uint256) view returns (uint256)",
+  "function wantToFrax(uint256) view returns (uint256)",
   "function withdraw(uint256) returns (uint256)"
 ]

@@ -18,7 +18,7 @@ const ETH_FORK_BLOCK = getEnv("ETH_FORK_BLOCK");
 
 upgrades.silenceWarnings();
 
-describe.only("CVXStrategy", function () {
+describe("CVXStrategy", function () {
     const TOKENS = {
         USDC: {
             address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",

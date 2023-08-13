@@ -19,7 +19,7 @@ const ETH_FORK_BLOCK = getEnv("ETH_FORK_BLOCK");
 
 upgrades.silenceWarnings();
 
-describe.only("FraxStrategy", function () {
+describe("FraxStrategy", function () {
     const TOKENS = {
         USDT: {
             address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
