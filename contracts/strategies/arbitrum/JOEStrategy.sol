@@ -263,9 +263,9 @@ contract JOEStrategy is BaseStrategy {
             return;
         }
 
-        uint256 _wantBal = want.balanceOf(address(this));
-
         _claimAndSellRewards();
+
+        uint256 _wantBal = want.balanceOf(address(this));
 
         if (_wantBal > _debtOutstanding) {
             uint256 _excessWant = _wantBal - _debtOutstanding;
