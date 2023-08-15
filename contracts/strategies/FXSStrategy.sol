@@ -581,7 +581,7 @@ contract FXSStrategy is BaseStrategy {
         );
         IERC20(FXS).safeTransfer(
             _newStrategy,
-            IERC20(CRV).balanceOf(address(this))
+            IERC20(FXS).balanceOf(address(this))
         );
         IERC20(CVX).safeTransfer(
             _newStrategy,
