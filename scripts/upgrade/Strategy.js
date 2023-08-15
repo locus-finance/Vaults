@@ -10,6 +10,10 @@ async function main() {
     const strategy = TargetContract.attach(TARGET_ADDRESS);
     const vault = await strategy.vault();
 
+    await hre.upgrades.forceImport(TARGET_ADDRESS, TargetContract, {
+        kind: "transparent",
+    });
+
     const upgraded = await hre.upgrades.upgradeProxy(
         TARGET_ADDRESS,
         TargetContract,
