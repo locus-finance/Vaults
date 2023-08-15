@@ -1,0 +1,84 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "ICurveSwapRouter",
+  "sourceName": "contracts/integrations/curve/ICurve.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address[9]",
+          "name": "_route",
+          "type": "address[9]"
+        },
+        {
+          "internalType": "uint256[3][4]",
+          "name": "_swap_params",
+          "type": "uint256[3][4]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_expected",
+          "type": "uint256"
+        }
+      ],
+      "name": "exchange_multiple",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address[9]",
+          "name": "_route",
+          "type": "address[9]"
+        },
+        {
+          "internalType": "uint256[3][4]",
+          "name": "_swap_params",
+          "type": "uint256[3][4]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_expected",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address[4]",
+          "name": "_pools",
+          "type": "address[4]"
+        }
+      ],
+      "name": "exchange_multiple",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
