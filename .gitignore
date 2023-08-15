@@ -1,4 +1,3 @@
-.openzeppelin
 .idea
 node_modules
 .env
@@ -9,5 +8,4 @@ typechain
 #Hardhat files
 cache
 cache_hardhat
-artifacts
 process.env
