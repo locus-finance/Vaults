@@ -11,7 +11,7 @@ async function main() {
     const vault = await strategy.vault();
 
     await hre.upgrades.forceImport(TARGET_ADDRESS, TargetContract, {
-        kind: "uups",
+        kind: "transparent",
     });
 
     const upgraded = await hre.upgrades.upgradeProxy(
