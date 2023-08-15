@@ -1,25 +1,17 @@
 {
   "manifestVersion": "3.2",
   "admin": {
-    "address": "0xf862d1a2e2fb23571cf266d29cf7be94f11635cf",
-    "txHash": "0xcb2042d17e215d713a91543b940b10cd2d9bc513e38edfb42c0e905d746f01ee"
+    "address": "0xF862D1a2e2fB23571cf266D29cf7Be94F11635CF"
   },
   "proxies": [
     {
       "address": "0x18b9430d9ab251f7C27b7F2E922d2b0AF7506526",
-      "txHash": "0x9ab3f3ba9996e1199013538bb7b67095c364de7b3264eb9c38a7e21fc3fd4d15",
-      "kind": "transparent"
-    },
-    {
-      "address": "0x18b9430d9ab251f7C27b7F2E922d2b0AF7506526",
-      "txHash": "0x9ab3f3ba9996e1199013538bb7b67095c364de7b3264eb9c38a7e21fc3fd4d15",
       "kind": "transparent"
     }
   ],
   "impls": {
-    "5a6f9e056b7d1a06ae4a14ec3cc051e6b831e7563fa106c51f7db310626bcf55": {
-      "address": "0x9e432add319cfc3df89a8847731f889861f67fb3",
-      "txHash": "0x750de0ce81ee8c099895a6fb4f2d1366d2b9917023f33207b21b24e123902802",
+    "bebec5d85b4ff172cb692b15ca1a15fab67efc78dc86e301ba11ebb9218a0bd3": {
+      "address": "0x9e432ADd319CFc3dF89a8847731f889861F67fb3",
       "layout": {
         "solcVersion": "0.8.20",
         "storage": [
@@ -51,7 +43,7 @@
             "label": "vault",
             "offset": 0,
             "slot": "2",
-            "type": "t_contract(VaultAPI)25405",
+            "type": "t_contract(VaultAPI)7369",
             "contract": "BaseStrategy",
             "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:240"
           },
@@ -165,7 +157,7 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(VaultAPI)25405": {
+          "t_contract(VaultAPI)7369": {
             "label": "contract VaultAPI",
             "numberOfBytes": "20"
           },
