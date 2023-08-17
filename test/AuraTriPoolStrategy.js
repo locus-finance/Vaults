@@ -89,7 +89,7 @@ describe("AuraTriPoolStrategy", function () {
             [vault.address, deployer.address],
             {
                 initializer: "initialize",
-                kind: "transparent",
+                kind: "uups",
                 constructorArgs: [vault.address],
                 unsafeAllow: ["constructor"],
             }
@@ -574,7 +574,7 @@ describe("AuraTriPoolStrategy", function () {
             [vault.address, deployer.address],
             {
                 initializer: "initialize",
-                kind: "transparent",
+                kind: "uups",
                 constructorArgs: [vault.address],
                 unsafeAllow: ["constructor"],
             }
