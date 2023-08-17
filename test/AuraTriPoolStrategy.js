@@ -20,7 +20,7 @@ upgrades.silenceWarnings();
 const BAL_LP = "0x42ED016F826165C2e5976fe5bC3df540C5aD0Af7";
 const AURA_STAKED_LP = "0x032B676d5D55e8ECbAe88ebEE0AA10fB5f72F6CB";
 
-describe.only("AuraTriPoolStrategy", function () {
+describe("AuraTriPoolStrategy", function () {
     const TOKENS = {
         USDC: {
             address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
