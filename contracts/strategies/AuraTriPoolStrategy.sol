@@ -10,6 +10,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {OracleLibrary} from "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import "../integrations/curve/ICurve.sol";
 import "../integrations/balancer/IBalancerV2Vault.sol";
@@ -22,7 +23,7 @@ import "../integrations/lido/IWSTEth.sol";
 import "../utils/AuraMath.sol";
 import "../utils/Utils.sol";
 
-contract AuraTriPoolStrategy is BaseStrategy {
+contract AuraTriPoolStrategy is BaseStrategy, Initializable, UUPSUpgradeable  {
     using SafeERC20 for IERC20;
     using Address for address;
     using AuraMath for uint256;
@@ -67,7 +68,7 @@ contract AuraTriPoolStrategy is BaseStrategy {
 
     constructor(address _vault) BaseStrategy(_vault) {}
 
-    function initialize(address _vault, address _strategist) external {
+    function initialize(address _vault, address _strategist) public initializer {
         _initialize(_vault, _strategist, _strategist, _strategist);
 
         want.safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
@@ -602,4 +603,8 @@ contract AuraTriPoolStrategy is BaseStrategy {
     }
 
     receive() external payable {}
+
+    function _authorizeUpgrade(address) internal override onlyGovernance {}
+
+    uint256[50] private __gap;
 }
