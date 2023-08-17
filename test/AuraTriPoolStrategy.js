@@ -2,7 +2,6 @@ const {
     loadFixture,
     mine,
     reset,
-    time,
 } = require("@nomicfoundation/hardhat-network-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
@@ -13,8 +12,6 @@ const { getEnv } = require("../scripts/utils");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 
-const AURA_WETH_REWARDS = "0x1204f5060be8b716f5a62b4df4ce32acd01a69f5";
-
 const ETH_NODE_URL = getEnv("ETH_NODE");
 const ETH_FORK_BLOCK = getEnv("ETH_FORK_BLOCK");
 
@@ -23,7 +20,7 @@ upgrades.silenceWarnings();
 const BAL_LP = "0x42ED016F826165C2e5976fe5bC3df540C5aD0Af7";
 const AURA_STAKED_LP = "0x032B676d5D55e8ECbAe88ebEE0AA10fB5f72F6CB";
 
-describe("AuraTriPoolStrategy", function () {
+describe.only("AuraTriPoolStrategy", function () {
     const TOKENS = {
         USDC: {
             address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
@@ -177,6 +174,7 @@ describe("AuraTriPoolStrategy", function () {
         expect(Number(await strategy.auraToWant(oneUnit))).to.be.greaterThan(0);
         expect(Number(await strategy.balToWant(oneUnit))).to.be.greaterThan(0);
         expect(Number(await strategy.bptToWant(oneUnit))).to.be.greaterThan(0);
+        expect(Number(await strategy.ethToWant(oneUnit))).to.be.greaterThan(0);
     });
 
     it("should harvest with a profit", async function () {
@@ -756,7 +754,6 @@ describe("AuraTriPoolStrategy", function () {
             ["deposit(uint256)"](ethers.utils.parseEther("1"));
 
         await strategy.connect(deployer).harvest();
-        const balanceBefore = await strategy.estimatedTotalAssets();
 
         want.connect(whale).transfer(
             strategy.address,
@@ -764,6 +761,21 @@ describe("AuraTriPoolStrategy", function () {
         );
 
         await expect(vault.connect(whale)["withdraw()"]()).not.to.be.reverted;
+    });
+
+    it("sell 0 AURA", async function () {
+        const { strategy } = await loadFixture(deployContractAndSetVariables);
+        await dealTokensToAddress(strategy.address, TOKENS.BAL, "100");
+        await strategy.tend();
+        expect(Number(await strategy.estimatedTotalAssets())).to.be.greaterThan(
+            0
+        );
+
+        await dealTokensToAddress(strategy.address, TOKENS.AURA, "100");
+        await strategy.tend();
+        expect(Number(await strategy.estimatedTotalAssets())).to.be.greaterThan(
+            0
+        );
     });
 
     it("should change AURA PID and AURA rewards", async function () {

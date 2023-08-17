@@ -82,7 +82,7 @@ contract AuraTriPoolStrategy is BaseStrategy {
         );
         WANT_DECIMALS = ERC20(address(want)).decimals();
 
-        slippage = 9900; // 1%
+        slippage = 9950; // 0.5%
         rewardsSlippage = 9700; // 3%
 
         AURA_PID = 139;
@@ -133,17 +133,9 @@ contract AuraTriPoolStrategy is BaseStrategy {
         return AuraRewardsMath.convertCrvToCvx(balTokens);
     }
 
-    function auraBptToBpt(uint _amountAuraBpt) public pure returns (uint256) {
-        return _amountAuraBpt;
-    }
-
     function auraToWant(uint256 auraTokens) public view returns (uint256) {
         uint unscaled = auraTokens.mul(getAuraPrice()).div(1e18);
         return Utils.scaleDecimals(unscaled, ERC20(AURA), ERC20(address(want)));
-    }
-
-    function wstEthToWant(uint256 wstEthTokens) public view returns (uint256) {
-        return IWSTEth(WSTETH).getStETHByWstETH(wstEthTokens);
     }
 
     function balToWant(uint256 balTokens) public view returns (uint256) {
@@ -151,17 +143,22 @@ contract AuraTriPoolStrategy is BaseStrategy {
         return Utils.scaleDecimals(unscaled, ERC20(BAL), ERC20(address(want)));
     }
 
+    function wstethTokenRate()
+        public
+        view
+        ensureNotInVaultContext
+        returns (uint256)
+    {
+        return IBalancerPool(TRIPOOL_BALANCER_POOL).getTokenRate(WSTETH);
+    }
+
     function wstEthToBpt(uint256 wstEthTokens) public view returns (uint256) {
-        uint256 tokenRate = IBalancerPool(TRIPOOL_BALANCER_POOL).getTokenRate(
-            WSTETH
-        );
+        uint256 tokenRate = wstethTokenRate();
         return (tokenRate * wstEthTokens) / 1e18;
     }
 
     function bptToWstEth(uint256 bptTokens) public view returns (uint256) {
-        uint256 tokenRate = IBalancerPool(TRIPOOL_BALANCER_POOL).getTokenRate(
-            WSTETH
-        );
+        uint256 tokenRate = wstethTokenRate();
         return (bptTokens * 1e18) / tokenRate;
     }
 
@@ -184,8 +181,7 @@ contract AuraTriPoolStrategy is BaseStrategy {
     {
         _wants = balanceOfWant();
 
-        uint256 bptTokens = balanceOfUnstakedBpt() +
-            auraBptToBpt(balanceOfAuraBpt());
+        uint256 bptTokens = balanceOfUnstakedBpt() + balanceOfAuraBpt();
         _wants += bptToWant(bptTokens);
         uint256 balRewardTokens = balRewards();
         uint256 balTokens = balRewardTokens +
@@ -243,18 +239,6 @@ contract AuraTriPoolStrategy is BaseStrategy {
         );
 
         _;
-    }
-
-    function getBptPrice()
-        public
-        view
-        ensureNotInVaultContext
-        returns (uint256 price)
-    {
-        uint256 tokenRate = IBalancerPool(TRIPOOL_BALANCER_POOL).getTokenRate(
-            WSTETH
-        );
-        return wstEthToWant(1e36 / tokenRate);
     }
 
     function prepareReturn(
