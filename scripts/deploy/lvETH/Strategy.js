@@ -22,6 +22,11 @@ const DEPLOY_SETTINGS = {
         minDebtHarvestWeth: "0",
         maxDebtHarvestWeth: "100000",
     },
+    AuraTriPoolStrategy: {
+        ratio: "1000",
+        minDebtHarvestWeth: "0",
+        maxDebtHarvestWeth: "100000",
+    },
 };
 
 async function main() {
