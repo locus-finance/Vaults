@@ -9,3 +9,4 @@ typechain
 cache
 cache_hardhat
 process.env
+artifacts
