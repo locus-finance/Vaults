@@ -65,7 +65,7 @@ describe("AuraTriPoolStrategy", function () {
         );
 
         const name = "ETH Vault";
-        const symbol = "vlETH";
+        const symbol = "lvETH";
         const Vault = await ethers.getContractFactory("Vault");
         const vault = await Vault.deploy();
         await vault.deployed();

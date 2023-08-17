@@ -8,7 +8,7 @@ describe("Vault", function () {
         const [deployer, whale, governance, treasury, user1, user2, user3] = await ethers.getSigners();
         
         const name = "ETH Vault";
-        const symbol = "vlETH";
+        const symbol = "lvETH";
 
         const Token = await hre.ethers.getContractFactory("Token");
         const token = await Token.deploy();
@@ -38,7 +38,7 @@ describe("Vault", function () {
         const [deployer, whale, governance, treasury] = await ethers.getSigners();
         
         const name = "ETH Vault";
-        const symbol = "vlETH";
+        const symbol = "lvETH";
 
         const Token = await hre.ethers.getContractFactory("Token");
         const token = await Token.deploy();
