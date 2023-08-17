@@ -2,30 +2,30 @@ const hre = require("hardhat");
 
 const { getEnv } = require("../../utils");
 
-const USDC_DECIMALS = 6;
+const WETH_DECIMALS = 18;
 const TARGET_STRATEGY = getEnv("TARGET_STRATEGY");
 
 const DEPLOY_SETTINGS = {
-    vaultAddress: getEnv("DAVAULT_ADDRESS"),
-    GMXStrategy: {
-        ratio: "3300",
-        minDebtHarvestUsdc: "0",
-        maxDebtHarvestUsdc: "1000000",
+    vaultAddress: getEnv("lvETH_ADDRESS"),
+    RocketAuraStrategy: {
+        ratio: "2750",
+        minDebtHarvestWeth: "0",
+        maxDebtHarvestWeth: "100000",
     },
-    GNSStrategy: {
-        ratio: "2200",
-        minDebtHarvestUsdc: "0",
-        maxDebtHarvestUsdc: "1000000",
+    LidoAuraStrategy: {
+        ratio: "0",
+        minDebtHarvestWeth: "0",
+        maxDebtHarvestWeth: "100000",
     },
-    JOEStrategy: {
-        ratio: "2600",
-        minDebtHarvestUsdc: "0",
-        maxDebtHarvestUsdc: "1000000",
+    FraxStrategy: {
+        ratio: "0",
+        minDebtHarvestWeth: "0",
+        maxDebtHarvestWeth: "100000",
     },
-    GMDStrategy: {
-        ratio: "1400",
-        minDebtHarvestUsdc: "0",
-        maxDebtHarvestUsdc: "1000000",
+    AuraTriPoolStrategy: {
+        ratio: "6750",
+        minDebtHarvestWeth: "0",
+        maxDebtHarvestWeth: "100000",
     },
 };
 
@@ -37,7 +37,7 @@ async function main() {
     const [deployer] = await ethers.getSigners();
 
     const { vaultAddress } = DEPLOY_SETTINGS;
-    const { ratio, minDebtHarvestUsdc, maxDebtHarvestUsdc } =
+    const { ratio, minDebtHarvestWeth, maxDebtHarvestWeth } =
         DEPLOY_SETTINGS[TARGET_STRATEGY];
 
     const Vault = await hre.ethers.getContractFactory("Vault");
@@ -67,8 +67,8 @@ async function main() {
     ](
         strategy.address,
         Number(ratio),
-        ethers.utils.parseUnits(minDebtHarvestUsdc, USDC_DECIMALS),
-        ethers.utils.parseUnits(maxDebtHarvestUsdc, USDC_DECIMALS),
+        ethers.utils.parseUnits(minDebtHarvestWeth, WETH_DECIMALS),
+        ethers.utils.parseUnits(maxDebtHarvestWeth, WETH_DECIMALS),
         0
     );
     await addStrategyTx.wait();

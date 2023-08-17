@@ -2,38 +2,29 @@ const hre = require("hardhat");
 
 const { getEnv } = require("../utils");
 
-//const TARGET_STRATEGY = getEnv("TARGET_STRATEGY");
 const TARGET_ADDRESS = getEnv("TARGET_ADDRESS");
+const TARGET_STRATEGY = getEnv("TARGET_STRATEGY");
 
 async function main() {
 
+  const TargetContract = await hre.ethers.getContractFactory(TARGET_STRATEGY);
+  const strategyAddress = TargetContract.attach(TARGET_ADDRESS);
+  const vault = await strategyAddress.vault();
+
   console.log('Running deploy script');
-  const TargetContract = await hre.ethers.getContractFactory("FXSStrategy");
-  const strategy = TargetContract.attach(TARGET_ADDRESS);
-  const vault = await strategy.vault();
+
+  const strategy = await hre.ethers.getContractFactory(TARGET_STRATEGY);
+
   console.log("Preparing upgrade...");
 
-  console.log('Implementation address: ' + await hre.upgrades.erc1967.getImplementationAddress(TARGET_ADDRESS));
-  console.log('Admin address: ' + await hre.upgrades.erc1967.getAdminAddress(TARGET_ADDRESS));
+  const strategy2 = await hre.upgrades.prepareUpgrade(TARGET_ADDRESS, strategy);
+  console.log("strategy2", strategy2);
+  const upgraded = await hre.upgrades.upgradeProxy(TARGET_ADDRESS, strategy);
+  console.log("strategy upgraded with ", upgraded.address);
 
-  const [deployer] = await hre.ethers.getSigners();
-  await hre.upgrades.forceImport(TARGET_ADDRESS, TargetContract, {
-    kind: "transparent",
-    constructorArgs: [vault],
-    from: deployer,
-  });
-
-    const upgraded = await hre.upgrades.upgradeProxy(
-        TARGET_ADDRESS,
-        TargetContract,
-        {
-            unsafeAllow: ["constructor"],
-            constructorArgs: [vault],
-        }
-    );
-
-
-    console.log("Successfully upgraded implementation of", upgraded.address);
+  console.log("Verifying strategy");
+  const routImplAddress = await hre.upgrades.erc1967.getImplementationAddress(TARGET_ADDRESS.address);
+  console.log("strategy implementation: ", routImplAddress);
 
     await hre.run("verify:verify", {
         address: upgraded.address,
@@ -42,8 +33,8 @@ async function main() {
 }
 
 main()
-    .then(() => process.exit(0))
-    .catch((error) => {
-        console.error(error);
-        process.exitCode = 1;
-    });
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
