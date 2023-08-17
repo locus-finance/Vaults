@@ -6,24 +6,24 @@ const WETH_DECIMALS = 18;
 const TARGET_STRATEGY = getEnv("TARGET_STRATEGY");
 
 const DEPLOY_SETTINGS = {
-    vaultAddress: getEnv("VETH_ADDRESS"),
+    vaultAddress: getEnv("lvETH_ADDRESS"),
     RocketAuraStrategy: {
-        ratio: "3200",
+        ratio: "2750",
         minDebtHarvestWeth: "0",
         maxDebtHarvestWeth: "100000",
     },
     LidoAuraStrategy: {
-        ratio: "4000",
+        ratio: "0",
         minDebtHarvestWeth: "0",
         maxDebtHarvestWeth: "100000",
     },
     FraxStrategy: {
-        ratio: "2100",
+        ratio: "0",
         minDebtHarvestWeth: "0",
         maxDebtHarvestWeth: "100000",
     },
     AuraTriPoolStrategy: {
-        ratio: "1000",
+        ratio: "6750",
         minDebtHarvestWeth: "0",
         maxDebtHarvestWeth: "100000",
     },
