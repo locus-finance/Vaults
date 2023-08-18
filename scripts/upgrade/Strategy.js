@@ -15,11 +15,19 @@ async function main() {
 
   const strategy = await hre.ethers.getContractFactory(TARGET_STRATEGY);
 
-  console.log("Preparing upgrade...");
+  const [deployer] = await hre.ethers.getSigners();
 
-  const strategy2 = await hre.upgrades.prepareUpgrade(TARGET_ADDRESS, strategy);
-  console.log("strategy2", strategy2);
-  const upgraded = await hre.upgrades.upgradeProxy(TARGET_ADDRESS, strategy);
+  await hre.upgrades.forceImport(TARGET_ADDRESS, TargetContract, {
+    kind: "transparent",
+    constructorArgs: [vault],
+    from: deployer,
+  });
+
+  const upgraded = await hre.upgrades.upgradeProxy(TARGET_ADDRESS, strategy,
+    {
+      unsafeAllow: ["constructor"],
+      constructorArgs: [vault],
+    });
   console.log("strategy upgraded with ", upgraded.address);
 
   console.log("Verifying strategy");

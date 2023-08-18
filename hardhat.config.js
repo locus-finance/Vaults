@@ -10,6 +10,7 @@ require("hardhat-log-remover");
 require("hardhat-abi-exporter");
 require("dotenv").config();
 require("solidity-coverage");
+require("hardhat-contract-sizer");
 
 const fs = require("fs");
 
@@ -150,6 +151,12 @@ module.exports = {
     spdxLicenseIdentifier: {
         overwrite: false,
         runOnCompile: true,
+    },
+    contractSizer: {
+        alphaSort: true,
+        disambiguatePaths: false,
+        runOnCompile: true,
+        strict: true,
     },
     abiExporter: {
         path: "./abi",
