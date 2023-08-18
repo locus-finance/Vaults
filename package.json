@@ -48,6 +48,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-promise": "^6.1.0",
+    "hardhat-contract-sizer": "^2.10.0",
     "hardhat-etherscan": "^1.0.1",
     "hardhat-gas-reporter": "^1.0.9",
     "hardhat-log-remover": "^2.0.2",
