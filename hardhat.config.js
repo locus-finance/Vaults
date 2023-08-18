@@ -39,7 +39,7 @@ module.exports = {
                 settings: {
                     optimizer: {
                         enabled: true,
-                        runs: 50,
+                        runs: 5,
                     },
                     outputSelection: {
                         "*": {
@@ -53,7 +53,7 @@ module.exports = {
                 settings: {
                     optimizer: {
                         enabled: true,
-                        runs: 50,
+                        runs: 5,
                     },
                     outputSelection: {
                         "*": {
@@ -169,8 +169,13 @@ module.exports = {
             ":Vault$",
             ":TestStrategy$",
             ":AuraBALStrategy$",
+            "AuraTriPoolStrategy$",
             ":AuraWETHStrategy$",
             ":CVXStrategy$",
+            "GMDStrategy$",
+            "GMXStrategy$",
+            "GNSStrategy$",
+            "JOEStrategy$",
             ":FraxStrategy$",
             ":FXSStrategy$",
             ":LidoAuraStrategy$",
