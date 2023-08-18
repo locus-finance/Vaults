@@ -12,9 +12,9 @@ import "../../utils/Utils.sol";
 import "../../integrations/chainlink/AggregatorV3Interface.sol";
 import "../../integrations/joe/IStableJoeStaking.sol";
 import "../../integrations/joe/ILBRouter.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract JOEStrategy is BaseStrategy, Initializable, UUPSUpgradeable {
+contract JOEStrategy is BaseStrategy, Initializable {
     using SafeERC20 for IERC20;
 
     address internal constant JOE = 0x371c7ec6D8039ff7933a2AA28EB827Ffe1F52f07;
@@ -36,7 +36,10 @@ contract JOEStrategy is BaseStrategy, Initializable, UUPSUpgradeable {
 
     constructor(address _vault) BaseStrategy(_vault) {}
 
-    function initialize(address _vault, address _strategist) public initializer {
+    function initialize(
+        address _vault,
+        address _strategist
+    ) public initializer {
         _initialize(_vault, _strategist, _strategist, _strategist);
 
         IERC20(JOE).safeApprove(STABLE_JOE_STAKING, type(uint256).max);
@@ -346,8 +349,6 @@ contract JOEStrategy is BaseStrategy, Initializable, UUPSUpgradeable {
         protected[0] = JOE;
         return protected;
     }
-
-    function _authorizeUpgrade(address) internal override onlyGovernance {}
 
     uint256[50] private __gap;
 }

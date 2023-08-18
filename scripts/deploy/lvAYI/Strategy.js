@@ -49,7 +49,7 @@ async function main() {
         [vault.address, deployer.address],
         {
             initializer: "initialize",
-            kind: "uups",
+            kind: "transparent",
             constructorArgs: [vault.address],
             unsafeAllow: ["constructor"],
         }
