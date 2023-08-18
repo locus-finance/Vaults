@@ -9,10 +9,9 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {OracleLibrary} from "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import "../integrations/curve/ICurve.sol";
+import {ICurveSwapRouter} from "../integrations/curve/ICurve.sol";
 import "../integrations/balancer/IBalancerV2Vault.sol";
 import "../integrations/balancer/IBalancerPool.sol";
 import "../integrations/balancer/IBalancerPriceOracle.sol";
@@ -64,8 +63,6 @@ contract AuraTriPoolStrategy is BaseStrategy, Initializable, UUPSUpgradeable  {
     uint256 public AURA_PID;
     address public AURA_TRIPOOL_REWARDS;
 
-    uint256 private WANT_DECIMALS;
-
     constructor(address _vault) BaseStrategy(_vault) {}
 
     function initialize(address _vault, address _strategist) public initializer {
@@ -81,7 +78,6 @@ contract AuraTriPoolStrategy is BaseStrategy, Initializable, UUPSUpgradeable  {
             AURA_BOOSTER,
             type(uint256).max
         );
-        WANT_DECIMALS = ERC20(address(want)).decimals();
 
         slippage = 9950; // 0.5%
         rewardsSlippage = 9700; // 3%
