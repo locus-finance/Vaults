@@ -3,6 +3,7 @@
   "event EmergencyExitEnabled()",
   "event ForcedHarvestTrigger(bool)",
   "event Harvested(uint256,uint256,uint256,uint256)",
+  "event Initialized(uint8)",
   "event SetDoHealthCheck(bool)",
   "event SetHealthCheck(address)",
   "event UpdatedBaseFeeOracle(address)",
