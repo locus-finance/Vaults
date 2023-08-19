@@ -167,6 +167,76 @@
                             ]
                         }
                     ]
+                },
+                "AuraTriPoolStrategy": {
+                    "address": "0x3832189aBf3f9796dF1Cb9916971C9C03869F3c3",
+                    "network": "Ethereum Mainnet",
+                    "chainId": "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "ETH",
+                    "wantTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                    "protocols": [
+                        {
+                            "name": "Aura",
+                            "addresses": [
+                                {
+                                    "name": "AURA",
+                                    "type": "Token",
+                                    "address": "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF"
+                                },
+                                {
+                                    "name": "AURA-BStEthStable",
+                                    "type": "Staked LP Token",
+                                    "address": "0xe4683Fe8F53da14cA5DAc4251EaDFb3aa614d528"
+                                },
+                                {
+                                    "name": "Booster",
+                                    "type": "Protocol rewards",
+                                    "address": "0xA57b8d98dAE62B26Ec3bcC4a365338157060B234"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Curve",
+                            "addresses": [
+                                {
+                                    "name": "frxETH",
+                                    "type": "Pool",
+                                    "address": "0xa1F8A6807c402E4A15ef4EBa36528A3FED24E577"
+                                },
+                                {
+                                    "name": "Swap router",
+                                    "type": "Router",
+                                    "address": "0x99a58482BD75cbab83b27EC03CA68fF489b5788f"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Lido",
+                            "addresses": [
+                                {
+                                    "name": "wstETH",
+                                    "type": "Token",
+                                    "address": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Balancer",
+                            "addresses": [
+                                {
+                                    "name": "BAL",
+                                    "type": "Token",
+                                    "address": "0xba100000625a3754423978a60c9317c58a424e3D"
+                                },
+                                {
+                                    "name": "BStEthStable",
+                                    "type": "LP Token",
+                                    "address": "0x32296969Ef14EB0c6d29669C550D4a0449130230"
+                                }
+                            ]
+                        }
+                    ]
                 }
             }
         },
