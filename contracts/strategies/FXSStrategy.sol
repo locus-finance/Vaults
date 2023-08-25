@@ -44,14 +44,12 @@ contract FXSStrategy is BaseStrategy {
         0xb64508B9f7b81407549e13DB970DD5BB5C19107F;
 
     address internal constant CURVE_FXS_POOL =
-        0xd658A338613198204DCa1143Ac3F01A722b5d94A;
-    address internal constant CURVE_FXS_LP =
-        0xF3A43307DcAFa93275993862Aae628fCB50dC768;
+        0x6a9014FB802dCC5efE3b97Fd40aAa632585636D0; // todo
 
     address internal constant FXS_CONVEX_DEPOSIT =
         0xF403C135812408BFbE8713b5A23a04b3D48AAE31;
     address internal constant FXS_CONVEX_CRV_REWARDS =
-        0xf27AFAD0142393e4b3E5510aBc5fe3743Ad669Cb;
+        0x19F3C877eA278e61fE1304770dbE5D78521792D2; // todo
 
     address internal constant FRAX_ROUTER_V2 =
         0xC14d550632db8592D1243Edc8B95b0Ad06703867;
@@ -68,8 +66,8 @@ contract FXSStrategy is BaseStrategy {
 
         IERC20(CRV).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
         IERC20(CVX).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
-        IERC20(CURVE_FXS_LP).safeApprove(FXS_CONVEX_DEPOSIT, type(uint256).max);
-        IERC20(CURVE_FXS_LP).safeApprove(CURVE_FXS_POOL, type(uint256).max);
+        IERC20(CURVE_FXS_POOL).safeApprove(FXS_CONVEX_DEPOSIT, type(uint256).max);
+        IERC20(CURVE_FXS_POOL).safeApprove(CURVE_FXS_POOL, type(uint256).max);
         IERC20(FXS).safeApprove(CURVE_FXS_POOL, type(uint256).max);
         IERC20(FRAX).safeApprove(FRAX_ROUTER_V2, type(uint256).max);
         IERC20(FRAX).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
@@ -102,7 +100,7 @@ contract FXSStrategy is BaseStrategy {
     }
 
     function balanceOfCurveLPUnstaked() public view returns (uint256) {
-        return ERC20(CURVE_FXS_LP).balanceOf(address(this));
+        return ERC20(CURVE_FXS_POOL).balanceOf(address(this));
     }
 
     function balanceOfCurveLPStaked() public view returns (uint256) {
@@ -128,7 +126,7 @@ contract FXSStrategy is BaseStrategy {
     function curveLPToWant(uint256 _lpTokens) public view returns (uint256) {
         uint256 fxsAmount = (
             _lpTokens > 0
-                ? (ICurve(CURVE_FXS_POOL).lp_price() * _lpTokens) / 1e18
+                ? (ICurve(CURVE_FXS_POOL).last_price() * _lpTokens) / 1e18 // todo ???
                 : 0
         );
         return fxsToWant(fxsAmount);
@@ -394,7 +392,7 @@ contract FXSStrategy is BaseStrategy {
         uint256 fxsBalance = ERC20(FXS).balanceOf(address(this));
         if (fxsBalance > 0) {
             uint256 lpExpected = (fxsBalance * 1e18) /
-                ICurve(CURVE_FXS_POOL).lp_price();
+                ICurve(CURVE_FXS_POOL).last_price(); // todo ???
             uint256[2] memory amounts = [fxsBalance, uint256(0)];
             ICurve(CURVE_FXS_POOL).add_liquidity(
                 amounts,
@@ -406,7 +404,7 @@ contract FXSStrategy is BaseStrategy {
         if (balanceOfCurveLPUnstaked() > 0) {
             require(
                 IConvexDeposit(FXS_CONVEX_DEPOSIT).depositAll(
-                    uint256(72),
+                    uint256(203),
                     true
                 ),
                 "Convex staking failed"
@@ -587,9 +585,9 @@ contract FXSStrategy is BaseStrategy {
             _newStrategy,
             IERC20(CVX).balanceOf(address(this))
         );
-        IERC20(CURVE_FXS_LP).safeTransfer(
+        IERC20(CURVE_FXS_POOL).safeTransfer(
             _newStrategy,
-            IERC20(CURVE_FXS_LP).balanceOf(address(this))
+            IERC20(CURVE_FXS_POOL).balanceOf(address(this))
         );
     }
 
@@ -603,7 +601,7 @@ contract FXSStrategy is BaseStrategy {
         protected[0] = CVX;
         protected[1] = CRV;
         protected[2] = FXS;
-        protected[3] = CURVE_FXS_LP;
+        protected[3] = CURVE_FXS_POOL;
         return protected;
     }
 }
