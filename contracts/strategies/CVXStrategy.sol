@@ -64,7 +64,7 @@ contract CVXStrategy is BaseStrategy {
             type(uint256).max
         );
         WANT_DECIMALS = ERC20(address(want)).decimals();
-        slippage = 9500; // 5%
+        slippage = 9800; // 2%
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {
@@ -148,45 +148,26 @@ contract CVXStrategy is BaseStrategy {
     function ethToWant(
         uint256 _amtInWei
     ) public view override returns (uint256) {
-        (int24 meanTick, ) = OracleLibrary.consult(
-            USDC_ETH_UNI_V3_POOL,
-            TWAP_RANGE_SECS
-        );
+        uint256 scaledPrice = (ICurve(
+            0x7F86Bf177Dd4F3494b841a37e810A34dD56c829B
+        ).price_oracle(1) * _amtInWei) / 1e18;
         return
-            OracleLibrary.getQuoteAtTick(
-                meanTick,
-                uint128(_amtInWei),
-                WETH,
-                address(want)
-            );
+            Utils.scaleDecimals(scaledPrice, ERC20(WETH), ERC20(address(want)));
     }
 
     function crvToWant(uint256 crvTokens) public view returns (uint256) {
-        (int24 meanTick, ) = OracleLibrary.consult(
-            CRV_USDC_UNI_V3_POOL,
-            TWAP_RANGE_SECS
-        );
+        uint256 scaledPrice = (ICurve(
+            0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14
+        ).price_oracle(1) * crvTokens) / 1e18;
         return
-            OracleLibrary.getQuoteAtTick(
-                meanTick,
-                uint128(crvTokens),
-                CRV,
-                address(want)
-            );
+            Utils.scaleDecimals(scaledPrice, ERC20(CRV), ERC20(address(want)));
     }
 
     function cvxToWant(uint256 cvxTokens) public view returns (uint256) {
-        (int24 meanTick, ) = OracleLibrary.consult(
-            CVX_USDC_UNI_V3_POOL,
-            TWAP_RANGE_SECS
-        );
-        return
-            OracleLibrary.getQuoteAtTick(
-                meanTick,
-                uint128(cvxTokens),
-                CVX,
-                address(want)
-            );
+        uint256 scaledPrice = (ICurve(
+            0xB576491F1E6e5E62f1d8F26062Ee822B40B0E0d4
+        ).price_oracle() * cvxTokens) / 1e18;
+        return ethToWant(scaledPrice);
     }
 
     function estimatedTotalAssets()
@@ -324,6 +305,12 @@ contract CVXStrategy is BaseStrategy {
         }
     }
 
+    function _cvxToCrv(uint256 cvxTokens) internal view returns (uint256) {
+        uint256 wantAmount = cvxToWant(cvxTokens);
+        uint256 oneCrv = crvToWant(1 ether);
+        return (wantAmount * (10 ** WANT_DECIMALS)) / oneCrv;
+    }
+
     function _sellCrvAndCvx(uint256 _crvAmount, uint256 _cvxAmount) internal {
         if (_cvxAmount > 0) {
             address[9] memory _route = [
@@ -343,8 +330,7 @@ contract CVXStrategy is BaseStrategy {
                 [uint256(0), uint256(0), uint256(0)],
                 [uint256(0), uint256(0), uint256(0)]
             ];
-            uint256 _expected = (CVXRewardsMath.cvxToCrv(_cvxAmount) *
-                slippage) / 10000;
+            uint256 _expected = (_cvxToCrv(_cvxAmount) * slippage) / 10000;
 
             _crvAmount += ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
                 _route,

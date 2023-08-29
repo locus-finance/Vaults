@@ -69,7 +69,7 @@ contract FXSStrategy is BaseStrategy {
 
         want.safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
         WANT_DECIMALS = ERC20(address(want)).decimals();
-        slippage = 9700; // 3%
+        slippage = 9800; // 2%
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {
