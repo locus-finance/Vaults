@@ -45,6 +45,8 @@
   "function isActive() view returns (bool)",
   "function isBaseFeeAcceptable() view returns (bool)",
   "function keeper() view returns (address)",
+  "function lpPrice() view returns (uint256)",
+  "function lpPriceOracle() view returns (uint256)",
   "function maxReportDelay() view returns (uint256)",
   "function metadataURI() view returns (string)",
   "function migrate(address)",
