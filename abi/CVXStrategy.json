@@ -1,6 +1,5 @@
 [
   "constructor(address)",
-  "error T()",
   "event EmergencyExitEnabled()",
   "event ForcedHarvestTrigger(bool)",
   "event Harvested(uint256,uint256,uint256,uint256)",

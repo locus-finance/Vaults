@@ -51,7 +51,7 @@ describe("FXSStrategy", function () {
             decimals: 18,
         },
         CURVE_FXS_LP: {
-            address: "0xF3A43307DcAFa93275993862Aae628fCB50dC768",
+            address: "0x6a9014FB802dCC5efE3b97Fd40aAa632585636D0",
             whale: "0xdc88d12721F9cA1404e9e6E6389aE0AbDd54fc6C",
             decimals: 18,
         },
