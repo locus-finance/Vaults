@@ -10,27 +10,27 @@ const DEPLOY_SETTINGS = {
     YCRVStrategy: {
         ratio: "2000",
         minDebtHarvestUsdc: "0",
-        maxDebtHarvestUsdc: "1000000",
+        maxDebtHarvestUsdc: "1000000000000",
     },
     CVXStrategy: {
         ratio: "2400",
         minDebtHarvestUsdc: "0",
-        maxDebtHarvestUsdc: "10000000",
+        maxDebtHarvestUsdc: "1000000000000",
     },
     FXSStrategy: {
-        ratio: "2200",
+        ratio: "2400",
         minDebtHarvestUsdc: "0",
-        maxDebtHarvestUsdc: "1000000",
+        maxDebtHarvestUsdc: "1000000000000",
     },
     AuraBALStrategy: {
         ratio: "1500",
         minDebtHarvestUsdc: "0",
-        maxDebtHarvestUsdc: "1000000",
+        maxDebtHarvestUsdc: "1000000000000",
     },
     AuraWETHStrategy: {
         ratio: "1900",
         minDebtHarvestUsdc: "0",
-        maxDebtHarvestUsdc: "1000000",
+        maxDebtHarvestUsdc: "1000000000000",
     },
 };
 

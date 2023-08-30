@@ -264,7 +264,7 @@
                     ]
                 },
                 "FXSStrategy": {
-                    "address": "0x18b9430d9ab251f7C27b7F2E922d2b0AF7506526",
+                    "address": "0x2C0C2E3aAd2938411319FE596A5127280e75cEaB",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
