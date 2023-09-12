@@ -83,7 +83,7 @@ contract AuraTriPoolStrategy is BaseStrategy, Initializable {
             type(uint256).max
         );
 
-        slippage = 9950; // 0.5%
+        slippage = 9850; // 1.5%
         rewardsSlippage = 9700; // 3%
         AURA_PID = 139;
         AURA_TRIPOOL_REWARDS = 0x032B676d5D55e8ECbAe88ebEE0AA10fB5f72F6CB;
@@ -149,12 +149,16 @@ contract AuraTriPoolStrategy is BaseStrategy, Initializable {
         ensureNotInVaultContext
         returns (uint256)
     {
-        return IBalancerPool(TRIPOOL_BALANCER_POOL).getTokenRate(WSTETH);
+        uint256 rate = IBalancerPool(TRIPOOL_BALANCER_POOL).getRate();
+        uint256 wstRate = IBalancerPool(TRIPOOL_BALANCER_POOL).getTokenRate(
+            WSTETH
+        );
+        return (wstRate * 1e18) / rate;
     }
 
     function wstEthToBpt(uint256 wstEthTokens) public view returns (uint256) {
-        uint256 tokenRate = wstethTokenRate();
-        return (tokenRate * wstEthTokens) / 1e18;
+        uint256 tokenRate = bptToWstEth(1 ether);
+        return (wstEthTokens * 1e18) / tokenRate;
     }
 
     function bptToWstEth(uint256 bptTokens) public view returns (uint256) {
