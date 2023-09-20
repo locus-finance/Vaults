@@ -1,6 +1,6 @@
 {
     "vaults": {
-        "vETH": {
+        "lvETH": {
             "chain": {
                 "nativeToken": "ETH",
                 "chainId": 1,
@@ -140,7 +140,7 @@
                 }
             }
         },
-        "dVault": {
+        "lvDCI": {
             "chain": {
                 "nativeToken": "ETH",
                 "chainId": 1,
@@ -350,7 +350,7 @@
                 }
             }
         },
-        "daVault": {
+        "lvAYI": {
             "chain": {
                 "nativeToken": "ETH",
                 "chainId": 42161,
@@ -471,6 +471,54 @@
                                 }
                             ]
                         }
+                    ]
+                }
+            }
+        },
+        "lvOMV": {
+            "chain": {
+                "nativeToken": "ETH",
+                "chainId": 10,
+                "name": "Optimism"
+            },
+            "wantTokenTicker": "USDC",
+            "wantTokenAddress": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
+            "address": "0xe6d244b77cdb5fda68390676c65a1a8c1c72b611",
+            "decimals": "6",
+            "managementFee": "1.5",
+            "performanceFee": "10",
+            "strategies": {
+                "HopStrategy": {
+                    "address": "0x27Df001eA059a70532e30104E992E3D00883Dd90",
+                    "network": "Arbitrum One",
+                    "chainId": "42161",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC.e",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+                    "protocols": [
+
+                    ]
+                },
+                "PearlStrategy": {
+                    "address": "0xc051345ada30e8c72a10df5462bb67479ec46c0b",
+                    "network": "Polygon",
+                    "chainId": "137",
+                    "nativeToken": "MATIC",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+                    "protocols": [
+
+                    ]
+                },
+                "AeroDrome" : {
+                    "address": "0x37ee9b268ee9f55c307b6a974496fa733f82c8b3",
+                    "network": "Base",
+                    "chainId": "184",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDbC",
+                    "wantTokenAddress": "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca",
+                    "protocols": [
+
                     ]
                 }
             }
