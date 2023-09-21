@@ -515,7 +515,7 @@
                 "AeroDrome" : {
                     "address": "0x37ee9b268ee9f55c307b6a974496fa733f82c8b3",
                     "network": "Base",
-                    "chainId": "184",
+                    "chainId": "8453",
                     "lzChainId": "184",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "USDbC",
