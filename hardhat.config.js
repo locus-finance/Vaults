@@ -18,6 +18,8 @@ const {
     PROD_DEPLOYER_PRIVATE_KEY,
     ETH_NODE,
     ETH_FORK_BLOCK,
+    ARBITRUM_NODE,
+    ARBITRUM_FORK_BLOCK
 } = process.env;
 
 task("fork_reset", "Reset to local fork", async (taskArgs) => {
@@ -38,7 +40,7 @@ module.exports = {
                 settings: {
                     optimizer: {
                         enabled: true,
-                        runs: 50,
+                        runs: 10,
                     },
                     outputSelection: {
                         "*": {

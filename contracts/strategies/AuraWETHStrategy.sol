@@ -19,6 +19,8 @@ import "../integrations/convex/IConvexRewards.sol";
 import "../utils/AuraMath.sol";
 import "../utils/Utils.sol";
 
+import "hardhat/console.sol";
+
 contract AuraWETHStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
     using Address for address;
@@ -271,6 +273,7 @@ contract AuraWETHStrategy is BaseStrategy {
         override
         returns (uint256 _profit, uint256 _loss, uint256 _debtPayment)
     {
+        console.log("DEBT OUTS",_debtOutstanding);
         uint256 _totalAssets = estimatedTotalAssets();
         uint256 _totalDebt = vault.strategies(address(this)).totalDebt;
 
@@ -283,11 +286,13 @@ contract AuraWETHStrategy is BaseStrategy {
         }
 
         uint256 _liquidWant = balanceOfWant();
+        console.log("LIQ WANT", _liquidWant);
         uint256 _amountNeeded = _debtOutstanding + _profit;
         if (_liquidWant <= _amountNeeded) {
             withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = balanceOfWant();
         }
+        console.log("LIQ WANT", _liquidWant);
 
         // enough to pay profit (partial or full) only
         if (_liquidWant <= _profit) {
@@ -509,6 +514,7 @@ contract AuraWETHStrategy is BaseStrategy {
         if (_amountNeeded == 0) {
             return;
         }
+        console.log("WITHDRAW", _amountNeeded);
 
         uint256 balRewardTokens = balRewards();
         uint256 balTokens = balRewardTokens +
@@ -601,6 +607,7 @@ contract AuraWETHStrategy is BaseStrategy {
     }
 
     function _exitPosition(uint256 bptAmount) internal {
+        console.log("EXIT", bptAmount, balanceOfAuraBpt());
         IConvexRewards(AURA_WETH_REWARDS).withdrawAndUnwrap(bptAmount, true);
 
         _sellBalAndAura(

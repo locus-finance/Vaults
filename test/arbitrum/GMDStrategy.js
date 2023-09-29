@@ -61,7 +61,7 @@ describe("GMDStrategy", function () {
 
         const name = "lvAYI";
         const symbol = "vaDeFi";
-        const Vault = await ethers.getContractFactory("Vault");
+        const Vault = await ethers.getContractFactory("OnChainVault");
         const vault = await Vault.deploy();
         await vault.deployed();
 
@@ -89,21 +89,26 @@ describe("GMDStrategy", function () {
         );
         await strategy.deployed();
 
-        await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
+        // await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
+        //     strategy.address,
+        //     10000,
+        //     0,
+        //     ethers.utils.parseEther("10000"),
+        //     0
+        // );
+        await vault["addStrategy(address,uint256,uint256)"](
             strategy.address,
             10000,
-            0,
-            ethers.utils.parseEther("10000"),
             0
         );
 
         await dealTokensToAddress(whale.address, TOKENS.USDC, "1000");
         await want
             .connect(whale)
-            ["approve(address,uint256)"](
-                vault.address,
-                ethers.constants.MaxUint256
-            );
+        ["approve(address,uint256)"](
+            vault.address,
+            ethers.constants.MaxUint256
+        );
 
         return {
             vault,
@@ -207,11 +212,11 @@ describe("GMDStrategy", function () {
 
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(Number(await want.balanceOf(whale.address))).to.be.greaterThan(
             Number(balanceBefore)
         );
@@ -236,11 +241,11 @@ describe("GMDStrategy", function () {
 
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(Number(await want.balanceOf(whale.address))).to.be.closeTo(
             balanceBefore,
             ethers.utils.parseUnits("100", 6)
@@ -252,11 +257,11 @@ describe("GMDStrategy", function () {
         await dealTokensToAddress(strategy.address, TOKENS.USDC, "1000");
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(Number(await want.balanceOf(whale.address))).to.be.closeTo(
             newWhaleBalance,
             ethers.utils.parseUnits("100", 6)
@@ -283,11 +288,11 @@ describe("GMDStrategy", function () {
 
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(Number(await want.balanceOf(whale.address))).to.be.lessThan(
             Number(balanceBefore)
         );
@@ -318,11 +323,11 @@ describe("GMDStrategy", function () {
         await expect(
             vault
                 .connect(whale)
-                ["withdraw(uint256,address,uint256)"](
-                    await vault.balanceOf(whale.address),
-                    whale.address,
-                    0
-                )
+            ["withdraw(uint256,address,uint256)"](
+                await vault.balanceOf(whale.address),
+                whale.address,
+                0
+            )
         ).to.be.reverted;
     });
 
@@ -337,7 +342,7 @@ describe("GMDStrategy", function () {
             .approve(vault.address, ethers.utils.parseUnits("1000", 6));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseUnits("1000", 6));
+        ["deposit(uint256)"](ethers.utils.parseUnits("1000", 6));
         expect(await want.balanceOf(vault.address)).to.equal(
             ethers.utils.parseUnits("1000", 6)
         );
@@ -424,10 +429,10 @@ describe("GMDStrategy", function () {
 
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                5000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            5000
+        );
         mine(1);
         await strategy.harvest();
         expect(Number(await strategy.estimatedTotalAssets())).to.be.closeTo(
@@ -437,10 +442,10 @@ describe("GMDStrategy", function () {
 
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                10000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            10000
+        );
         mine(1);
         await strategy.harvest();
         expect(Number(await strategy.estimatedTotalAssets())).to.be.closeTo(
@@ -450,10 +455,10 @@ describe("GMDStrategy", function () {
 
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                5000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            5000
+        );
         mine(1);
         await strategy.harvest();
         expect(Number(await strategy.estimatedTotalAssets())).to.be.closeTo(
@@ -576,11 +581,11 @@ describe("GMDStrategy", function () {
         mine(1);
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(await want.balanceOf(whale.address)).to.be.closeTo(
             balanceBefore,
             ethers.utils.parseUnits("100", 6)

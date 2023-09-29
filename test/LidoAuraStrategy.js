@@ -38,7 +38,7 @@ describe("LidoAuraStrategy", function () {
 
         const name = "ETH Vault";
         const symbol = "lvETH";
-        const Vault = await ethers.getContractFactory("Vault");
+        const Vault = await ethers.getContractFactory("OnChainVault");
         const vault = await Vault.deploy();
         await vault.deployed();
 
@@ -68,11 +68,16 @@ describe("LidoAuraStrategy", function () {
         );
         await strategy.deployed();
 
-        await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
+        // await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
+        //     strategy.address,
+        //     10000,
+        //     0,
+        //     ethers.utils.parseEther("10000"),
+        //     0
+        // );
+        await vault["addStrategy(address,uint256,uint256)"](
             strategy.address,
             10000,
-            0,
-            ethers.utils.parseEther("10000"),
             0
         );
 
@@ -107,7 +112,7 @@ describe("LidoAuraStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("10"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("10"));
+        ["deposit(uint256)"](ethers.utils.parseEther("10"));
         expect(await want.balanceOf(vault.address)).to.equal(
             ethers.utils.parseEther("10")
         );
@@ -164,7 +169,7 @@ describe("LidoAuraStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("10"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("10"));
+        ["deposit(uint256)"](ethers.utils.parseEther("10"));
         expect(await want.balanceOf(vault.address)).to.equal(
             ethers.utils.parseEther("10")
         );
@@ -194,7 +199,7 @@ describe("LidoAuraStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("100"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("100"));
+        ["deposit(uint256)"](ethers.utils.parseEther("100"));
         expect(await want.balanceOf(vault.address)).to.equal(
             ethers.utils.parseEther("100")
         );
@@ -230,7 +235,7 @@ describe("LidoAuraStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("100"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("100"));
+        ["deposit(uint256)"](ethers.utils.parseEther("100"));
 
         expect(await want.balanceOf(vault.address)).to.equal(
             ethers.utils.parseEther("100")
@@ -267,7 +272,7 @@ describe("LidoAuraStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("100"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("100"));
+        ["deposit(uint256)"](ethers.utils.parseEther("100"));
 
         const balanceBefore = await want.balanceOf(whale.address);
 
@@ -358,10 +363,10 @@ describe("LidoAuraStrategy", function () {
         await vault.connect(whale)["deposit(uint256)"](oneEther);
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                5000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            5000
+        );
         mine(1);
         await strategy.harvest();
 
@@ -372,10 +377,10 @@ describe("LidoAuraStrategy", function () {
 
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                10000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            10000
+        );
         mine(1000);
         await strategy.harvest();
 
@@ -386,10 +391,10 @@ describe("LidoAuraStrategy", function () {
 
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                5000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            5000
+        );
         mine(1000);
         await strategy.harvest();
 
@@ -409,10 +414,10 @@ describe("LidoAuraStrategy", function () {
         await vault.connect(whale)["deposit(uint256)"](oneEther);
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                5000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            5000
+        );
         mine(1);
         await strategy.harvest();
 
@@ -517,7 +522,7 @@ describe("LidoAuraStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("100"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("100"));
+        ["deposit(uint256)"](ethers.utils.parseEther("100"));
         mine(1);
         await strategy.harvest();
 
@@ -545,7 +550,7 @@ describe("LidoAuraStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("100"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("100"));
+        ["deposit(uint256)"](ethers.utils.parseEther("100"));
         mine(1);
         await strategy.harvest();
 
@@ -573,7 +578,7 @@ describe("LidoAuraStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("100"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("100"));
+        ["deposit(uint256)"](ethers.utils.parseEther("100"));
         expect(await want.balanceOf(vault.address)).to.equal(
             ethers.utils.parseEther("100")
         );
@@ -613,7 +618,7 @@ describe("LidoAuraStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("1"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("1"));
+        ["deposit(uint256)"](ethers.utils.parseEther("1"));
 
         await strategy.connect(deployer).harvest();
         const balanceBefore = await strategy.estimatedTotalAssets();
@@ -643,11 +648,11 @@ describe("LidoAuraStrategy", function () {
         await expect(
             strategy
                 .connect(whale)
-                ["setAuraBStethStable(address)"](constants.AddressZero)
+            ["setAuraBStethStable(address)"](constants.AddressZero)
         ).to.be.reverted;
         await strategy
             .connect(deployer)
-            ["setAuraBStethStable(address)"](constants.AddressZero);
+        ["setAuraBStethStable(address)"](constants.AddressZero);
         expect(await strategy.auraBStethStable()).to.be.equal(
             constants.AddressZero
         );
