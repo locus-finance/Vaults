@@ -16,7 +16,6 @@ import "../integrations/convex/IConvexDeposit.sol";
 import "../utils/Utils.sol";
 import "../utils/CVXRewards.sol";
 
-import "hardhat/console.sol";
 contract CVXStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
 
@@ -122,7 +121,6 @@ contract CVXStrategy is BaseStrategy {
         if (_amountNeeded == 0) {
             return;
         }
-        console.log("amount needed", _amountNeeded);
         uint256 earnedCrv = balanceOfCrvRewards();
         uint256 earnedCvx = balanceOfCvxRewards(earnedCrv);
         uint256 totalCrv = earnedCrv + ERC20(CRV).balanceOf(address(this));
@@ -143,7 +141,6 @@ contract CVXStrategy is BaseStrategy {
                 wantToCurveLP(_amountNeeded - rewardsTotal),
                 balanceOfCurveLPStaked()
             );
-            console.log("LP TOKEN TO WITHDRAW: ", lpTokensToWithdraw);
             _exitPosition(lpTokensToWithdraw);
         }
     }
@@ -220,7 +217,6 @@ contract CVXStrategy is BaseStrategy {
         override
         returns (uint256 _profit, uint256 _loss, uint256 _debtPayment)
     {
-        console.log("BLP", balanceOfCurveLPUnstaked());
         uint256 _totalAssets = estimatedTotalAssets();
         uint256 _totalDebt = vault.strategies(address(this)).totalDebt;
 
@@ -231,14 +227,12 @@ contract CVXStrategy is BaseStrategy {
             _profit = 0;
             _loss = _totalDebt - _totalAssets;
         }
-        console.log("BLP",balanceOfCurveLPUnstaked());
         uint256 _liquidWant = balanceOfWant();
         uint256 _amountNeeded = _debtOutstanding + _profit;
         if (_liquidWant <= _amountNeeded) {
             _withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = balanceOfWant();
         }
-        console.log("want balance",balanceOfWant());
         // enough to pay profit (partial or full) only
         if (_liquidWant <= _profit) {
             _profit = _liquidWant;
@@ -247,27 +241,22 @@ contract CVXStrategy is BaseStrategy {
         } else {
             _debtPayment = Math.min(_liquidWant - _profit, _debtOutstanding);
         }
-        console.log("BLP",balanceOfCurveLPUnstaked());
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
         if (emergencyExit) {
             return;
         }
-        console.log("LP", balanceOfCurveLPUnstaked());
         IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).getReward(
             address(this),
             true
         );
-        console.log("CVX BALANCE", ERC20(CVX).balanceOf(address(this)));
-        console.log("CRV BALANCE", ERC20(CRV).balanceOf(address(this)));
         _sellCrvAndCvx(
             ERC20(CRV).balanceOf(address(this)),
             ERC20(CVX).balanceOf(address(this))
         );
 
         uint256 _wantBal = balanceOfWant();
-        console.log(_wantBal);
         if (_wantBal > _debtOutstanding) {
             uint256 _excessWant = _wantBal - _debtOutstanding;
             uint256 _ethExpected = (_excessWant * (10 ** WANT_DECIMALS)) /
@@ -319,9 +308,7 @@ contract CVXStrategy is BaseStrategy {
                 value: address(this).balance
             }(amounts, (lpTokensExpectedScaled * slippage) / 10000, true);
         }
-        console.log("LP BALANCE", balanceOfCurveLPUnstaked());
         if (balanceOfCurveLPUnstaked() > 0) {
-            console.log("GOOD");
             require(
                 IConvexDeposit(ETH_CVX_CONVEX_DEPOSIT).depositAll(
                     uint256(64),
@@ -463,7 +450,6 @@ contract CVXStrategy is BaseStrategy {
     }
 
     function prepareMigration(address _newStrategy) internal override {
-        console.log("wantBal", want.balanceOf(address(this)));
         IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).withdrawAndUnwrap(
             balanceOfCurveLPStaked(),
             true
@@ -480,10 +466,8 @@ contract CVXStrategy is BaseStrategy {
             _newStrategy,
             IERC20(CURVE_CVX_ETH_LP).balanceOf(address(this))
         );
-        console.log("MIGRATION: balanceOfCurveLPStaked", balanceOfCurveLPUnstaked());
         uint256 ethBal = address(this).balance;
         if (ethBal > 0) {
-            console.log("SHEEEEEH");
             payable(_newStrategy).transfer(ethBal);
         }
     }

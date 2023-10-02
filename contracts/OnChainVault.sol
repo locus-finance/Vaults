@@ -13,8 +13,6 @@ import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/O
 import { StrategyParams, IOnChainVault } from "./interfaces/IOnChainVault.sol";
 import { IBaseStrategy } from "./interfaces/IBaseStrategy.sol";
 
-import "hardhat/console.sol";
-
 contract OnChainVault is
     Initializable,
     ERC20Upgradeable,
@@ -76,13 +74,14 @@ contract OnChainVault is
     function setDepositLimit(uint256 _limit) external onlyAuthorized {
         depositLimit = _limit;
     }
-
+    //!Tests are not working with this implimentation of PPS
+    //!TODO: rework system to exlude dependencies of totalDebt, need to rethink logic of vault, big work
     function totalAssets() public view returns (uint256 _assets) {
         for (uint256 i = 0; i < OnChainStrategies.length; i++) {
             _assets += IBaseStrategy(OnChainStrategies[i])
                 .estimatedTotalAssets();
         }
-        _assets += totalIdle();
+        // _assets += totalIdle() + totalDebt;
     }
 
     function totalIdle() public view returns (uint256) {
@@ -140,7 +139,6 @@ contract OnChainVault is
     }
 
     function debtOutstanding() external view returns (uint256) {
-        //require needed to check if caller is strategy?
         return _debtOutstanding(msg.sender);
     }
 
@@ -164,7 +162,6 @@ contract OnChainVault is
         if (shares == 0) revert Vault__ZeroToWithdraw();
 
         uint256 value = _shareValue(shares);
-        // in our version vaultBalance is totalIdle?
         uint256 vaultBalance = totalIdle();
         if (value > vaultBalance) {
             uint256 totalLoss;
@@ -210,11 +207,6 @@ contract OnChainVault is
                 revert Vault__UnacceptableLoss();
         }
         _burn(msg.sender, shares);
-        //Burn eq
-        // ERC20Upgradeable(address(this))._totalSupply -= shares;
-        // ERC20Upgradeable(address(this))._balances[msg.sender] -= shares;
-        // emit Transfer(msg.sender, address(0), shares);
-        //
         token.safeTransfer(recipient, value);
         emit Withdraw(recipient, shares, value);
         return value;
@@ -266,7 +258,6 @@ contract OnChainVault is
             lastReport: params.lastReport,
             performanceFee: params.performanceFee
         });
-        // strategies[_oldStrategy].debtRatio = 0;
         strategies[_oldStrategy].totalDebt = 0;
 
         IBaseStrategy(_oldStrategy).migrate(_newStrategy);
@@ -316,12 +307,9 @@ contract OnChainVault is
         }
 
         uint256 totalAvail = _gain + debtPayment;
-        console.log(totalAvail, credit);
         if (totalAvail < credit) {
-            console.log("INSIDE TRANSFER",credit - totalAvail);
             token.safeTransfer(msg.sender, credit - totalAvail);
         } else if (totalAvail > credit) {
-            console.log("INSIDE TRANSFER",totalAvail - credit);
             token.safeTransferFrom(
                 msg.sender,
                 address(this),

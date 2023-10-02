@@ -10,7 +10,6 @@ import { ISwapRouter } from "@uniswap/v3-periphery/contracts/interfaces/ISwapRou
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "hardhat/console.sol";
 import "../integrations/velo/IVeloRouter.sol";
 import "../integrations/velo/IVeloGauge.sol";
 
@@ -64,7 +63,6 @@ contract AeroStrategy is BaseStrategy, Initializable {
     {
         uint256 _totalAssets = estimatedTotalAssets();
         uint256 _totalDebt = vault.strategies(address(this)).totalDebt;
-        console.log(_totalAssets, _totalDebt);
         if (_totalAssets >= _totalDebt) {
             _profit = _totalAssets - _totalDebt;
             _loss = 0;
@@ -75,8 +73,6 @@ contract AeroStrategy is BaseStrategy, Initializable {
 
         uint256 _liquidWant = want.balanceOf(address(this));
         uint256 _amountNeeded = _debtOutstanding + _profit;
-        console.log("PROFIT", _profit);
-        console.log(_liquidWant, _amountNeeded);
         if (_liquidWant <= _amountNeeded) {
             _withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = want.balanceOf(address(this));
@@ -139,7 +135,6 @@ contract AeroStrategy is BaseStrategy, Initializable {
         if (emergencyExit) {
             return;
         }
-        console.log("debtOut", _debtOutstanding);
         _claimAndSellRewards();
         uint256 unstakedBalance = balanceOfWant();
 
@@ -148,7 +143,6 @@ contract AeroStrategy is BaseStrategy, Initializable {
             excessWant = unstakedBalance - _debtOutstanding;
         }
         if (excessWant > 0) {
-            console.log("EXCESS WANT", excessWant);
             IVeloRouter.Route memory route;
             route.from = USDbC;
             route.to = DAI;
@@ -157,10 +151,7 @@ contract AeroStrategy is BaseStrategy, Initializable {
             (uint256 usdcAmount, uint256 daiAmount) = _calculateTokenAmounts(
                 excessWant
             );
-            console.log("DAI_AMOUNT", daiAmount);
-            console.log(IERC20(DAI).balanceOf(address(this)));
             _swapWantToDai(daiAmount);
-            console.log(IERC20(DAI).balanceOf(address(this)));
             uint256 minAmountA = (usdcAmount * slippage) / 10000;
             uint256 minAmountB = (daiAmount) *
                 slippage / 10000;
@@ -183,7 +174,6 @@ contract AeroStrategy is BaseStrategy, Initializable {
     function _calculateTokenAmounts(
         uint256 excessWant
     ) internal view returns (uint256 amountA, uint256 amountB) {
-        console.log("EXCESS WANT", excessWant);
         (uint256 desiredA, uint256 desiredB, ) = IVeloRouter(AERO_ROUTER)
             .quoteAddLiquidity(
                 USDbC,
@@ -194,12 +184,9 @@ contract AeroStrategy is BaseStrategy, Initializable {
                 excessWant * 10 ** 12 / 2 
             );
         desiredB = desiredB / 10 ** 12;
-        console.log("DESIRED",desiredA, desiredB);
-        // console.log("STRANGE", (desiredB / desiredA) * 10 ** 6);
         uint256 sum = desiredB + desiredA;
         amountA = excessWant * desiredA / sum;
         amountB = excessWant - amountA;
-        console.log("AMOUNTS", amountA, amountB);
     }
 
     function liquidatePosition(
@@ -209,8 +196,6 @@ contract AeroStrategy is BaseStrategy, Initializable {
         if (_wantBal >= _amountNeeded) {
             return (_amountNeeded, 0);
         }
-        console.log("BEFORE WITHDRAW SOME",_amountNeeded, _wantBal);
-        console.log(LpToWant(balanceOfStaked()));
         _withdrawSome(_amountNeeded - _wantBal);
         _wantBal = want.balanceOf(address(this));
 
@@ -220,7 +205,6 @@ contract AeroStrategy is BaseStrategy, Initializable {
         } else {
             _liquidatedAmount = _amountNeeded;
         }
-        console.log(_liquidatedAmount, _loss);
     }
     function _quoteMinAmountsRemove(uint256 amountLp) internal view returns (uint256 minAmountA, uint256 minAmountB){
         (minAmountA, minAmountB) = IVeloRouter(AERO_ROUTER).quoteRemoveLiquidity(USDbC, DAI, true, POOL_FACTORY, amountLp);
@@ -343,22 +327,17 @@ contract AeroStrategy is BaseStrategy, Initializable {
     }
 
     function _exitPosition(uint256 _stakedAmount) internal {
-        console.log("STAKED AMOUNT", _stakedAmount);
         _claimAndSellRewards();
-        console.log("Estimated total assets", estimatedTotalAssets());
         (uint256 usdcAmount, ) = _calculateTokenAmounts(
                 _stakedAmount
             );
         uint256 amountLpToWithdraw = (usdcAmount *
             IERC20(LP).totalSupply()) / IERC20(USDbC).balanceOf(LP);
-        console.log("DANGEROUS COMPARISON",amountLpToWithdraw, balanceOfStaked());
         if (amountLpToWithdraw > balanceOfStaked()) {
             amountLpToWithdraw = balanceOfStaked();
         }
-console.log(amountLpToWithdraw);
         IVeloGauge(AERO_GAUGE).withdraw(amountLpToWithdraw);
         (uint256 minAmountA, uint256 minAmountB) = _quoteMinAmountsRemove(amountLpToWithdraw);
-        console.log("BEFORE REMOVE LIQ", amountLpToWithdraw, minAmountA, minAmountB);
         IVeloRouter(AERO_ROUTER).removeLiquidity(
             USDbC,
             DAI,

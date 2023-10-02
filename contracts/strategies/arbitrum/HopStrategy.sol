@@ -10,7 +10,6 @@ import { ISwapRouter } from "@uniswap/v3-periphery/contracts/interfaces/ISwapRou
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "hardhat/console.sol";
 
 import "../../integrations/hop/IStakingRewards.sol";
 import "../../integrations/hop/IRouter.sol";
@@ -69,7 +68,6 @@ contract HopStrategy is BaseStrategy, Initializable {
     {
         uint256 _totalAssets = estimatedTotalAssets();
         uint256 _totalDebt = vault.strategies(address(this)).totalDebt;
-        console.log(_totalAssets, _totalDebt);
         if (_totalAssets >= _totalDebt) {
             _profit = _totalAssets - _totalDebt;
             _loss = 0;
@@ -80,8 +78,6 @@ contract HopStrategy is BaseStrategy, Initializable {
 
         uint256 _liquidWant = want.balanceOf(address(this));
         uint256 _amountNeeded = _debtOutstanding + _profit;
-        console.log("PROFIT", _profit);
-        console.log(_liquidWant, _amountNeeded);
         if (_liquidWant <= _amountNeeded) {
             _withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = want.balanceOf(address(this));
@@ -139,16 +135,13 @@ contract HopStrategy is BaseStrategy, Initializable {
         if (emergencyExit) {
             return;
         }
-        console.log("BEFORE CLAIM");
         _claimAndSellRewards();
-        console.log("AFTER CLAIM");
         uint256 unstakedBalance = balanceOfUnstaked();
 
         uint256 excessWant;
         if (unstakedBalance > _debtOutstanding) {
             excessWant = unstakedBalance - _debtOutstanding;
         }
-        console.log("ADJUST", unstakedBalance, _debtOutstanding, excessWant);
         if (excessWant > 0) {
             uint256[] memory liqAmounts = new uint256[](2);
             liqAmounts[0] = excessWant;
@@ -159,7 +152,6 @@ contract HopStrategy is BaseStrategy, Initializable {
                 true
             ) * slippage) / 10000;
 
-            console.log(liqAmounts[0], minAmount);
 
             IRouter(HOP_ROUTER).addLiquidity(
                 liqAmounts,
@@ -167,7 +159,6 @@ contract HopStrategy is BaseStrategy, Initializable {
                 block.timestamp
             );
             uint256 lpBalance = IERC20(LP).balanceOf(address(this));
-            console.log(lpBalance);
             IStakingRewards(STAKING_REWARD).stake(lpBalance);
         }
     }
@@ -179,9 +170,7 @@ contract HopStrategy is BaseStrategy, Initializable {
         if (_wantBal >= _amountNeeded) {
             return (_amountNeeded, 0);
         }
-        console.log("IF STATEMENT", _wantBal, _amountNeeded);
         _withdrawSome(_amountNeeded - _wantBal);
-        console.log("AFTER WITHDRAW SOME");
         _wantBal = want.balanceOf(address(this));
 
         if (_amountNeeded > _wantBal) {
@@ -224,10 +213,6 @@ contract HopStrategy is BaseStrategy, Initializable {
     }
 
     function rewardss() public view returns (uint256 amount) {
-        console.log(
-            "BALANCE",
-            IStakingRewards(STAKING_REWARD).balanceOf(address(this))
-        );
         amount = IStakingRewards(STAKING_REWARD).earned(address(this));
     }
 
@@ -288,9 +273,7 @@ contract HopStrategy is BaseStrategy, Initializable {
 
     function _claimAndSellRewards() internal {
         IStakingRewards(STAKING_REWARD).getReward();
-        console.log("BEFORE SELL");
         _sellHopForWant(IERC20(HOP).balanceOf(address(this)));
-        console.log("AFTER SELL");
     }
 
     function _exitPosition(uint256 _stakedAmount) internal {
@@ -298,7 +281,6 @@ contract HopStrategy is BaseStrategy, Initializable {
         uint256[] memory amountsToWithdraw = new uint256[](2);
         amountsToWithdraw[0] = _stakedAmount;
         amountsToWithdraw[1] = 0;
-        console.log("STAKED AMOUNT", _stakedAmount);
 
         uint256 amountLpToWithdraw = IRouter(HOP_ROUTER).calculateTokenAmount(
             address(this),
@@ -308,19 +290,14 @@ contract HopStrategy is BaseStrategy, Initializable {
         if (amountLpToWithdraw > balanceOfStaked()) {
             amountLpToWithdraw = balanceOfStaked();
         }
-        console.log("STAKING BALANCE",IStakingRewards(STAKING_REWARD).balanceOf(address(this)));
-        console.log(amountLpToWithdraw);
         IStakingRewards(STAKING_REWARD).withdraw(amountLpToWithdraw);
         uint256 minAmount = (_stakedAmount * slippage) / 10000;
-        console.log("MIN AMOUNT", minAmount);
-        console.log("AMOUNT LP TO WITHDRAW", amountLpToWithdraw);
         IRouter(HOP_ROUTER).removeLiquidityOneToken(
             amountLpToWithdraw,
             0,
             minAmount,
             block.timestamp
         );
-        console.log("FINISHED");
     }
 
     
@@ -329,7 +306,6 @@ contract HopStrategy is BaseStrategy, Initializable {
         if (amountToSell == 0) {
             return;
         }
-        console.log("STRANGE!!!!!");
         ISwapRouter.ExactInputParams memory params;
         bytes memory swapPath = abi.encodePacked(
             HOP,
@@ -345,8 +321,6 @@ contract HopStrategy is BaseStrategy, Initializable {
         params.deadline = block.timestamp;
         params.amountIn = amountToSell;
         params.amountOutMinimum = (usdcExpected * slippage) / 10000;
-        console.log("BEFORE SWAP", amountToSell, usdcExpected);
         ISwapRouter(UNISWAP_V3_ROUTER).exactInput(params);
-        console.log("AFTER SWAP");
     }
 }

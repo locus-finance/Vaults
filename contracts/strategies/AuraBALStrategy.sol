@@ -19,8 +19,6 @@ import "../integrations/convex/IConvexRewards.sol";
 import "../utils/AuraMath.sol";
 import "../utils/Utils.sol";
 
-import "hardhat/console.sol";
-
 contract AuraBALStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
     using Address for address;
@@ -241,7 +239,6 @@ contract AuraBALStrategy is BaseStrategy {
         returns (uint256 _profit, uint256 _loss, uint256 _debtPayment)
     {
         uint256 _totalAssets = estimatedTotalAssets();
-        console.log(vault.strategies(address(this)).totalDebt);
         uint256 _totalDebt = vault.strategies(address(this)).totalDebt;
 
         if (_totalAssets >= _totalDebt) {
@@ -277,7 +274,6 @@ contract AuraBALStrategy is BaseStrategy {
         if (balRewards() > 0) {
             IConvexRewards(AURA_BASE_REWARD).getReward(address(this), true);
         }
-        console.log("balance AB", IERC20(AURA).balanceOf(address(this)));
         _sellBalAndAura(0, IERC20(AURA).balanceOf(address(this)));
 
         uint256 _wantBal = want.balanceOf(address(this));
