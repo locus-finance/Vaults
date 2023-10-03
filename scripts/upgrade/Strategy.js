@@ -3,30 +3,43 @@ const { ethers, upgrades } = require('hardhat');
 
 const { getEnv } = require("../utils");
 
-const TARGET_ADDRESS = getEnv("TARGET_ADDRESS");
 const TARGET_STRATEGY = getEnv("TARGET_STRATEGY");
+const TARGET_ADDRESS = getEnv("TARGET_ADDRESS");
 
 async function main() {
 
-  const TargetContract = await ethers.getContractFactory(TARGET_STRATEGY);
-  const strategyAddress = TargetContract.attach(TARGET_ADDRESS);
-  const vault = await strategyAddress.vault();
+    const TargetContract = await hre.ethers.getContractFactory(TARGET_STRATEGY);
+    const strategy = TargetContract.attach(TARGET_ADDRESS);
+    const vault = await strategy.vault();
+    console.log("Preparing upgrade...");
 
-  console.log('Running deploy script');
-  console.log(TARGET_STRATEGY)
+    console.log(
+        "Implementation address: " +
+            (await hre.upgrades.erc1967.getImplementationAddress(
+                TARGET_ADDRESS
+            ))
+    );
+    const adminAddr = await hre.upgrades.erc1967.getAdminAddress(
+        TARGET_ADDRESS
+    );
+    console.log("Admin address: " + adminAddr);
 
-  const strategy = await ethers.getContractFactory(TARGET_STRATEGY);
+    const upgraded = await hre.upgrades.upgradeProxy(
+        TARGET_ADDRESS,
+        TargetContract,
+        {
+            unsafeAllow: ["constructor"],
+            constructorArgs: [vault],
+        }
+    );
 
-  console.log("Preparing upgrade...");
-
-  // const strategy2 = await upgrades.prepareUpgrade(TARGET_ADDRESS, strategy);
-  // console.log("strategy2", strategy2);
-  const upgraded = await upgrades.upgradeProxy(TARGET_ADDRESS, strategy, { constructorArgs: [TARGET_ADDRESS] });
-  console.log("strategy upgraded with ", upgraded.address);
-
-  console.log("Verifying strategy");
-  const routImplAddress = await upgrades.erc1967.getImplementationAddress(TARGET_ADDRESS.address);
-  console.log("strategy implementation: ", routImplAddress);
+    console.log("Successfully upgraded implementation of", upgraded.address);
+    console.log(
+        "New implementation address: " +
+            (await hre.upgrades.erc1967.getImplementationAddress(
+                TARGET_ADDRESS
+            ))
+    );
 
   await hre.run("verify:verify", {
     address: upgraded.address,
@@ -35,8 +48,8 @@ async function main() {
 }
 
 main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error);
+        process.exitCode = 1;
+    });

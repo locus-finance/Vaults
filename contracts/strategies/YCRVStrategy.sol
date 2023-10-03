@@ -8,6 +8,7 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {OracleLibrary} from "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
 
+import "../utils/Utils.sol";
 import "../integrations/balancer/IBalancerPriceOracle.sol";
 import "../integrations/curve/ICurve.sol";
 
@@ -20,7 +21,7 @@ contract YCRVStrategy is BaseStrategy {
     address internal constant USDC_WETH_BALANCER_POOL =
         0x96646936b91d6B9D7D0c47C496AfBF3D6ec7B6f8;
     address internal constant YCRV_CRV_CURVE_POOL =
-        0x453D92C7d4263201C69aACfaf589Ed14202d83a4;
+        0x99f5aCc8EC2Da2BC0771c32814EFF52b712de1E5;
     address internal constant CRV = 0xD533a949740bb3306d119CC777fa900bA034cd52;
     address internal constant CRV_USDC_UNI_V3_POOL =
         0x9445bd19767F73DCaE6f2De90e6cd31192F62589;
@@ -39,7 +40,7 @@ contract YCRVStrategy is BaseStrategy {
         want.safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
         IERC20(yCRV).safeApprove(CURVE_SWAP_ROUTER, type(uint256).max);
         IERC20(yCRV).safeApprove(yCRVVault, type(uint256).max);
-        slippage = 9500; // 5%
+        slippage = 9800; // 2%
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {
@@ -64,22 +65,16 @@ contract YCRVStrategy is BaseStrategy {
     }
 
     function crvToWant(uint256 crvTokens) public view returns (uint256) {
-        (int24 meanTick, ) = OracleLibrary.consult(
-            CRV_USDC_UNI_V3_POOL,
-            TWAP_RANGE_SECS
-        );
+        uint256 scaledPrice = (ICurve(
+            0x4eBdF703948ddCEA3B11f675B4D1Fba9d2414A14
+        ).price_oracle(1) * crvTokens) / 1e18;
         return
-            OracleLibrary.getQuoteAtTick(
-                meanTick,
-                uint128(crvTokens),
-                CRV,
-                address(want)
-            );
+            Utils.scaleDecimals(scaledPrice, ERC20(CRV), ERC20(address(want)));
     }
 
     function yCrvToWant(uint256 yCRVTokens) public view returns (uint256) {
-        uint256 crvRatio = ICurve(YCRV_CRV_CURVE_POOL).get_virtual_price();
-        uint256 crvTokens = (yCRVTokens * 1e18) / crvRatio;
+        uint256 crvRatio = ICurve(YCRV_CRV_CURVE_POOL).price_oracle();
+        uint256 crvTokens = (crvRatio * yCRVTokens) / 1e18;
         return crvToWant(crvTokens);
     }
 
@@ -161,24 +156,11 @@ contract YCRVStrategy is BaseStrategy {
     function ethToWant(
         uint256 _amtInWei
     ) public view override returns (uint256) {
-        IBalancerPriceOracle.OracleAverageQuery[] memory queries;
-        queries = new IBalancerPriceOracle.OracleAverageQuery[](1);
-        queries[0] = IBalancerPriceOracle.OracleAverageQuery({
-            variable: IBalancerPriceOracle.Variable.PAIR_PRICE,
-            secs: TWAP_RANGE_SECS,
-            ago: 0
-        });
-
-        uint256[] memory results;
-        results = IBalancerPriceOracle(USDC_WETH_BALANCER_POOL)
-            .getTimeWeightedAverage(queries);
-
+        uint256 scaledPrice = (ICurve(
+            0x7F86Bf177Dd4F3494b841a37e810A34dD56c829B
+        ).price_oracle(1) * _amtInWei) / 1e18;
         return
-            _scaleDecimals(
-                (_amtInWei * results[0]) / 1e18,
-                ERC20(WETH),
-                ERC20(address(want))
-            );
+            Utils.scaleDecimals(scaledPrice, ERC20(WETH), ERC20(address(want)));
     }
 
     function estimatedTotalAssets()

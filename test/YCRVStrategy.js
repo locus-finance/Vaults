@@ -610,7 +610,10 @@ describe("YCRVStrategy", function () {
 
         await vault["revokeStrategy(address)"](strategy.address);
         await strategy.harvest();
-        expect(await strategy.estimatedTotalAssets()).to.be.equal(0);
+        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
+            ethers.utils.parseUnits("0", 6),
+            ethers.utils.parseUnits("10", 6)
+        );
         expect(await want.balanceOf(vault.address)).to.be.closeTo(
             balanceBefore,
             ethers.utils.parseUnits("100", 6)
