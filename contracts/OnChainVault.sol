@@ -19,6 +19,21 @@ contract OnChainVault is
     IOnChainVault,
     OwnableUpgradeable
 {
+
+    uint256 public constant MAX_BPS = 10_000;
+
+    address public override governance;
+    IERC20 public override token;
+    uint256 public depositLimit;
+    uint256 public totalDebtRatio;
+    uint256 public totalDebt;
+    bool public emergencyShutdown;
+    mapping(address => StrategyParams) public strategies;
+    mapping(address strategy => uint256 position)
+        public strategyPositionInArray;
+
+    address[] public OnChainStrategies;
+
     using SafeERC20 for IERC20;
     using SafeERC20 for ERC20;
 
@@ -36,20 +51,6 @@ contract OnChainVault is
         token = _token;
         approve(treasury, type(uint256).max);
     }
-
-    uint256 public constant MAX_BPS = 10_000;
-
-    address public override governance;
-    IERC20 public override token;
-    uint256 public depositLimit;
-    uint256 public totalDebtRatio;
-    uint256 public totalDebt;
-    bool public emergencyShutdown;
-    mapping(address => StrategyParams) public strategies;
-    mapping(address strategy => uint256 position)
-        public strategyPositionInArray;
-
-    address[] public OnChainStrategies;
 
     modifier onlyAuthorized() {
         if (msg.sender != governance || msg.sender != owner())
@@ -384,9 +385,6 @@ contract OnChainVault is
         if (emergencyShutdown) {
             return 0;
         }
-
-
-
         uint256 strategyDebtLimit = (strategies[_strategy].debtRatio *
             totalAssets()) / MAX_BPS;
         uint256 strategyTotalDebt = strategies[_strategy].totalDebt;

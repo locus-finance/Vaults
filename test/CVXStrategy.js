@@ -74,7 +74,6 @@ describe("CVXStrategy", function () {
             symbol
         );
 
-
         await vault["setDepositLimit(uint256)"](
             ethers.utils.parseEther("10000")
         );
@@ -92,13 +91,6 @@ describe("CVXStrategy", function () {
         );
         await strategy.deployed();
 
-        // await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
-        //     strategy.address,
-        //     10000,
-        //     0,
-        //     ethers.utils.parseEther("10000"),
-        //     0
-        // );
         await vault["addStrategy(address,uint256,uint256)"](
             strategy.address,
             10000,
@@ -174,7 +166,7 @@ describe("CVXStrategy", function () {
 
         expect(Number(await strategy.ethToWant(oneUnit))).to.be.greaterThan(0);
         expect(Number(await strategy.crvToWant(oneUnit))).to.be.greaterThan(0);
-        // expect(Number(await strategy.cvxToWant(oneUnit))).to.be.greaterThan(0);
+        expect(Number(await strategy.cvxToWant(oneUnit))).to.be.greaterThan(0);
         expect(Number(await strategy.curveLPToWant(oneUnit))).to.be.greaterThan(
             0
         );
