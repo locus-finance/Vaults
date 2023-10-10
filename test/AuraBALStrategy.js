@@ -16,7 +16,7 @@ const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 const ETH_NODE_URL = getEnv("ETH_NODE");
 const ETH_FORK_BLOCK = getEnv("ETH_FORK_BLOCK");
 
-upgrades.silenceWarnings();
+// upgrades.silenceWarnings();
 
 describe("AuraBALStrategy", function () {
     const TOKENS = {
@@ -61,7 +61,7 @@ describe("AuraBALStrategy", function () {
 
         const name = "lvDCI";
         const symbol = "vDeFi";
-        const Vault = await ethers.getContractFactory("Vault");
+        const Vault = await ethers.getContractFactory("OnChainVault");
         const vault = await Vault.deploy();
         await vault.deployed();
 
@@ -91,21 +91,27 @@ describe("AuraBALStrategy", function () {
         );
         await strategy.deployed();
 
-        await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
+        await vault["addStrategy(address,uint256,uint256)"](
             strategy.address,
             10000,
-            0,
-            ethers.utils.parseEther("10000"),
             0
         );
+
+        // await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
+        //     strategy.address,
+        //     10000,
+        //     0,
+        //     ethers.utils.parseEther("10000"),
+        //     0
+        // );
 
         await dealTokensToAddress(whale.address, TOKENS.USDC, "1000");
         await want
             .connect(whale)
-            ["approve(address,uint256)"](
-                vault.address,
-                ethers.constants.MaxUint256
-            );
+        ["approve(address,uint256)"](
+            vault.address,
+            ethers.constants.MaxUint256
+        );
 
         return {
             vault,
@@ -180,9 +186,8 @@ describe("AuraBALStrategy", function () {
 
         // Simulating whale depositing 1000 USDC into vault
         const balanceBefore = await want.balanceOf(whale.address);
-        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
+        await vault.connect(whale)["deposit(uint256,address)"](balanceBefore, whale.address);
         expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
-
         await strategy.connect(deployer).harvest();
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
             balanceBefore,
@@ -191,9 +196,7 @@ describe("AuraBALStrategy", function () {
 
         // We are dropping some more BAL to strategy to simulate profit from staking BAL tokens in Aura
         await dealTokensToAddress(strategy.address, TOKENS.BAL, "1000");
-
         await strategy.connect(deployer).harvest();
-
         // Previous harvest indicated some profit and it was withdrawn to vault
         expect(Number(await want.balanceOf(vault.address))).to.be.greaterThan(
             0
@@ -207,17 +210,16 @@ describe("AuraBALStrategy", function () {
         expect(Number(await strategy.estimatedTotalAssets())).to.be.greaterThan(
             Number(balanceBefore)
         );
-
         // Mining blocks for unlocking all profit so whale can withdraw
         mine(36000);
 
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(Number(await want.balanceOf(whale.address))).to.be.greaterThan(
             Number(balanceBefore)
         );
@@ -231,26 +233,28 @@ describe("AuraBALStrategy", function () {
         const balanceBefore = await want.balanceOf(whale.address);
         await vault.connect(whale)["deposit(uint256)"](balanceBefore);
         expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
-
+        console.log("HARVEST");
         await strategy.connect(deployer).harvest();
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
             balanceBefore,
             ethers.utils.parseUnits("100", 6)
         );
-
+        console.log(123);
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
+        console.log(123);
         expect(Number(await want.balanceOf(whale.address))).to.be.closeTo(
             balanceBefore,
             ethers.utils.parseUnits("100", 6)
         );
-
+        await ethers.provider.send('evm_increaseTime', [100 * 24 * 60 * 60])
         const newWhaleBalance = await want.balanceOf(whale.address);
+        console.log("NEW BALANCE", newWhaleBalance);
         await vault.connect(whale)["deposit(uint256)"](newWhaleBalance);
         expect(Number(await want.balanceOf(whale.address))).to.be.equal(0);
 
@@ -259,11 +263,11 @@ describe("AuraBALStrategy", function () {
         await dealTokensToAddress(strategy.address, TOKENS.USDC, "1000");
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(Number(await want.balanceOf(whale.address))).to.be.closeTo(
             newWhaleBalance,
             ethers.utils.parseUnits("100", 6)
@@ -289,11 +293,11 @@ describe("AuraBALStrategy", function () {
 
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(Number(await want.balanceOf(whale.address))).to.be.lessThan(
             Number(balanceBefore)
         );
@@ -323,11 +327,11 @@ describe("AuraBALStrategy", function () {
         await expect(
             vault
                 .connect(whale)
-                ["withdraw(uint256,address,uint256)"](
-                    await vault.balanceOf(whale.address),
-                    whale.address,
-                    0
-                )
+            ["withdraw(uint256,address,uint256)"](
+                await vault.balanceOf(whale.address),
+                whale.address,
+                0
+            )
         ).to.be.reverted;
     });
 
@@ -355,11 +359,11 @@ describe("AuraBALStrategy", function () {
 
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                0
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            0
+        );
         expect(Number(await want.balanceOf(whale.address))).to.be.equal(
             balanceBefore
         );
@@ -454,7 +458,7 @@ describe("AuraBALStrategy", function () {
         await expect(
             strategy
                 .connect(deployer)
-                ["sweep(address)"](TOKENS.AURA_BAL.address)
+            ["sweep(address)"](TOKENS.AURA_BAL.address)
         ).to.be.revertedWith("!protected");
 
         const daiToken = await hre.ethers.getContractAt(
@@ -491,10 +495,10 @@ describe("AuraBALStrategy", function () {
 
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                5000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            5000
+        );
         mine(1);
         await strategy.harvest();
         expect(Number(await strategy.estimatedTotalAssets())).to.be.closeTo(
@@ -504,10 +508,10 @@ describe("AuraBALStrategy", function () {
 
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                10000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            10000
+        );
         mine(1);
         await strategy.harvest();
         expect(Number(await strategy.estimatedTotalAssets())).to.be.closeTo(
@@ -517,10 +521,10 @@ describe("AuraBALStrategy", function () {
 
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                5000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            5000
+        );
         mine(1);
         await strategy.harvest();
         expect(Number(await strategy.estimatedTotalAssets())).to.be.closeTo(
@@ -670,11 +674,11 @@ describe("AuraBALStrategy", function () {
         mine(1);
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(await want.balanceOf(whale.address)).to.be.closeTo(
             balanceBefore,
             ethers.utils.parseUnits("100", 6)

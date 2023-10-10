@@ -208,14 +208,12 @@ contract CVXStrategy is BaseStrategy {
             _profit = 0;
             _loss = _totalDebt - _totalAssets;
         }
-
         uint256 _liquidWant = balanceOfWant();
         uint256 _amountNeeded = _debtOutstanding + _profit;
         if (_liquidWant <= _amountNeeded) {
             _withdrawSome(_amountNeeded - _liquidWant);
             _liquidWant = balanceOfWant();
         }
-
         // enough to pay profit (partial or full) only
         if (_liquidWant <= _profit) {
             _profit = _liquidWant;
@@ -230,7 +228,6 @@ contract CVXStrategy is BaseStrategy {
         if (emergencyExit) {
             return;
         }
-
         IConvexRewards(ETH_CVX_CONVEX_CRV_REWARDS).getReward(
             address(this),
             true
@@ -241,7 +238,6 @@ contract CVXStrategy is BaseStrategy {
         );
 
         uint256 _wantBal = balanceOfWant();
-
         if (_wantBal > _debtOutstanding) {
             uint256 _excessWant = _wantBal - _debtOutstanding;
             uint256 _ethExpected = (_excessWant * (10 ** WANT_DECIMALS)) /
@@ -293,7 +289,6 @@ contract CVXStrategy is BaseStrategy {
                 value: address(this).balance
             }(amounts, (lpTokensExpectedScaled * slippage) / 10000, true);
         }
-
         if (balanceOfCurveLPUnstaked() > 0) {
             require(
                 IConvexDeposit(ETH_CVX_CONVEX_DEPOSIT).depositAll(

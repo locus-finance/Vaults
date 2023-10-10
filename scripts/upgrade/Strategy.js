@@ -1,4 +1,5 @@
-const hre = require("hardhat");
+// const hre = require("hardhat");
+const { ethers, upgrades } = require('hardhat');
 
 const { getEnv } = require("../utils");
 
@@ -6,6 +7,7 @@ const TARGET_STRATEGY = getEnv("TARGET_STRATEGY");
 const TARGET_ADDRESS = getEnv("TARGET_ADDRESS");
 
 async function main() {
+
     const TargetContract = await hre.ethers.getContractFactory(TARGET_STRATEGY);
     const strategy = TargetContract.attach(TARGET_ADDRESS);
     const vault = await strategy.vault();
@@ -39,10 +41,10 @@ async function main() {
             ))
     );
 
-    await hre.run("verify:verify", {
-        address: upgraded.address,
-        constructorArguments: [vault],
-    });
+  await hre.run("verify:verify", {
+    address: upgraded.address,
+    constructorArguments: [vault],
+  });
 }
 
 main()
