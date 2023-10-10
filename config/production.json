@@ -1,0 +1,530 @@
+{
+    "vaults": {
+        "lvETH": {
+            "chain": {
+                "nativeToken": "ETH",
+                "chainId": 1,
+                "name": "Ethereum Mainnet"
+            },
+            "wantTokenTicker": "WETH",
+            "wantTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+            "address": "0x3edbE670D03C4A71367dedA78E73EA4f8d68F2E4",
+            "decimals": "18",
+            "managementFee": "0.7",
+            "performanceFee": "5",
+            "strategies": {
+                "RocketAuraStrategy": {
+                    "address": "0x13e19efAC9C07D3F167B2e861bbfe1d3E68971CC",
+                    "network": "Ethereum Mainnet",
+                    "chainId": "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "ETH",
+                    "wantTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                    "protocols": [
+                        {
+                            "name": "RocketPool",
+                            "addresses": [
+                                {
+                                    "name": "rETH",
+                                    "type": "Token",
+                                    "address": "0xae78736Cd615f374D3085123A210448E74Fc6393"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Aura",
+                            "addresses": [
+                                {
+                                    "name": "AURA",
+                                    "type": "Token",
+                                    "address": "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF"
+                                },
+                                {
+                                    "name": "AURA-bREthStable",
+                                    "type": "Staked LP Token",
+                                    "address": "0x001B78CEC62DcFdc660E06A91Eb1bC966541d758"
+                                },
+                                {
+                                    "name": "Booster",
+                                    "type": "Protocol rewards",
+                                    "address": "0xA57b8d98dAE62B26Ec3bcC4a365338157060B234"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Balancer",
+                            "addresses": [
+                                {
+                                    "name": "BAL",
+                                    "type": "Token",
+                                    "address": "0xba100000625a3754423978a60c9317c58a424e3D"
+                                },
+                                {
+                                    "name": "bREthStable",
+                                    "type": "LP Token",
+                                    "address": "0x1E19CF2D73a72Ef1332C882F20534B6519Be0276"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "AuraTriPoolStrategy": {
+                    "address": "0x3832189aBf3f9796dF1Cb9916971C9C03869F3c3",
+                    "network": "Ethereum Mainnet",
+                    "chainId": "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "ETH",
+                    "wantTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                    "protocols": [
+                        {
+                            "name": "Aura",
+                            "addresses": [
+                                {
+                                    "name": "AURA",
+                                    "type": "Token",
+                                    "address": "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF"
+                                },
+                                {
+                                    "name": "AURA-BStEthStable",
+                                    "type": "Staked LP Token",
+                                    "address": "0xe4683Fe8F53da14cA5DAc4251EaDFb3aa614d528"
+                                },
+                                {
+                                    "name": "Booster",
+                                    "type": "Protocol rewards",
+                                    "address": "0xA57b8d98dAE62B26Ec3bcC4a365338157060B234"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Curve",
+                            "addresses": [
+                                {
+                                    "name": "frxETH",
+                                    "type": "Pool",
+                                    "address": "0xa1F8A6807c402E4A15ef4EBa36528A3FED24E577"
+                                },
+                                {
+                                    "name": "Swap router",
+                                    "type": "Router",
+                                    "address": "0x99a58482BD75cbab83b27EC03CA68fF489b5788f"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Lido",
+                            "addresses": [
+                                {
+                                    "name": "wstETH",
+                                    "type": "Token",
+                                    "address": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Balancer",
+                            "addresses": [
+                                {
+                                    "name": "BAL",
+                                    "type": "Token",
+                                    "address": "0xba100000625a3754423978a60c9317c58a424e3D"
+                                },
+                                {
+                                    "name": "BStEthStable",
+                                    "type": "LP Token",
+                                    "address": "0x32296969Ef14EB0c6d29669C550D4a0449130230"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        "lvDCI": {
+            "chain": {
+                "nativeToken": "ETH",
+                "chainId": 1,
+                "name": "Ethereum Mainnet"
+            },
+            "wantTokenTicker": "USDC",
+            "wantTokenAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+            "address": "0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B",
+            "decimals": "6",
+            "managementFee": "1.5",
+            "performanceFee": "10",
+            "strategies": {
+                "AuraBALStrategy": {
+                    "address": "0xae60bf4746c9fc06041207da3ce471e2e375274c",
+                    "network": "Ethereum Mainnet",
+                    "chainId": "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                    "protocols": [
+                        {
+                            "name": "Balancer",
+                            "addresses": [
+                                {
+                                    "name": "BAL",
+                                    "type": "Token",
+                                    "address": "0xba100000625a3754423978a60c9317c58a424e3D"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Aura",
+                            "addresses": [
+                                {
+                                    "name": "AURA",
+                                    "type": "Token",
+                                    "address": "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF"
+                                },
+                                {
+                                    "name": "auraBAL",
+                                    "type": "Staked Token",
+                                    "address": "0x616e8BfA43F920657B3497DBf40D6b1A02D4608d"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "AuraWETHStrategy": {
+                    "address": "0x589f347f67D55cfd0c053b6B569ada34Ac8a1e47",
+                    "network": "Ethereum Mainnet",
+                    "chainId": "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                    "protocols": [
+                        {
+                            "name": "Balancer",
+                            "addresses": [
+                                {
+                                    "name": "BAL",
+                                    "type": "Token",
+                                    "address": "0xba100000625a3754423978a60c9317c58a424e3D"
+                                },
+                                {
+                                    "name": "WETH-AURA LP",
+                                    "type": "Pool",
+                                    "address": "0xCfCA23cA9CA720B6E98E3Eb9B6aa0fFC4a5C08B9"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Aura",
+                            "addresses": [
+                                {
+                                    "name": "AURA",
+                                    "type": "Token",
+                                    "address": "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF"
+                                },
+                                {
+                                    "name": "Booster",
+                                    "type": "Booster",
+                                    "address": "0xA57b8d98dAE62B26Ec3bcC4a365338157060B234"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "CVXStrategy": {
+                    "address": "0x10e17b5aDbccb8B8E9657Fb1Fa5a688f58D88850",
+                    "network": "Ethereum Mainnet",
+                    "chainId": "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                    "protocols": [
+                        {
+                            "name": "Convex",
+                            "addresses": [
+                                {
+                                    "name": "CVX",
+                                    "type": "Token",
+                                    "address": "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Curve",
+                            "addresses": [
+                                {
+                                    "name": "CRV",
+                                    "type": "Token",
+                                    "address": "0xD533a949740bb3306d119CC777fa900bA034cd52"
+                                },
+                                {
+                                    "name": "CVX-ETH LP",
+                                    "type": "Pool",
+                                    "address": "0xB576491F1E6e5E62f1d8F26062Ee822B40B0E0d4"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "FXSStrategy": {
+                    "address": "0x2C0C2E3aAd2938411319FE596A5127280e75cEaB",
+                    "network": "Ethereum Mainnet",
+                    "chainId": "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                    "protocols": [
+                        {
+                            "name": "FRAX",
+                            "addresses": [
+                                {
+                                    "name": "FRAX",
+                                    "type": "Token",
+                                    "address": "0x853d955aCEf822Db058eb8505911ED77F175b99e"
+                                },
+                                {
+                                    "name": "FXS",
+                                    "type": "Token",
+                                    "address": "0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Curve",
+                            "addresses": [
+                                {
+                                    "name": "CRV",
+                                    "type": "Token",
+                                    "address": "0xD533a949740bb3306d119CC777fa900bA034cd52"
+                                },
+                                {
+                                    "name": "FXS-FRAX LP",
+                                    "type": "Pool",
+                                    "address": "0xd658A338613198204DCa1143Ac3F01A722b5d94A"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Convex",
+                            "addresses": [
+                                {
+                                    "name": "CVX",
+                                    "type": "Token",
+                                    "address": "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "YCRVStrategy": {
+                    "address": "0x3E5e9B5E4C08f1d0E7d5a75204edcd57e44ee2cf",
+                    "network": "Ethereum Mainnet",
+                    "chainId": "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "ETH",
+                    "wantTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                    "protocols": [
+                        {
+                            "name": "Yearn",
+                            "addresses": [
+                                {
+                                    "name": "yCRV",
+                                    "type": "Token",
+                                    "address": "0xFCc5c47bE19d06BF83eB04298b026F81069ff65b"
+                                },
+                                {
+                                    "name": "Yearn styCRV",
+                                    "type": "Vault",
+                                    "address": "0x27B5739e22ad9033bcBf192059122d163b60349D"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Curve",
+                            "addresses": [
+                                {
+                                    "name": "CRV",
+                                    "type": "Token",
+                                    "address": "0xD533a949740bb3306d119CC777fa900bA034cd52"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        "lvAYI": {
+            "chain": {
+                "nativeToken": "ETH",
+                "chainId": 42161,
+                "name": "ARBITRUM ONE"
+            },
+            "wantTokenTicker": "USDC",
+            "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+            "address": "0xBE55f53aD3B48B3ca785299f763d39e8a12B1f98",
+            "decimals": "6",
+            "managementFee": "1.5",
+            "performanceFee": "10",
+            "strategies": {
+                "GMXStrategy": {
+                    "address": "0x8e84FA3F87C4965F91EF5b218891295515d62E85",
+                    "network": "Arbitrum One",
+                    "chainId": "42161",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+                    "protocols": [
+                        {
+                            "name": "GMX",
+                            "addresses": [
+                                {
+                                    "name": "GMX",
+                                    "type": "Token",
+                                    "address": "0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a"
+                                },
+                                {
+                                    "name": "WETH",
+                                    "type": "Reward Token",
+                                    "address": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "GNSStrategy": {
+                    "address": "0x18b9430d9ab251f7C27b7F2E922d2b0AF7506526",
+                    "network": "Arbitrum One",
+                    "chainId": "42161",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+                    "protocols": [
+                        {
+                            "name": "GNS",
+                            "addresses": [
+                                {
+                                    "name": "GNS",
+                                    "type": "Token",
+                                    "address": "0x18c11FD286C5EC11c3b683Caa813B77f5163A122"
+                                },
+                                {
+                                    "name": "DAI",
+                                    "type": "Reward Token",
+                                    "address": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1"
+                                },
+                                {
+                                    "name": "GNS Vault",
+                                    "type": "Staking pool",
+                                    "address": "0x6B8D3C08072a020aC065c467ce922e3A36D3F9d6"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "GMDStrategy": {
+                    "address": "0xC9FDdB51E0EfFb94adbe13E1118Ec5530bb733B0",
+                    "network": "Arbitrum One",
+                    "chainId": "42161",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+                    "protocols": [
+                        {
+                            "name": "GMD",
+                            "addresses": [
+                                {
+                                    "name": "GMD",
+                                    "type": "Token",
+                                    "address": "0x4945970EfeEc98D393b4b979b9bE265A3aE28A8B"
+                                },
+                                {
+                                    "name": "WETH",
+                                    "type": "Reward Token",
+                                    "address": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1"
+                                },
+                                {
+                                    "name": "GMD Staking",
+                                    "type": "Staking pool",
+                                    "address": "0x48C81451D1FDdecA84b47ff86F91708fa5c32e93"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "JOEStrategy": {
+                    "address": "0xcA16676Ba8512688884195B611aE1C00Ff2F3183",
+                    "network": "Arbitrum One",
+                    "chainId": "42161",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+                    "protocols": [
+                        {
+                            "name": "JOE",
+                            "addresses": [
+                                {
+                                    "name": "JOE",
+                                    "type": "Token",
+                                    "address": "0x371c7ec6D8039ff7933a2AA28EB827Ffe1F52f07"
+                                },
+                                {
+                                    "name": "USDC",
+                                    "type": "Reward Token",
+                                    "address": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        "lvOMV": {
+            "chain": {
+                "nativeToken": "ETH",
+                "chainId": 10,
+                "name": "Optimism"
+            },
+            "wantTokenTicker": "USDC",
+            "wantTokenAddress": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
+            "address": "0xe6d244b77cdb5fda68390676c65a1a8c1c72b611",
+            "decimals": "6",
+            "managementFee": "1.5",
+            "performanceFee": "10",
+            "strategies": {
+                "HopStrategy": {
+                    "address": "0x27Df001eA059a70532e30104E992E3D00883Dd90",
+                    "network": "Arbitrum One",
+                    "chainId": "42161",
+                    "lzChainId": "110",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC.e",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+                    "protocols": [
+
+                    ]
+                },
+                "PearlStrategy": {
+                    "address": "0xc051345ada30e8c72a10df5462bb67479ec46c0b",
+                    "network": "Polygon",
+                    "chainId": "137",
+                    "lzChainId": "109",
+                    "nativeToken": "MATIC",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+                    "protocols": [
+
+                    ]
+                },
+                "AeroDrome" : {
+                    "address": "0x37ee9b268ee9f55c307b6a974496fa733f82c8b3",
+                    "network": "Base",
+                    "chainId": "8453",
+                    "lzChainId": "184",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDbC",
+                    "wantTokenAddress": "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca",
+                    "protocols": [
+
+                    ]
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,43 @@
+{
+    "vaults": {
+        "vETH": {
+            "address": "0xd8647a1018b9b2edaaf3bdd3482621798ab4c2e4",
+            "chain": {
+                "nativeToken": "ETH",
+                "chainId": 11155111,
+                "name": "Sepolia Testnet"
+            },
+            "wantTokenTicker": "ETH",
+            "wantTokenAddress": "0xee44150250AfF3E6aC25539765F056EDb7F85D7B",
+            "strategies": {
+                "TestStrategy1": {
+                    "address": "0x66633600383A279B46f81bd69b79E8D9d9215073",
+                    "network" : "SEPOLIA",
+                    "chainId" : "11155111",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "ETH",
+                    "wantTokenAddress": "0xee44150250AfF3E6aC25539765F056EDb7F85D7B",
+                    "protocols": []
+                },
+                "TestStrategy2": {
+                    "address": "0x44552Bc0B6ea5BB23716843cD4924CAbABaBde99",
+                    "network" : "SEPOLIA",
+                    "chainId" : "11155111",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "ETH",
+                    "wantTokenAddress": "0xee44150250AfF3E6aC25539765F056EDb7F85D7B",
+                    "protocols": []
+                },
+                "TestStrategy3": {
+                    "address": "0x461d43297b75E703A9D678B95acA0C05D7422f7b",
+                    "network" : "SEPOLIA",
+                    "chainId" : "11155111",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "ETH",
+                    "wantTokenAddress": "0xee44150250AfF3E6aC25539765F056EDb7F85D7B",
+                    "protocols": []
+                }
+            }
+        }
+    }
+}

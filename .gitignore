@@ -1,3 +1,4 @@
+.idea
 node_modules
 .env
 coverage
@@ -6,6 +7,12 @@ typechain
 
 #Hardhat files
 cache
-artifacts
-.idea/workspace.xml
-.idea/vcs.xml
+cache_hardhat
+process.env
+artifacts/@openzeppelin
+artifacts/@uniswap
+artifacts/build-info
+artifacts/lib
+artifacts/contracts/integrations
+artifacts/contracts/mock
+artifacts/contracts/utils

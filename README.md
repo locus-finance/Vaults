@@ -1,15 +1,63 @@
-# Basic Sample Hardhat Project
+# Locus Finance Vault smart contracts
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
-
-Try running some of the following tasks:
+This project is a fork of Yearn Vault with custom strategies.
 
 ```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
+git submodule update --init --recursive
+npm install
+cp env.template .env
+nano .env
 npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
+node scripts/Vault.js
+```
+## Deploy new Vault
+
+Vault settings can be configured in `scripts/deploy/<vault name>/Vault.js`. 
+
+Customizable options:
+* want token address in `const *_ADDRESS`
+* want token decimals in `const *_DECIMALS`
+* name in `DEPLOY_SETTINGS`
+* symbol in `DEPLOY_SETTINGS`
+* deposit limit in `DEPLOY_SETTINGS` (defined in want tokens)
+
+After configuration vault can be deployed with following command. `GOVERNANCE_ACCOUNT` and `TREASURY_ACCOUNT` passed using environment variables.
+
+```
+GOVERNANCE_ACCOUNT="" TREASURY_ACCOUNT="" npx hardhat run scripts/deploy/<vault name>/Vault.js --network <hardhat.config.js network>
+```
+Deployer account is configuring in `hardhat.config.js` networks.
+
+## Deploy new Strategy
+
+Strategy settings can be configured in `scripts/deploy/<vault name>/Strategy.js`. 
+
+Customizable options:
+* ratio (100% = 10000)
+* minDebtHarvest
+* maxDebtHarvest
+
+After configuration strategy can be deployed with following command. `TARGET_STRATEGY` and `<vault name>_ADDRESS` (e.g. VETH_ADDRESS) passed using environment variables.
+
+```
+TARGET_STRATEGY="" <vault name>_ADDRESS="" npx hardhat run scripts/deploy/<vault name>/Strategy.js --network <hardhat.config.js network>
+
+TARGET_STRATEGY="RocketAuraStrategy" VETH_ADDRESS="0x3edbE670D03C4A71367dedA78E73EA4f8d68F2E4" npx hardhat run scripts/deploy/vETH/Strategy.js --network mainnet
+
+TARGET_STRATEGY="FraxStrategy" VETH_ADDRESS="0x3edbE670D03C4A71367dedA78E73EA4f8d68F2E4" npx hardhat run scripts/deploy/vETH/Strategy.js --network mainnet
+
+TARGET_STRATEGY="LidoAuraStrategy" VETH_ADDRESS="0x3edbE670D03C4A71367dedA78E73EA4f8d68F2E4" npx hardhat run scripts/deploy/vETH/Strategy.js --network mainnet
+
+TARGET_STRATEGY="AuraBALStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/lvDCI/Strategy.js --network mainnet
+
+TARGET_STRATEGY="AuraWETHStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/lvDCI/Strategy.js --network mainnet
+
+TARGET_STRATEGY="CVXStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/lvDCI/Strategy.js --network mainnet
+
+TARGET_STRATEGY="FXSStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/lvDCI/Strategy.js --network mainnet
+
+TARGET_STRATEGY="YCRVStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/lvDCI/Strategy.js --network mainnet
+
+TARGET_STRATEGY="GMDStrategy" DVAULT_ADDRESS="0xeC0cA44558a46873B47ccC562Fc2A0DD87bb0EE1" npx hardhat run scripts/deploy/daVault/Strategy.js --network arbitrum
+
 ```
