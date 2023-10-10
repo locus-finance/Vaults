@@ -10,6 +10,7 @@ require("hardhat-log-remover");
 require("hardhat-abi-exporter");
 require("dotenv").config();
 require("solidity-coverage");
+require("hardhat-contract-sizer");
 
 const fs = require("fs");
 
@@ -40,7 +41,9 @@ module.exports = {
                 settings: {
                     optimizer: {
                         enabled: true,
-                        runs: 10,
+
+                        runs: 5,
+
                     },
                     outputSelection: {
                         "*": {
@@ -54,7 +57,7 @@ module.exports = {
                 settings: {
                     optimizer: {
                         enabled: true,
-                        runs: 50,
+                        runs: 5,
                     },
                     outputSelection: {
                         "*": {
@@ -153,6 +156,12 @@ module.exports = {
         overwrite: false,
         runOnCompile: true,
     },
+    contractSizer: {
+        alphaSort: true,
+        disambiguatePaths: false,
+        runOnCompile: true,
+        strict: true,
+    },
     abiExporter: {
         path: "./abi",
         runOnCompile: true,
@@ -164,8 +173,13 @@ module.exports = {
             ":Vault$",
             ":TestStrategy$",
             ":AuraBALStrategy$",
+            "AuraTriPoolStrategy$",
             ":AuraWETHStrategy$",
             ":CVXStrategy$",
+            "GMDStrategy$",
+            "GMXStrategy$",
+            "GNSStrategy$",
+            "JOEStrategy$",
             ":FraxStrategy$",
             ":FXSStrategy$",
             ":LidoAuraStrategy$",

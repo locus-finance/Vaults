@@ -6,11 +6,11 @@ const USDC_DECIMALS = 6;
 const TARGET_STRATEGY = getEnv("TARGET_STRATEGY");
 
 const DEPLOY_SETTINGS = {
-    vaultAddress: getEnv("DAVAULT_ADDRESS"),
+    vaultAddress: getEnv("lvAYI_ADDRESS"),
     GMXStrategy: {
-        ratio: "3300",
+        ratio: "9500",
         minDebtHarvestUsdc: "0",
-        maxDebtHarvestUsdc: "1000000",
+        maxDebtHarvestUsdc: "1000000000000",
     },
     GNSStrategy: {
         ratio: "2200",
@@ -49,7 +49,7 @@ async function main() {
         [vault.address, deployer.address],
         {
             initializer: "initialize",
-            kind: "uups",
+            kind: "transparent",
             constructorArgs: [vault.address],
             unsafeAllow: ["constructor"],
         }
