@@ -427,21 +427,6 @@ contract OnChainVault is
         }
     }
 
-    //     @view
-    // @internal
-    // def _calculateLockedProfit() -> uint256:
-    //     lockedFundsRatio: uint256 = (block.timestamp - self.lastReport) * self.lockedProfitDegradation
-
-    //     if(lockedFundsRatio < DEGRADATION_COEFFICIENT):
-    //         lockedProfit: uint256 = self.lockedProfit
-    //         return lockedProfit - (
-    //                 lockedFundsRatio
-    //                 * lockedProfit
-    //                 / DEGRADATION_COEFFICIENT
-    //             )
-    //     else:
-    //         return 0
-
     function _reportLoss(address _strategy, uint256 _loss) internal {
         if (strategies[_strategy].totalDebt < _loss) revert Vault__V15();
 
