@@ -1,21 +1,18 @@
 pragma solidity ^0.8.18;
 
 interface IGNSVault {
-    struct User {
-        uint stakedTokens;
-        uint debtDai;
-        uint stakedNftsCount;
-        uint totalBoostTokens;
-        uint harvestedRewardsDai;
+    struct Staker {
+        uint128 stakedGns; // 1e18
+        uint128 debtDai; // 1e18
     }
 
-    function harvest() external;
+    function harvestDai() external;
 
-    function stakeTokens(uint amount) external;
+    function stakeGns(uint128 amount) external;
 
-    function unstakeTokens(uint amount) external;
+    function unstakeGns(uint128 _amountAmount) external;
 
-    function users(address u) external view returns (User memory);
+    function stakers(address staker) external view returns (Staker memory);
 
     function pendingRewardDai() external view returns (uint);
 }

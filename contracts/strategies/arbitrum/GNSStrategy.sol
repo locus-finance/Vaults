@@ -21,7 +21,7 @@ contract GNSStrategy is BaseStrategy {
     address internal constant DAI = 0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1;
 
     address internal constant GNS_VAULT =
-        0x6B8D3C08072a020aC065c467ce922e3A36D3F9d6;
+        0x7edDE7e5900633F698EaB0Dbc97DE640fC5dC015;
     address internal constant UNISWAP_V3_ROUTER =
         0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
 
@@ -77,8 +77,8 @@ contract GNSStrategy is BaseStrategy {
     }
 
     function balanceOfStakedGns() public view returns (uint256) {
-        IGNSVault.User memory user = IGNSVault(GNS_VAULT).users(address(this));
-        return user.stakedTokens;
+        IGNSVault.Staker memory staker = IGNSVault(GNS_VAULT).stakers(address(this));
+        return staker.stakedGns;
     }
 
     function balanceOfRewards() public view returns (uint256) {
@@ -103,7 +103,7 @@ contract GNSStrategy is BaseStrategy {
     }
 
     function _sellRewards() internal {
-        IGNSVault(GNS_VAULT).harvest();
+        IGNSVault(GNS_VAULT).harvestDai();
         uint256 balDai = IERC20(DAI).balanceOf(address(this));
         if (balDai > 0) {
             uint256 minAmountOut = (daiToWant(balDai) * slippage) / 10000;
@@ -128,7 +128,7 @@ contract GNSStrategy is BaseStrategy {
             return;
         }
 
-        IGNSVault(GNS_VAULT).unstakeTokens(gnsAmount);
+        IGNSVault(GNS_VAULT).unstakeGns(uint128(gnsAmount));
 
         uint256 minAmountOut = (gnsToWant(gnsAmount) * slippage) / 10000;
         IV3SwapRouter.ExactInputParams memory params = IV3SwapRouter
@@ -289,7 +289,7 @@ contract GNSStrategy is BaseStrategy {
 
         uint256 gnsBal = balanceOfGns();
         if (gnsBal > 0) {
-            IGNSVault(GNS_VAULT).stakeTokens(gnsBal);
+            IGNSVault(GNS_VAULT).stakeGns(uint128(gnsBal));
         }
     }
 
@@ -318,8 +318,8 @@ contract GNSStrategy is BaseStrategy {
     }
 
     function prepareMigration(address _newStrategy) internal override {
-        IGNSVault(GNS_VAULT).unstakeTokens(balanceOfStakedGns());
-        IGNSVault(GNS_VAULT).harvest();
+        IGNSVault(GNS_VAULT).unstakeGns(uint128(balanceOfStakedGns()));
+        IGNSVault(GNS_VAULT).harvestDai();
         IERC20(GNS).safeTransfer(_newStrategy, balanceOfGns());
         IERC20(DAI).safeTransfer(_newStrategy, balanceOfDai());
         IERC20(WETH).safeTransfer(_newStrategy, balanceOfWeth());
