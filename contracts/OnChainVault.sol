@@ -23,6 +23,7 @@ contract OnChainVault is
     uint256 public constant MAX_BPS = 10_000;
 
     address public override governance;
+    address public treasury;
     IERC20 public override token;
     uint256 public depositLimit;
     uint256 public totalDebtRatio;
@@ -40,7 +41,7 @@ contract OnChainVault is
     function initialize(
         IERC20 _token,
         address _governance,
-        address treasury,
+        address _treasury,
         string calldata name,
         string calldata symbol
     ) external initializer {
@@ -49,7 +50,9 @@ contract OnChainVault is
 
         governance = _governance;
         token = _token;
-        approve(treasury, type(uint256).max);
+        treasury = _treasury;
+        approve(_treasury, type(uint256).max);
+        
     }
 
     modifier onlyAuthorized() {
