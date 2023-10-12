@@ -359,14 +359,12 @@ contract OnChainVault is
         if (_loss > 0) {
             _reportLoss(msg.sender, _loss);
         }
-        // console.log(_gain, _loss, _debtPayment);
         uint256 totalFees = _assessFees(msg.sender, _gain);
         strategies[msg.sender].totalGain += _gain;
         uint256 credit = _creditAvailable(msg.sender);
 
         uint256 debt = _debtOutstanding(msg.sender);
         uint256 debtPayment = Math.min(debt, _debtPayment);
-        // console.log(debt, debtPayment, credit);
 
         if (debtPayment > 0) {
             strategies[msg.sender].totalDebt -= debtPayment;
