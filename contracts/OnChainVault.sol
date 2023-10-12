@@ -230,6 +230,7 @@ contract OnChainVault is
                 uint256 amountNeeded = value - vaultBalance;
                 amountNeeded = Math.min(
                     amountNeeded,
+                    // IBaseStrategy(OnChainStrategies[i]).estimatedTotalAssets()
                     strategies[OnChainStrategies[i]].totalDebt
                 );
                 if (amountNeeded == 0) {
@@ -259,6 +260,10 @@ contract OnChainVault is
             if (value > vaultBalance) {
                 value = vaultBalance;
                 shares = _sharesForAmount(value + totalLoss);
+                require(
+                    shares < balanceOf(msg.sender),
+                    "shares grater then user balance"
+                );
             }
             if (totalLoss > (maxLoss * (value + totalLoss)) / MAX_BPS)
                 revert Vault__UnacceptableLoss();
