@@ -33,7 +33,7 @@ contract OnChainVault is
     uint256 public totalDebtRatio;
     uint256 public totalDebt;
     uint256 public managementFee;
-    uint256 public perfomanceFee;
+    uint256 public performanceFee;
     address public management;
     bool public emergencyShutdown;
     mapping(address => StrategyParams) public strategies;
@@ -88,8 +88,8 @@ contract OnChainVault is
         depositLimit = _limit;
     }
 
-    //!Tests are not working with this implimentation of PPS
-    //!TODO: rework system to exlude dependencies of totalDebt, need to rethink logic of vault, big work
+    //!Tests are not working with this implementation of PPS
+    //!TODO: rework system to exclude dependencies of totalDebt, need to rethink logic of vault, big work
     function totalAssets() public view returns (uint256 _assets) {
         for (uint256 i = 0; i < OnChainStrategies.length; i++) {
             _assets += IBaseStrategy(OnChainStrategies[i])
@@ -101,7 +101,7 @@ contract OnChainVault is
 
     function setPerformanceFee(uint256 fee) external onlyAuthorized {
         require(fee <= MAX_BPS / 2, "fee not acceptable");
-        perfomanceFee = fee;
+        performanceFee = fee;
     }
 
     function setManagementFee(uint256 fee) external onlyAuthorized {
@@ -241,16 +241,16 @@ contract OnChainVault is
                 uint256 loss = IBaseStrategy(OnChainStrategies[i]).withdraw(
                     amountNeeded
                 );
-                uint256 witdrawed = token.balanceOf(address(this)) -
+                uint256 withdrawn = token.balanceOf(address(this)) -
                     balanceBefore;
-                vaultBalance += witdrawed;
+                vaultBalance += withdrawn;
                 if (loss > 0) {
                     value -= loss;
                     totalLoss += loss;
                     _reportLoss(OnChainStrategies[i], loss);
                 }
-                strategies[OnChainStrategies[i]].totalDebt -= witdrawed;
-                totalDebt -= witdrawed;
+                strategies[OnChainStrategies[i]].totalDebt -= withdrawn;
+                totalDebt -= withdrawn;
                 emit StrategyWithdrawnSome(
                     OnChainStrategies[i],
                     strategies[OnChainStrategies[i]].totalDebt,
@@ -565,8 +565,8 @@ contract OnChainVault is
             SECS_PER_YEAR;
         uint256 _strategistFee = (gain * strategies[strategy].performanceFee) /
             MAX_BPS;
-        uint256 _perfomanceFee = (gain * perfomanceFee) / MAX_BPS;
-        uint256 totalFee = _managementFee + _strategistFee + _perfomanceFee;
+        uint256 _performanceFee = (gain * performanceFee) / MAX_BPS;
+        uint256 totalFee = _managementFee + _strategistFee + _performanceFee;
         if (totalFee > gain) {
             totalFee = gain;
         }
