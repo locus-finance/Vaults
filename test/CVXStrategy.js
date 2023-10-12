@@ -91,10 +91,12 @@ describe("CVXStrategy", function () {
         );
         await strategy.deployed();
 
-        await vault["addStrategy(address,uint256,uint256)"](
+        await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
             strategy.address,
             10000,
-            0
+            0,
+            0,
+            ethers.utils.parseEther("10000")
         );
 
         await dealTokensToAddress(whale.address, TOKENS.USDC, "1000");

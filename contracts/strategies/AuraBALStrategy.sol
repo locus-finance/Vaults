@@ -240,7 +240,6 @@ contract AuraBALStrategy is BaseStrategy {
     {
         uint256 _totalAssets = estimatedTotalAssets();
         uint256 _totalDebt = vault.strategies(address(this)).totalDebt;
-
         if (_totalAssets >= _totalDebt) {
             _profit = _totalAssets - _totalDebt;
             _loss = 0;

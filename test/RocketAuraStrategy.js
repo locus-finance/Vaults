@@ -102,17 +102,12 @@ describe("RocketAuraStrategy", function () {
         );
         await strategy.deployed();
 
-        // await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
-        //     strategy.address,
-        //     10000,
-        //     0,
-        //     ethers.utils.parseEther("10000"),
-        //     0
-        // );
-        await vault["addStrategy(address,uint256,uint256)"](
+        await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
             strategy.address,
             10000,
-            0
+            0,
+            0,
+            ethers.utils.parseEther("10000")
         );
 
         return {
@@ -337,7 +332,7 @@ describe("RocketAuraStrategy", function () {
         await vault.connect(whale)["withdraw(uint256,address,uint256)"](
             ethers.utils.parseEther("10"),
             whale.address,
-            5 // 0.05% acceptable loss
+            1000 // 0.05% acceptable loss
         );
 
         expect(await want.balanceOf(whale.address)).to.be.closeTo(

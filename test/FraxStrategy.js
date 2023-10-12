@@ -2,6 +2,7 @@ const {
     loadFixture,
     mine,
     reset,
+    time,
 } = require("@nomicfoundation/hardhat-network-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
@@ -94,17 +95,12 @@ describe("FraxStrategy", function () {
         );
         await strategy.deployed();
 
-        // await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
-        //     strategy.address,
-        //     10000,
-        //     0,
-        //     ethers.utils.parseEther("10000"),
-        //     0
-        // );
-        await vault["addStrategy(address,uint256,uint256)"](
+        await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
             strategy.address,
             10000,
-            0
+            0,
+            0,
+            ethers.utils.parseEther("10000")
         );
 
         return {
@@ -187,6 +183,7 @@ describe("FraxStrategy", function () {
 
         await strategy.connect(deployer).harvest();
         mine(1);
+        time.increase(60 * 60 * 24 * 10)
 
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
             ethers.utils.parseEther("10"),

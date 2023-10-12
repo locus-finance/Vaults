@@ -2,16 +2,16 @@
 
 pragma solidity ^0.8.19;
 
-import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { ERC20, IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { ERC4626 } from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+import { ERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import {StrategyParams, IOnChainVault} from "./interfaces/IOnChainVault.sol";
-import {IBaseStrategy} from "./interfaces/IBaseStrategy.sol";
+import { StrategyParams, IOnChainVault } from "./interfaces/IOnChainVault.sol";
+import { IBaseStrategy } from "./interfaces/IBaseStrategy.sol";
 
 contract OnChainVault is
     Initializable,
@@ -26,7 +26,6 @@ contract OnChainVault is
         (DEGRADATION_COEFFICIENT * 46) / 10 ** 6;
     uint256 lockedProfit;
     uint256 lastReport;
-    address public treasury;
     address public override governance;
     address public treasury;
     IERC20 public override token;
@@ -64,8 +63,8 @@ contract OnChainVault is
 
     modifier onlyAuthorized() {
         if (
-            msg.sender != governance ||
-            msg.sender != owner() ||
+            msg.sender != governance &&
+            msg.sender != owner() &&
             msg.sender != management
         ) revert Vault__OnlyAuthorized(msg.sender);
         _;
@@ -96,6 +95,7 @@ contract OnChainVault is
             _assets += IBaseStrategy(OnChainStrategies[i])
                 .estimatedTotalAssets();
         }
+        _assets += totalIdle();
         // _assets += totalIdle() + totalDebt;
     }
 
@@ -231,6 +231,7 @@ contract OnChainVault is
                 uint256 amountNeeded = value - vaultBalance;
                 amountNeeded = Math.min(
                     amountNeeded,
+                    // IBaseStrategy(OnChainStrategies[i]).estimatedTotalAssets()
                     strategies[OnChainStrategies[i]].totalDebt
                 );
                 if (amountNeeded == 0) {
@@ -243,7 +244,6 @@ contract OnChainVault is
                 uint256 witdrawed = token.balanceOf(address(this)) -
                     balanceBefore;
                 vaultBalance += witdrawed;
-
                 if (loss > 0) {
                     value -= loss;
                     totalLoss += loss;
@@ -260,10 +260,15 @@ contract OnChainVault is
             if (value > vaultBalance) {
                 value = vaultBalance;
                 shares = _sharesForAmount(value + totalLoss);
+                require(
+                    shares < balanceOf(msg.sender),
+                    "shares amount to burn grater than balance of user"
+                );
             }
             if (totalLoss > (maxLoss * (value + totalLoss)) / MAX_BPS)
                 revert Vault__UnacceptableLoss();
         }
+
         _burn(msg.sender, shares);
         token.safeTransfer(recipient, value);
         emit Withdraw(recipient, shares, value);
@@ -354,13 +359,14 @@ contract OnChainVault is
         if (_loss > 0) {
             _reportLoss(msg.sender, _loss);
         }
-
+        // console.log(_gain, _loss, _debtPayment);
         uint256 totalFees = _assessFees(msg.sender, _gain);
         strategies[msg.sender].totalGain += _gain;
         uint256 credit = _creditAvailable(msg.sender);
 
         uint256 debt = _debtOutstanding(msg.sender);
         uint256 debtPayment = Math.min(debt, _debtPayment);
+        // console.log(debt, debtPayment, credit);
 
         if (debtPayment > 0) {
             strategies[msg.sender].totalDebt -= debtPayment;
@@ -507,7 +513,10 @@ contract OnChainVault is
         uint256 vaultDebtLimit = (totalDebtRatio * totalAssets()) / MAX_BPS;
         uint256 vaultTotalDebt = totalDebt;
 
-        if (strategyDebtLimit <= strategyTotalDebt) {
+        if (
+            strategyDebtLimit <= strategyTotalDebt ||
+            vaultDebtLimit <= totalDebt
+        ) {
             return 0;
         }
         uint256 available = strategyDebtLimit - strategyTotalDebt;
