@@ -175,15 +175,15 @@ contract OnChainVault is
         if (totalDebtRatio + _debtRatio > MAX_BPS) revert Vault__V3();
 
         strategies[_strategy] = StrategyParams({
+            performanceFee: _performanceFee,
             activation: block.timestamp,
             debtRatio: _debtRatio,
             minDebtPerHarvest: _minDebtPerHarvest,
             maxDebtPerHarvest: _maxDebtPerHarvest,
+            lastReport: 0,
             totalDebt: 0,
             totalGain: 0,
-            totalLoss: 0,
-            lastReport: 0,
-            performanceFee: _performanceFee
+            totalLoss: 0
         });
 
         totalDebtRatio += _debtRatio;
@@ -319,15 +319,15 @@ contract OnChainVault is
         totalDebtRatio += params.debtRatio;
 
         strategies[_newStrategy] = StrategyParams({
+            performanceFee: params.performanceFee,
             activation: params.lastReport,
             debtRatio: params.debtRatio,
+            minDebtPerHarvest: params.minDebtPerHarvest,
+            maxDebtPerHarvest: params.maxDebtPerHarvest,
+            lastReport: params.lastReport,
             totalDebt: params.totalDebt,
             totalGain: 0,
-            totalLoss: 0,
-            lastReport: params.lastReport,
-            performanceFee: params.performanceFee,
-            maxDebtPerHarvest: params.maxDebtPerHarvest,
-            minDebtPerHarvest: params.minDebtPerHarvest
+            totalLoss: 0
         });
         strategies[_oldStrategy].totalDebt = 0;
 
