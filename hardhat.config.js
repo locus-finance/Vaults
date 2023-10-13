@@ -10,7 +10,7 @@ require("hardhat-log-remover");
 require("hardhat-abi-exporter");
 require("dotenv").config();
 require("solidity-coverage");
-// require("hardhat-contract-sizer");
+require("hardhat-contract-sizer");
 
 const fs = require("fs");
 

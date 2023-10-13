@@ -24,8 +24,8 @@ contract OnChainVault is
     uint256 public constant DEGRADATION_COEFFICIENT = 10 ** 18;
     uint256 public constant lockedProfitDegradation =
         (DEGRADATION_COEFFICIENT * 46) / 10 ** 6;
-    uint256 lockedProfit;
-    uint256 lastReport;
+    uint256 public lockedProfit;
+    uint256 public lastReport;
     address public override governance;
     address public treasury;
     IERC20 public override token;
