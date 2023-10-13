@@ -517,5 +517,31 @@
                 }
             }
         }
+    },
+    "migration" : {
+        "lvETH": {
+            "address" : "",
+            "chain": {
+                "nativeToken": "ETH",
+                "chainId": 1,
+                "name": "MAINNET"
+            }
+        },
+        "lvDCI": {
+            "address" : "",
+            "chain": {
+                "nativeToken": "ETH",
+                "chainId": 1,
+                "name": "MAINNET"
+            }
+        },
+        "lvAYI": {
+            "address" : "0x6acbfd3f15627aaf9b3a83bdc40733bac8f3c9cb",
+            "chain": {
+                "nativeToken": "ETH",
+                "chainId": 42161,
+                "name": "ARBITRUM ONE"
+            }
+        }
     }
 }
