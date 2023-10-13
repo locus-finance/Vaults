@@ -19,7 +19,7 @@ const ARBITRUM_FORK_BLOCK = getEnv("ARBITRUM_FORK_BLOCK");
 
 // upgrades.silenceWarnings();
 
-describe("JOEStrategy", function () {
+describe("HopStrategy", function () {
     const TOKENS = {
         USDC: {
             address: "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
@@ -81,13 +81,6 @@ describe("JOEStrategy", function () {
         );
         await strategy.deployed();
 
-        // await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
-        //     strategy.address,
-        //     10000,
-        //     0,
-        //     ethers.utils.parseEther("10000"),
-        //     0
-        // );
         await vault["addStrategy(address,uint256,uint256)"](
             strategy.address,
             10000,
