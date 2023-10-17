@@ -72,7 +72,7 @@ describe("RocketAuraStrategy", function () {
 
         const name = "ETH Vault";
         const symbol = "lvETH";
-        const Vault = await ethers.getContractFactory("Vault");
+        const Vault = await ethers.getContractFactory("OnChainVault");
         const vault = await Vault.deploy();
         await vault.deployed();
 
@@ -106,8 +106,8 @@ describe("RocketAuraStrategy", function () {
             strategy.address,
             10000,
             0,
-            ethers.utils.parseEther("10000"),
-            0
+            0,
+            ethers.utils.parseEther("10000")
         );
 
         return {
@@ -171,7 +171,7 @@ describe("RocketAuraStrategy", function () {
             deployContractAndSetVariables
         );
 
-        await vault.setLockedProfitDegradation(ethers.utils.parseEther("1"));
+        // await vault.setLockedProfitDegradation(ethers.utils.parseEther("1"));
         const balanceBefore = await want.balanceOf(whale.address);
 
         await want
@@ -179,7 +179,7 @@ describe("RocketAuraStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("10"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("10"));
+        ["deposit(uint256)"](ethers.utils.parseEther("10"));
         expect(await want.balanceOf(vault.address)).to.equal(
             ethers.utils.parseEther("10")
         );
@@ -197,11 +197,11 @@ describe("RocketAuraStrategy", function () {
 
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
 
         expect(Number(await want.balanceOf(whale.address))).to.be.greaterThan(
             Number(balanceBefore)
@@ -221,7 +221,7 @@ describe("RocketAuraStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("10"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("10"));
+        ["deposit(uint256)"](ethers.utils.parseEther("10"));
         expect(await want.balanceOf(vault.address)).to.equal(
             ethers.utils.parseEther("10")
         );
@@ -248,7 +248,7 @@ describe("RocketAuraStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("10"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("10"));
+        ["deposit(uint256)"](ethers.utils.parseEther("10"));
         expect(await want.balanceOf(vault.address)).to.equal(
             ethers.utils.parseEther("10")
         );
@@ -278,7 +278,7 @@ describe("RocketAuraStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("10"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("10"));
+        ["deposit(uint256)"](ethers.utils.parseEther("10"));
         expect(await want.balanceOf(vault.address)).to.equal(
             ethers.utils.parseEther("10")
         );
@@ -314,7 +314,7 @@ describe("RocketAuraStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("10"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("10"));
+        ["deposit(uint256)"](ethers.utils.parseEther("10"));
 
         expect(await want.balanceOf(vault.address)).to.equal(
             ethers.utils.parseEther("10")
@@ -332,7 +332,7 @@ describe("RocketAuraStrategy", function () {
         await vault.connect(whale)["withdraw(uint256,address,uint256)"](
             ethers.utils.parseEther("10"),
             whale.address,
-            5 // 0.05% acceptable loss
+            1000 // 0.05% acceptable loss
         );
 
         expect(await want.balanceOf(whale.address)).to.be.closeTo(
@@ -351,7 +351,7 @@ describe("RocketAuraStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("10"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("10"));
+        ["deposit(uint256)"](ethers.utils.parseEther("10"));
 
         const balanceBefore = await want.balanceOf(whale.address);
 
@@ -470,10 +470,10 @@ describe("RocketAuraStrategy", function () {
         await vault.connect(whale)["deposit(uint256)"](oneEther);
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                5000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            5000
+        );
         mine(100);
         await strategy.harvest();
 
@@ -484,10 +484,10 @@ describe("RocketAuraStrategy", function () {
 
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                10000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            10000
+        );
         mine(100);
         await strategy.harvest();
 
@@ -498,10 +498,10 @@ describe("RocketAuraStrategy", function () {
 
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                5000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            5000
+        );
         mine(100);
         await strategy.harvest();
 
@@ -521,10 +521,10 @@ describe("RocketAuraStrategy", function () {
         await vault.connect(whale)["deposit(uint256)"](oneEther);
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                5000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            5000
+        );
         mine(1);
         await strategy.harvest();
 
@@ -757,11 +757,11 @@ describe("RocketAuraStrategy", function () {
         await expect(
             strategy
                 .connect(whale)
-                ["setAuraBRethStable(address)"](constants.AddressZero)
+            ["setAuraBRethStable(address)"](constants.AddressZero)
         ).to.be.reverted;
         await strategy
             .connect(deployer)
-            ["setAuraBRethStable(address)"](constants.AddressZero);
+        ["setAuraBRethStable(address)"](constants.AddressZero);
         expect(await strategy.auraBRethStable()).to.be.equal(
             constants.AddressZero
         );

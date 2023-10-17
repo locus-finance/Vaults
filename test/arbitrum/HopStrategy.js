@@ -1,70 +1,61 @@
 const {
     loadFixture,
     mine,
-    reset,
     time,
+    reset,
 } = require("@nomicfoundation/hardhat-network-helpers");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { expect } = require("chai");
-const { utils } = require("ethers");
-const { ethers, upgrades } = require("hardhat");
+const { utils, BigNumber } = require("ethers");
+const { parseEther } = require("ethers/lib/utils");
+const { ethers } = require("hardhat");
 
-const { getEnv } = require("../scripts/utils");
+const { getEnv } = require("../../scripts/utils");
 
 const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
 
-const ETH_NODE_URL = getEnv("ETH_NODE");
-const ETH_FORK_BLOCK = getEnv("ETH_FORK_BLOCK");
+const ARBITRUM_NODE = getEnv("ARBITRUM_NODE");
+const ARBITRUM_FORK_BLOCK = getEnv("ARBITRUM_FORK_BLOCK");
 
-upgrades.silenceWarnings();
+// upgrades.silenceWarnings();
 
-describe("YCRVStrategy", function () {
+describe("HopStrategy", function () {
     const TOKENS = {
         USDC: {
-            address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-            whale: "0x47ac0Fb4F2D84898e4D9E7b4DaB3C24507a6D503",
+            address: "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",
+            whale: "0x62383739d68dd0f844103db8dfb05a7eded5bbe6",
             decimals: 6,
         },
         ETH: {
             address: ZERO_ADDRESS,
-            whale: "0x00000000219ab540356cbb839cbe05303d7705fa",
-            decimals: 18,
-        },
-        YCRV: {
-            address: "0xFCc5c47bE19d06BF83eB04298b026F81069ff65b",
-            whale: "0x13b841dBF99456fB55Ac0A7269D9cfBC0ceD7b42",
-            decimals: 18,
-        },
-        ST_YCRV: {
-            address: "0x27B5739e22ad9033bcBf192059122d163b60349D",
-            whale: "0x1EFFD55a8646F7dC67c7578C20ce575cefeB1120",
+            whale: "0xf977814e90da44bfa03b6295a0616a897441acec",
             decimals: 18,
         },
         DAI: {
-            address: "0x6b175474e89094c44da98b954eedeac495271d0f",
-            whale: "0x60faae176336dab62e284fe19b885b095d29fb7f",
+            address: "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
+            whale: "0x2ac5f9a2a69700090755d5b3caa8c4cba0b748f9",
+            decimals: 18,
+        },
+        JOE: {
+            address: "0x371c7ec6D8039ff7933a2AA28EB827Ffe1F52f07",
+            whale: "0xf977814e90da44bfa03b6295a0616a897441acec",
             decimals: 18,
         },
     };
 
-    async function deployContractAndSetVariables() {
-        await reset(ETH_NODE_URL, Number(ETH_FORK_BLOCK));
+    const STABLE_JOE_STAKING = "0x43646A8e839B2f2766392C1BF8f60F6e587B6960";
 
+    async function deployContractAndSetVariables() {
+        await reset(ARBITRUM_NODE, Number(ARBITRUM_FORK_BLOCK));
         const [deployer, governance, treasury, whale] =
             await ethers.getSigners();
         const USDC_ADDRESS = TOKENS.USDC.address;
         const want = await ethers.getContractAt(IERC20_SOURCE, USDC_ADDRESS);
-        const stYCRV = await ethers.getContractAt(
-            IERC20_SOURCE,
-            TOKENS.ST_YCRV.address
-        );
-
         const name = "lvDCI";
         const symbol = "vDeFi";
         const Vault = await ethers.getContractFactory("OnChainVault");
         const vault = await Vault.deploy();
         await vault.deployed();
-
         await vault["initialize(address,address,address,string,string)"](
             want.address,
             deployer.address,
@@ -72,16 +63,14 @@ describe("YCRVStrategy", function () {
             name,
             symbol
         );
-
         await vault["setDepositLimit(uint256)"](
             ethers.utils.parseEther("10000")
         );
 
-        const YCRVStrategy = await ethers.getContractFactory(
-            "MockYCRVStrategy"
-        );
+        const JOEStrategy = await ethers.getContractFactory("HopStrategy");
+
         const strategy = await upgrades.deployProxy(
-            YCRVStrategy,
+            JOEStrategy,
             [vault.address, deployer.address],
             {
                 initializer: "initialize",
@@ -92,13 +81,6 @@ describe("YCRVStrategy", function () {
         );
         await strategy.deployed();
 
-        // await vault["addStrategy(address,uint256,uint256,uint256,uint256)"](
-        //     strategy.address,
-        //     10000,
-        //     0,
-        //     ethers.utils.parseEther("10000"),
-        //     0
-        // );
         await vault["addStrategy(address,uint256,uint256)"](
             strategy.address,
             10000,
@@ -117,7 +99,6 @@ describe("YCRVStrategy", function () {
             vault,
             deployer,
             want,
-            stYCRV,
             whale,
             governance,
             treasury,
@@ -150,7 +131,7 @@ describe("YCRVStrategy", function () {
 
         await ethWhale.sendTransaction({
             to: tokenWhale.address,
-            value: utils.parseEther("0.5"),
+            value: utils.parseEther("50"),
         });
 
         await token
@@ -166,18 +147,15 @@ describe("YCRVStrategy", function () {
             deployContractAndSetVariables
         );
         expect(await strategy.vault()).to.equal(vault.address);
-        expect(await strategy.name()).to.equal("StrategyYearn");
+        expect(await strategy.name()).to.equal("HopStrategy");
     });
 
     it("should get reasonable prices from oracle", async function () {
         const { strategy } = await loadFixture(deployContractAndSetVariables);
-        const ethPrice = await strategy.ethToWant(ethers.utils.parseEther("1"));
-        expect(Number(ethPrice)).to.be.greaterThan(0);
+        const oneUnit = utils.parseEther("1");
 
-        const stYCRVPrice = await strategy.stYCRVToWant(
-            ethers.utils.parseEther("1")
-        );
-        expect(Number(stYCRVPrice)).to.be.greaterThan(0);
+        expect(Number(await strategy.LpToWant(oneUnit))).to.be.greaterThan(0);
+        expect(Number(await strategy.HopToWant(oneUnit))).to.be.greaterThan(0);
     });
 
     it("should harvest with a profit", async function () {
@@ -189,24 +167,37 @@ describe("YCRVStrategy", function () {
         const balanceBefore = await want.balanceOf(whale.address);
         await vault.connect(whale)["deposit(uint256)"](balanceBefore);
         expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
-
         await strategy.connect(deployer).harvest();
         expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
             balanceBefore,
             ethers.utils.parseUnits("100", 6)
         );
+        // We are dropping some USDC to staking contract to simulate profit from JOE staking
+        await dealTokensToAddress(whale.address, TOKENS.USDC, "1000000");
+        const deposit = await want.balanceOf(whale.address);
+        await ethers.provider.send('evm_increaseTime', [100 * 24 * 60 * 60])
 
-        // We are dropping some stYCRV to strategy to simulate profit from staking in Yearn Vault
-        await dealTokensToAddress(strategy.address, TOKENS.ST_YCRV, "1000");
-        await strategy.connect(deployer).harvest();
+        await vault.connect(whale)["deposit(uint256)"](deposit);
+        let tx = await strategy.connect(deployer).harvest();
+
+        await tx.wait();
+        // expect(Number(await strategy.rewardss())).to.be.greaterThan(0);
+        await ethers.provider.send('evm_increaseTime', [50 * 24 * 60 * 60])
+
+        // await strategy.connect(deployer).harvest();
 
         // Previous harvest indicated some profit and it was withdrawn to vault
         expect(Number(await want.balanceOf(vault.address))).to.be.greaterThan(
             0
         );
-
         // All profit from strategy was withdrawn to vault
         expect(Number(await want.balanceOf(strategy.address))).to.be.equal(0);
+
+        // Vault reinvesing its profit back to strategy
+        await strategy.connect(deployer).harvest();
+        expect(Number(await strategy.estimatedTotalAssets())).to.be.greaterThan(
+            Number(balanceBefore)
+        );
 
         // Mining blocks for unlocking all profit so whale can withdraw
         mine(36000);
@@ -229,6 +220,7 @@ describe("YCRVStrategy", function () {
         );
 
         const balanceBefore = await want.balanceOf(whale.address);
+        console.log(balanceBefore);
         await vault.connect(whale)["deposit(uint256)"](balanceBefore);
         expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
 
@@ -237,9 +229,8 @@ describe("YCRVStrategy", function () {
             balanceBefore,
             ethers.utils.parseUnits("100", 6)
         );
-
-        await strategy.connect(deployer).harvest();
-
+        console.log("WITHDRAW");
+        console.log(await vault.balanceOf(whale.address));
         await vault
             .connect(whale)
         ["withdraw(uint256,address,uint256)"](
@@ -247,6 +238,7 @@ describe("YCRVStrategy", function () {
             whale.address,
             1000
         );
+        console.log("WITHDRAWED");
         expect(Number(await want.balanceOf(whale.address))).to.be.closeTo(
             balanceBefore,
             ethers.utils.parseUnits("100", 6)
@@ -254,6 +246,9 @@ describe("YCRVStrategy", function () {
 
         const newWhaleBalance = await want.balanceOf(whale.address);
         await vault.connect(whale)["deposit(uint256)"](newWhaleBalance);
+        expect(Number(await want.balanceOf(whale.address))).to.be.equal(0);
+
+        await strategy.harvest();
 
         await dealTokensToAddress(strategy.address, TOKENS.USDC, "1000");
         await vault
@@ -330,78 +325,6 @@ describe("YCRVStrategy", function () {
         ).to.be.reverted;
     });
 
-    it("should withdraw without loss", async function () {
-        const { vault, stYCRV, strategy, whale, deployer, want } =
-            await loadFixture(deployContractAndSetVariables);
-
-        const balanceBefore = await want.balanceOf(whale.address);
-        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
-        expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
-
-        await strategy.connect(deployer).harvest();
-        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
-            balanceBefore,
-            ethers.utils.parseUnits("100", 6)
-        );
-
-        // Dropping some USDC to strategy for accodomating loss
-        await dealTokensToAddress(strategy.address, TOKENS.USDC, "500");
-        // Force to sell all stYCRV to fulfill withdraw request for 100%
-        await strategy.overrideWantToStYCRV(
-            await stYCRV.balanceOf(strategy.address)
-        );
-
-        await vault
-            .connect(whale)
-        ["withdraw(uint256,address,uint256)"](
-            await vault.balanceOf(whale.address),
-            whale.address,
-            0
-        );
-        expect(Number(await want.balanceOf(whale.address))).to.be.equal(
-            balanceBefore
-        );
-    });
-
-    it("should report loss without withdrawing funds", async function () {
-        const { vault, stYCRV, strategy, whale, deployer, want } =
-            await loadFixture(deployContractAndSetVariables);
-
-        const balanceBefore = await want.balanceOf(whale.address);
-        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
-        expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
-
-        await strategy.connect(deployer).harvest();
-        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
-            balanceBefore,
-            ethers.utils.parseUnits("100", 6)
-        );
-
-        const stYCRVBalanceBefore = await stYCRV.balanceOf(strategy.address);
-
-        expect(Number(await strategy.estimatedTotalAssets())).to.be.greaterThan(
-            0
-        );
-        await strategy.overrideEstimatedTotalAssets(0);
-        expect(Number(await strategy.estimatedTotalAssets())).to.be.equal(0);
-        await strategy.connect(deployer).harvest();
-
-        const stYCRVBalanceAfter = await stYCRV.balanceOf(strategy.address);
-        expect(stYCRVBalanceBefore).to.be.equal(stYCRVBalanceAfter);
-    });
-
-    it("should change slippage", async function () {
-        const { strategy, whale, deployer } = await loadFixture(
-            deployContractAndSetVariables
-        );
-
-        await expect(strategy.connect(whale).setSlippage(0)).to.be.reverted;
-        await expect(strategy.connect(deployer).setSlippage(10_000)).to.be
-            .reverted;
-        await strategy.connect(deployer).setSlippage(100);
-        expect(await strategy.slippage()).to.equal(100);
-    });
-
     it("should emergency exit", async function () {
         const { vault, strategy, whale, deployer, want } = await loadFixture(
             deployContractAndSetVariables
@@ -427,110 +350,6 @@ describe("YCRVStrategy", function () {
         );
     });
 
-    it("should sweep", async function () {
-        const { vault, strategy, deployer, want } = await loadFixture(
-            deployContractAndSetVariables
-        );
-
-        await expect(
-            strategy.connect(deployer)["sweep(address)"](want.address)
-        ).to.be.revertedWith("!want");
-        await expect(
-            strategy.connect(deployer)["sweep(address)"](vault.address)
-        ).to.be.revertedWith("!shares");
-        await expect(
-            strategy.connect(deployer)["sweep(address)"](TOKENS.YCRV.address)
-        ).to.be.revertedWith("!protected");
-        await expect(
-            strategy.connect(deployer)["sweep(address)"](TOKENS.ST_YCRV.address)
-        ).to.be.revertedWith("!protected");
-
-        const daiToken = await hre.ethers.getContractAt(
-            IERC20_SOURCE,
-            TOKENS.DAI.address
-        );
-        await network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [TOKENS.DAI.whale],
-        });
-        const daiWhale = await ethers.getSigner(TOKENS.DAI.whale);
-
-        await daiToken
-            .connect(daiWhale)
-            .transfer(strategy.address, ethers.utils.parseEther("10"));
-        expect(TOKENS.DAI.address).not.to.be.equal(await strategy.want());
-        await expect(() =>
-            strategy.connect(deployer)["sweep(address)"](daiToken.address)
-        ).to.changeTokenBalances(
-            daiToken,
-            [strategy, deployer],
-            [ethers.utils.parseEther("-10"), ethers.utils.parseEther("10")]
-        );
-    });
-
-    it("should change debt", async function () {
-        const { vault, whale, strategy, deployer, want } = await loadFixture(
-            deployContractAndSetVariables
-        );
-
-        const balanceBefore = await want.balanceOf(whale.address);
-        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
-        expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
-
-        await vault
-            .connect(deployer)
-        ["updateStrategyDebtRatio(address,uint256)"](
-            strategy.address,
-            5000
-        );
-        mine(1);
-        await strategy.harvest();
-        expect(Number(await strategy.estimatedTotalAssets())).to.be.closeTo(
-            ethers.utils.parseUnits("500", 6),
-            ethers.utils.parseUnits("50", 6)
-        );
-
-        await vault
-            .connect(deployer)
-        ["updateStrategyDebtRatio(address,uint256)"](
-            strategy.address,
-            10000
-        );
-        mine(1);
-        await strategy.harvest();
-        expect(Number(await strategy.estimatedTotalAssets())).to.be.closeTo(
-            ethers.utils.parseUnits("1000", 6),
-            ethers.utils.parseUnits("100", 6)
-        );
-
-        await vault
-            .connect(deployer)
-        ["updateStrategyDebtRatio(address,uint256)"](
-            strategy.address,
-            5000
-        );
-        mine(1);
-        await strategy.harvest();
-        expect(Number(await strategy.estimatedTotalAssets())).to.be.closeTo(
-            ethers.utils.parseUnits("500", 6),
-            ethers.utils.parseUnits("50", 6)
-        );
-    });
-
-    it("should trigger", async function () {
-        const { vault, whale, strategy, want } = await loadFixture(
-            deployContractAndSetVariables
-        );
-
-        const balanceBefore = await want.balanceOf(whale.address);
-        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
-        expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
-
-        await time.increase(await strategy.maxReportDelay());
-
-        expect(await strategy.harvestTrigger(0)).to.be.true;
-    });
-
     it("should migrate", async function () {
         const { vault, strategy, whale, deployer, want } = await loadFixture(
             deployContractAndSetVariables
@@ -546,14 +365,9 @@ describe("YCRVStrategy", function () {
             ethers.utils.parseUnits("100", 6)
         );
 
-        const stYCRVToken = await hre.ethers.getContractAt(
-            IERC20_SOURCE,
-            TOKENS.ST_YCRV.address
-        );
-
-        const YCRVStrategy = await ethers.getContractFactory("YCRVStrategy");
+        const JOEStrategy = await ethers.getContractFactory("HopStrategy");
         const newStrategy = await upgrades.deployProxy(
-            YCRVStrategy,
+            JOEStrategy,
             [vault.address, deployer.address],
             {
                 initializer: "initialize",
@@ -563,6 +377,8 @@ describe("YCRVStrategy", function () {
             }
         );
         await newStrategy.deployed();
+
+        const joeStaked = await strategy.balanceOfStaked();
 
         await vault["migrateStrategy(address,address)"](
             strategy.address,
@@ -576,72 +392,36 @@ describe("YCRVStrategy", function () {
         );
 
         expect(Number(await want.balanceOf(strategy.address))).to.be.equal(0);
-        expect(Number(await want.balanceOf(newStrategy.address))).to.be.equal(
-            0
-        );
-        expect(
-            Number(await stYCRVToken.balanceOf(strategy.address))
-        ).to.be.equal(0);
-        expect(
-            Number(await stYCRVToken.balanceOf(newStrategy.address))
-        ).to.be.greaterThan(0);
+        expect(Number(await strategy.balanceOfStaked())).to.be.equal(0);
+        expect(Number(await newStrategy.balanceOfStaked())).to.be.equal(0);
+        console.log(1);
 
+        expect(Number(await want.balanceOf(newStrategy.address))).to.be.closeTo(
+            balanceBefore,
+            ethers.utils.parseUnits("100", 6)
+
+        );
+        console.log(1);
+
+        expect(Number(await strategy.balanceOfUnstaked())).to.be.equal(0);
+        console.log(1);
+        expect(Number(await newStrategy.balanceOfUnstaked())).to.be.closeTo(
+            balanceBefore,
+            ethers.utils.parseUnits("100", 6)
+        );
+        console.log(1);
         await newStrategy.harvest();
 
-        expect(
-            Number(await stYCRVToken.balanceOf(newStrategy.address))
-        ).to.be.greaterThan(0);
-    });
-
-    it("should revoke from vault", async function () {
-        const { vault, strategy, whale, deployer, want } = await loadFixture(
-            deployContractAndSetVariables
-        );
-
-        const balanceBefore = await want.balanceOf(whale.address);
-        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
-        expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
-
-        await strategy.connect(deployer).harvest();
-        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
-            balanceBefore,
-            ethers.utils.parseUnits("100", 6)
-        );
-
-        await vault["revokeStrategy(address)"](strategy.address);
-        await strategy.harvest();
-        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
-            ethers.utils.parseUnits("0", 6),
-            ethers.utils.parseUnits("10", 6)
-        );
-        expect(await want.balanceOf(vault.address)).to.be.closeTo(
-            balanceBefore,
-            ethers.utils.parseUnits("100", 6)
+        expect(Number(await strategy.balanceOfStaked())).to.be.equal(0);
+        expect(BigNumber.from(await newStrategy.balanceOfStaked())).to.be.closeTo(
+            BigNumber.from(joeStaked),
+            ethers.utils.parseUnits("1", 18)
         );
     });
 
-    it("should emergency exit", async function () {
-        const { vault, strategy, whale, deployer, want } = await loadFixture(
-            deployContractAndSetVariables
-        );
 
-        const balanceBefore = await want.balanceOf(whale.address);
-        await vault.connect(whale)["deposit(uint256)"](balanceBefore);
-        expect(await want.balanceOf(vault.address)).to.equal(balanceBefore);
 
-        await strategy.connect(deployer).harvest();
-        expect(await strategy.estimatedTotalAssets()).to.be.closeTo(
-            balanceBefore,
-            ethers.utils.parseUnits("100", 6)
-        );
 
-        await strategy["setEmergencyExit()"]();
-        await strategy.harvest();
-        expect(await want.balanceOf(vault.address)).to.be.closeTo(
-            balanceBefore,
-            ethers.utils.parseUnits("100", 6)
-        );
-    });
 
     it("should withdraw on vault shutdown", async function () {
         const { vault, strategy, whale, deployer, want } = await loadFixture(
@@ -673,23 +453,4 @@ describe("YCRVStrategy", function () {
         );
     });
 
-    it("should scale decimals", async function () {
-        const { strategy } = await loadFixture(deployContractAndSetVariables);
-
-        expect(
-            await strategy.scaleDecimals(
-                ethers.utils.parseUnits("100", 6),
-                TOKENS.USDC.address,
-                TOKENS.DAI.address
-            )
-        ).to.be.equal(ethers.utils.parseEther("100"));
-
-        expect(
-            await strategy.scaleDecimals(
-                ethers.utils.parseEther("100"),
-                TOKENS.DAI.address,
-                TOKENS.USDC.address
-            )
-        ).to.be.equal(ethers.utils.parseUnits("100", 6));
-    });
 });

@@ -67,7 +67,7 @@ describe("FXSStrategy", function () {
 
         const name = "lvDCI";
         const symbol = "vDeFi";
-        const Vault = await ethers.getContractFactory("Vault");
+        const Vault = await ethers.getContractFactory("OnChainVault");
         const vault = await Vault.deploy();
         await vault.deployed();
 
@@ -99,17 +99,17 @@ describe("FXSStrategy", function () {
             strategy.address,
             10000,
             0,
-            ethers.utils.parseEther("10000"),
-            0
+            0,
+            ethers.utils.parseEther("10000")
         );
 
         await dealTokensToAddress(whale.address, TOKENS.USDC, "1000");
         await want
             .connect(whale)
-            ["approve(address,uint256)"](
-                vault.address,
-                ethers.constants.MaxUint256
-            );
+        ["approve(address,uint256)"](
+            vault.address,
+            ethers.constants.MaxUint256
+        );
 
         return {
             vault,
@@ -219,11 +219,11 @@ describe("FXSStrategy", function () {
 
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(Number(await want.balanceOf(whale.address))).to.be.greaterThan(
             Number(balanceBefore)
         );
@@ -246,11 +246,11 @@ describe("FXSStrategy", function () {
 
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(Number(await want.balanceOf(whale.address))).to.be.closeTo(
             balanceBefore,
             ethers.utils.parseUnits("100", 6)
@@ -265,11 +265,11 @@ describe("FXSStrategy", function () {
         await dealTokensToAddress(strategy.address, TOKENS.USDC, "1000");
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(Number(await want.balanceOf(whale.address))).to.be.closeTo(
             newWhaleBalance,
             ethers.utils.parseUnits("100", 6)
@@ -293,11 +293,11 @@ describe("FXSStrategy", function () {
 
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(Number(await want.balanceOf(whale.address))).to.be.lessThan(
             Number(balanceBefore)
         );
@@ -325,11 +325,11 @@ describe("FXSStrategy", function () {
         await expect(
             vault
                 .connect(whale)
-                ["withdraw(uint256,address,uint256)"](
-                    await vault.balanceOf(whale.address),
-                    whale.address,
-                    0
-                )
+            ["withdraw(uint256,address,uint256)"](
+                await vault.balanceOf(whale.address),
+                whale.address,
+                0
+            )
         ).to.be.reverted;
     });
 
@@ -357,11 +357,11 @@ describe("FXSStrategy", function () {
 
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                0
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            0
+        );
         expect(Number(await want.balanceOf(whale.address))).to.be.equal(
             balanceBefore
         );
@@ -457,7 +457,7 @@ describe("FXSStrategy", function () {
         await expect(
             strategy
                 .connect(deployer)
-                ["sweep(address)"](TOKENS.CURVE_FXS_LP.address)
+            ["sweep(address)"](TOKENS.CURVE_FXS_LP.address)
         ).to.be.revertedWith("!protected");
 
         const daiToken = await hre.ethers.getContractAt(
@@ -494,10 +494,10 @@ describe("FXSStrategy", function () {
 
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                5000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            5000
+        );
         mine(1);
         await strategy.harvest();
         expect(Number(await strategy.estimatedTotalAssets())).to.be.closeTo(
@@ -507,10 +507,10 @@ describe("FXSStrategy", function () {
 
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                10000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            10000
+        );
         mine(1);
         await strategy.harvest();
         expect(Number(await strategy.estimatedTotalAssets())).to.be.closeTo(
@@ -520,10 +520,10 @@ describe("FXSStrategy", function () {
 
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                5000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            5000
+        );
         mine(1);
         await strategy.harvest();
         expect(Number(await strategy.estimatedTotalAssets())).to.be.closeTo(
@@ -679,11 +679,11 @@ describe("FXSStrategy", function () {
         mine(1);
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(await want.balanceOf(whale.address)).to.be.closeTo(
             balanceBefore,
             ethers.utils.parseUnits("100", 6)

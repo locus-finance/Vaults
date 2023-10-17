@@ -66,7 +66,7 @@ describe("AuraTriPoolStrategy", function () {
 
         const name = "ETH Vault";
         const symbol = "lvETH";
-        const Vault = await ethers.getContractFactory("Vault");
+        const Vault = await ethers.getContractFactory("OnChainVault");
         const vault = await Vault.deploy();
         await vault.deployed();
 
@@ -100,17 +100,17 @@ describe("AuraTriPoolStrategy", function () {
             strategy.address,
             10000,
             0,
-            ethers.utils.parseEther("10000"),
-            0
+            0,
+            ethers.utils.parseEther("10000")
         );
 
         await dealTokensToAddress(whale.address, TOKENS.WETH, "10");
         await want
             .connect(whale)
-            ["approve(address,uint256)"](
-                vault.address,
-                ethers.constants.MaxUint256
-            );
+        ["approve(address,uint256)"](
+            vault.address,
+            ethers.constants.MaxUint256
+        );
 
         return {
             vault,
@@ -217,11 +217,11 @@ describe("AuraTriPoolStrategy", function () {
 
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(Number(await want.balanceOf(whale.address))).to.be.greaterThan(
             Number(balanceBefore)
         );
@@ -244,11 +244,11 @@ describe("AuraTriPoolStrategy", function () {
 
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(await want.balanceOf(whale.address)).to.be.closeTo(
             balanceBefore,
             ethers.utils.parseEther("0.2")
@@ -263,11 +263,11 @@ describe("AuraTriPoolStrategy", function () {
         await dealTokensToAddress(strategy.address, TOKENS.WETH, "1");
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(await want.balanceOf(whale.address)).to.be.closeTo(
             newWhaleBalance,
             ethers.utils.parseEther("0.2")
@@ -293,11 +293,11 @@ describe("AuraTriPoolStrategy", function () {
 
         await vault
             .connect(whale)
-            ["withdraw(uint256,address,uint256)"](
-                await vault.balanceOf(whale.address),
-                whale.address,
-                1000
-            );
+        ["withdraw(uint256,address,uint256)"](
+            await vault.balanceOf(whale.address),
+            whale.address,
+            1000
+        );
         expect(Number(await want.balanceOf(whale.address))).to.be.lessThan(
             Number(balanceBefore)
         );
@@ -330,7 +330,7 @@ describe("AuraTriPoolStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("10"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("10"));
+        ["deposit(uint256)"](ethers.utils.parseEther("10"));
         expect(await want.balanceOf(vault.address)).to.equal(
             ethers.utils.parseEther("10")
         );
@@ -361,7 +361,7 @@ describe("AuraTriPoolStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("100"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("100"));
+        ["deposit(uint256)"](ethers.utils.parseEther("100"));
         expect(await want.balanceOf(vault.address)).to.equal(
             ethers.utils.parseEther("100")
         );
@@ -396,7 +396,7 @@ describe("AuraTriPoolStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("100"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("100"));
+        ["deposit(uint256)"](ethers.utils.parseEther("100"));
 
         const balanceBefore = await want.balanceOf(whale.address);
 
@@ -487,10 +487,10 @@ describe("AuraTriPoolStrategy", function () {
         await vault.connect(whale)["deposit(uint256)"](oneEther);
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                5000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            5000
+        );
         mine(1);
         await strategy.harvest();
 
@@ -501,10 +501,10 @@ describe("AuraTriPoolStrategy", function () {
 
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                10000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            10000
+        );
         mine(1000);
         await strategy.harvest();
 
@@ -515,10 +515,10 @@ describe("AuraTriPoolStrategy", function () {
 
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                5000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            5000
+        );
         mine(1000);
         await strategy.harvest();
 
@@ -538,10 +538,10 @@ describe("AuraTriPoolStrategy", function () {
         await vault.connect(whale)["deposit(uint256)"](oneEther);
         await vault
             .connect(deployer)
-            ["updateStrategyDebtRatio(address,uint256)"](
-                strategy.address,
-                5000
-            );
+        ["updateStrategyDebtRatio(address,uint256)"](
+            strategy.address,
+            5000
+        );
         mine(1);
         await strategy.harvest();
 
@@ -651,7 +651,7 @@ describe("AuraTriPoolStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("100"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("100"));
+        ["deposit(uint256)"](ethers.utils.parseEther("100"));
         mine(1);
         await strategy.harvest();
 
@@ -681,7 +681,7 @@ describe("AuraTriPoolStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("100"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("100"));
+        ["deposit(uint256)"](ethers.utils.parseEther("100"));
         mine(1);
         await strategy.harvest();
 
@@ -711,7 +711,7 @@ describe("AuraTriPoolStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("100"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("100"));
+        ["deposit(uint256)"](ethers.utils.parseEther("100"));
         expect(await want.balanceOf(vault.address)).to.equal(
             ethers.utils.parseEther("100")
         );
@@ -751,7 +751,7 @@ describe("AuraTriPoolStrategy", function () {
             .approve(vault.address, ethers.utils.parseEther("1"));
         await vault
             .connect(whale)
-            ["deposit(uint256)"](ethers.utils.parseEther("1"));
+        ["deposit(uint256)"](ethers.utils.parseEther("1"));
 
         await strategy.connect(deployer).harvest();
 
@@ -795,11 +795,11 @@ describe("AuraTriPoolStrategy", function () {
         await expect(
             strategy
                 .connect(whale)
-                ["setAuraTriPoolRewards(address)"](constants.AddressZero)
+            ["setAuraTriPoolRewards(address)"](constants.AddressZero)
         ).to.be.reverted;
         await strategy
             .connect(deployer)
-            ["setAuraTriPoolRewards(address)"](constants.AddressZero);
+        ["setAuraTriPoolRewards(address)"](constants.AddressZero);
         expect(await strategy.AURA_TRIPOOL_REWARDS()).to.be.equal(
             constants.AddressZero
         );

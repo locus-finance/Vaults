@@ -9,10 +9,4 @@ typechain
 cache
 cache_hardhat
 process.env
-artifacts/@openzeppelin
-artifacts/@uniswap
-artifacts/build-info
-artifacts/lib
-artifacts/contracts/integrations
-artifacts/contracts/mock
-artifacts/contracts/utils
+artifacts

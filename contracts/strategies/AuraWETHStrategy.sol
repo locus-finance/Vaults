@@ -509,7 +509,6 @@ contract AuraWETHStrategy is BaseStrategy {
         if (_amountNeeded == 0) {
             return;
         }
-
         uint256 balRewardTokens = balRewards();
         uint256 balTokens = balRewardTokens +
             ERC20(BAL).balanceOf(address(this));

@@ -483,47 +483,64 @@
             },
             "wantTokenTicker": "USDC",
             "wantTokenAddress": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
-            "address": "0xe6d244b77cdb5fda68390676c65a1a8c1c72b611",
+            "address": "0xd39583c9d1001c237151a5a6d4c7a7207b2c08e3",
             "decimals": "6",
             "managementFee": "1.5",
             "performanceFee": "10",
             "strategies": {
                 "HopStrategy": {
-                    "address": "0x27Df001eA059a70532e30104E992E3D00883Dd90",
+                    "address": "0xe6aAE58caC2c7c7A785a38e7147be92e8e3F6484",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "lzChainId": "110",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "USDC.e",
-                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
-                    "protocols": [
-
-                    ]
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8"
                 },
                 "PearlStrategy": {
-                    "address": "0xc051345ada30e8c72a10df5462bb67479ec46c0b",
+                    "address": "0x7A5374650b4Dc4Fa15408412bD01fb1BdcB97BA8",
                     "network": "Polygon",
                     "chainId": "137",
                     "lzChainId": "109",
                     "nativeToken": "MATIC",
                     "wantTokenTicker": "USDC",
-                    "wantTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-                    "protocols": [
-
-                    ]
+                    "wantTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
                 },
-                "AeroDrome" : {
-                    "address": "0x37ee9b268ee9f55c307b6a974496fa733f82c8b3",
+                "VeloDrome" : {
+                    "address": " ",
                     "network": "Base",
-                    "chainId": "8453",
-                    "lzChainId": "184",
+                    "chainId": "137",
+                    "lzChainId": "109",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "USDbC",
-                    "wantTokenAddress": "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca",
-                    "protocols": [
-
-                    ]
+                    "wantTokenAddress": "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca"
                 }
+            }
+        }
+    },
+    "migration" : {
+        "lvETH": {
+            "address" : "0xd25d0de43579223429c28f2d64183a47a79078C7",
+            "chain": {
+                "nativeToken": "ETH",
+                "chainId": 1,
+                "name": "MAINNET"
+            }
+        },
+        "lvDCI": {
+            "address" : "0xf42402303BCA9d5575A8aC7b90CB18026c80354D",
+            "chain": {
+                "nativeToken": "ETH",
+                "chainId": 1,
+                "name": "MAINNET"
+            }
+        },
+        "lvAYI": {
+            "address" : "0xC7469254416Ad546A5F07e5530a0c3eA468F1FCE",
+            "chain": {
+                "nativeToken": "ETH",
+                "chainId": 42161,
+                "name": "ARBITRUM ONE"
             }
         }
     }
