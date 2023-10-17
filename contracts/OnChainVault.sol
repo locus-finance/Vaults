@@ -36,6 +36,9 @@ contract OnChainVault is
     uint256 public performanceFee;
     address public management;
     bool public emergencyShutdown;
+    bool public wasInjectedTotalSupplyOnce;
+    uint256 public injectedTotalSupply;
+
     mapping(address => StrategyParams) public strategies;
     mapping(address strategy => uint256 position)
         public strategyPositionInArray;
@@ -61,13 +64,29 @@ contract OnChainVault is
         approve(treasury, type(uint256).max);
     }
 
-    modifier onlyAuthorized() {
+    modifier onlyAuthorized {
         if (
             msg.sender != governance &&
             msg.sender != owner() &&
             msg.sender != management
         ) revert Vault__OnlyAuthorized(msg.sender);
         _;
+    }
+
+    function injectTotalSupplyForMigration(uint256 _injectedTotalSupply) external onlyAuthorized {
+        if (!wasInjectedTotalSupplyOnce) {
+            injectedTotalSupply = _injectedTotalSupply;
+            wasInjectedTotalSupplyOnce = true;
+        } else {
+            revert("Cannot inject twice.");
+        }
+    }
+
+    function totalSupply() public view override returns (uint256) {
+        if (injectedTotalSupply > 0) {
+            return injectedTotalSupply;
+        }
+        return super.totalSupply();
     }
 
     function decimals() public view virtual override returns (uint8) {
@@ -483,10 +502,14 @@ contract OnChainVault is
         uint256 _amount
     ) internal returns (uint256) {
         uint256 shares = 0;
-        if (totalSupply() == 0) {
+        uint256 _totalSupply = totalSupply();
+        if (_totalSupply == 0) {
             shares = _amount;
         } else {
-            shares = (_amount * totalSupply()) / _freeFunds();
+            shares = (_amount * _totalSupply) / _freeFunds();
+            if (injectedTotalSupply > 0) {
+                injectedTotalSupply = 0;
+            }
         }
         if (shares == 0) revert Vault__V17();
         _mint(_to, shares);
