@@ -2,16 +2,16 @@
 
 pragma solidity ^0.8.19;
 
-import { ERC20, IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { ERC4626 } from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
-import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
-import { ERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import { StrategyParams, IOnChainVault } from "./interfaces/IOnChainVault.sol";
-import { IBaseStrategy } from "./interfaces/IBaseStrategy.sol";
+import {StrategyParams, IOnChainVault} from "./interfaces/IOnChainVault.sol";
+import {IBaseStrategy} from "./interfaces/IBaseStrategy.sol";
 
 contract OnChainVault is
     Initializable,
@@ -70,6 +70,13 @@ contract OnChainVault is
         _;
     }
 
+    modifier checkAmountOnDeposit(uint256 amount) {
+        if (amount + totalAssets() > depositLimit || amount == 0) {
+            revert Vault__AmountIsIncorrect(amount);
+        }
+        _;
+    }
+
     function decimals() public view virtual override returns (uint8) {
         return ERC20(address(token)).decimals();
     }
@@ -84,12 +91,15 @@ contract OnChainVault is
         emergencyShutdown = _emergencyShutdown;
     }
 
+    function setTreasury(address _newTreasuryAddress) external onlyAuthorized {
+        treasury = _newTreasuryAddress;
+    }
+
     function setDepositLimit(uint256 _limit) external onlyAuthorized {
         depositLimit = _limit;
     }
 
     //!Tests are not working with this implementation of PPS
-    //!TODO: rework system to exclude dependencies of totalDebt, need to rethink logic of vault, big work
     function totalAssets() public view returns (uint256 _assets) {
         for (uint256 i = 0; i < OnChainStrategies.length; i++) {
             _assets += IBaseStrategy(OnChainStrategies[i])
@@ -100,12 +110,12 @@ contract OnChainVault is
     }
 
     function setPerformanceFee(uint256 fee) external onlyAuthorized {
-        require(fee <= MAX_BPS / 2, "fee not acceptable");
+        if (fee > MAX_BPS / 2) revert Vault__UnAcceptableFee();
         performanceFee = fee;
     }
 
     function setManagementFee(uint256 fee) external onlyAuthorized {
-        require(fee <= MAX_BPS, "fee not acceptable");
+        if (fee > MAX_BPS) revert Vault__UnAcceptableFee();
         managementFee = fee;
     }
 
@@ -121,12 +131,10 @@ contract OnChainVault is
         address strategy,
         uint256 _minDebtPerHarvest
     ) external onlyAuthorized {
-        require(strategies[strategy].activation > 0, "strategy is not active");
-        require(
-            strategies[strategy].maxDebtPerHarvest > _minDebtPerHarvest,
-            "there is no logic"
-        );
-
+        if (strategies[strategy].activation == 0)
+            revert Vault__InactiveStrategy();
+        if (strategies[strategy].maxDebtPerHarvest <= _minDebtPerHarvest)
+            revert Vault__MinMaxDebtError();
         strategies[strategy].minDebtPerHarvest = _minDebtPerHarvest;
     }
 
@@ -134,25 +142,23 @@ contract OnChainVault is
         address strategy,
         uint256 _maxDebtPerHarvest
     ) external onlyAuthorized {
-        require(strategies[strategy].activation > 0, "strategy is not active");
-        require(
-            strategies[strategy].minDebtPerHarvest < _maxDebtPerHarvest,
-            "there is no logic"
-        );
-
+        if (strategies[strategy].activation == 0)
+            revert Vault__InactiveStrategy();
+        if (strategies[strategy].minDebtPerHarvest >= _maxDebtPerHarvest)
+            revert Vault__MinMaxDebtError();
         strategies[strategy].maxDebtPerHarvest = _maxDebtPerHarvest;
     }
 
     function deposit(
         uint256 _amount,
         address _recipient
-    ) external returns (uint256) {
-        if (_amount > depositLimit) revert Vault__DepositLimit();
+    ) external checkAmountOnDeposit(_amount) returns (uint256) {
         return _deposit(_amount, _recipient);
     }
 
-    function deposit(uint256 _amount) external returns (uint256) {
-        if (_amount > depositLimit) revert Vault__DepositLimit();
+    function deposit(
+        uint256 _amount
+    ) external checkAmountOnDeposit(_amount) returns (uint256) {
         return _deposit(_amount, msg.sender);
     }
 
@@ -173,7 +179,9 @@ contract OnChainVault is
     ) external onlyAuthorized {
         if (strategies[_strategy].activation != 0) revert Vault__V2();
         if (totalDebtRatio + _debtRatio > MAX_BPS) revert Vault__V3();
-
+        if (_performanceFee > MAX_BPS / 2) revert Vault__UnAcceptableFee();
+        if (_minDebtPerHarvest > _maxDebtPerHarvest)
+            revert Vault__MinMaxDebtError();
         strategies[_strategy] = StrategyParams({
             performanceFee: _performanceFee,
             activation: block.timestamp,
@@ -574,7 +582,7 @@ contract OnChainVault is
             uint256 reward = _issueSharesForAmount(address(this), totalFee);
             if (_strategistFee > 0) {
                 uint256 strategistReward = (_strategistFee * reward) / totalFee;
-                transfer(strategy, strategistReward);
+                transfer(treasury, strategistReward);
             }
             if (balanceOf(address(this)) > 0) {
                 transfer(treasury, balanceOf(address(this)));
