@@ -34,6 +34,9 @@ interface IOnChainVault {
     error Vault__V15(); //0x429bf29b
     error Vault__V17(); //0x0fc96878
     error Vault__DepositLimit(); //
+    error Vault__UnAcceptableFee();
+    error Vault__MinMaxDebtError();
+    error Vault__AmountIsIncorrect(uint256 amount);
 
     event StrategyWithdrawnSome(
         address indexed strategy,
