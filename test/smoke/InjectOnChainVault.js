@@ -172,8 +172,8 @@ describe("InjectOnChainVault", function () {
         return totalAssets.sub(lockedProfit);
     }
 
-    it("should make PPS like in old vault and deposit should be performed", async function () {
-        const { vault, whale } = await loadFixture(
+    it("should make PPS like in old vault and deposit of total supply should be performed", async function () {
+        const { vault, whale, want } = await loadFixture(
             deployContractAndSetVariables
         );
 
@@ -184,9 +184,11 @@ describe("InjectOnChainVault", function () {
 
         await vault.injectForMigration(totalSupplyToInject, freeFundsToInject);
 
-        expect(await vault.pricePerShare()).to.be.equal(await oldVault.pricePerShare());
-        
-        await vault.connect(whale)["deposit(uint256)"]("1000000");
+        await dealTokensToAddress(whale.address, TOKENS.USDC, ethers.utils.formatUnits(totalSupplyToInject, 6));
+
+        await vault.connect(whale)["deposit(uint256)"](totalSupplyToInject);
         expect(await vault.balanceOf(whale.address)).to.be.gt(0);
+
+        expect(await vault.pricePerShare()).to.be.equal(await oldVault.pricePerShare());
     });
 });
