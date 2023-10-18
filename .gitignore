@@ -10,3 +10,4 @@ cache
 cache_hardhat
 process.env
 artifacts
+lib/yearn-vaults

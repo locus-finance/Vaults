@@ -475,6 +475,131 @@
                 }
             }
         },
+        "lvAYI_v2": {
+            "chain": {
+                "nativeToken": "ETH",
+                "chainId": 42161,
+                "name": "ARBITRUM ONE"
+            },
+            "wantTokenTicker": "USDC",
+            "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+            "address": "0x3daB4DDE35F0e218705E747e7c24269ADDed130e",
+            "decimals": "6",
+            "managementFee": "1.5",
+            "performanceFee": "10",
+            "strategies": {
+                "GMXStrategy": {
+                    "address": "0x8e84FA3F87C4965F91EF5b218891295515d62E85",
+                    "network": "Arbitrum One",
+                    "chainId": "42161",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+                    "protocols": [
+                        {
+                            "name": "GMX",
+                            "addresses": [
+                                {
+                                    "name": "GMX",
+                                    "type": "Token",
+                                    "address": "0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a"
+                                },
+                                {
+                                    "name": "WETH",
+                                    "type": "Reward Token",
+                                    "address": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "GNSStrategy": {
+                    "address": "0x18b9430d9ab251f7C27b7F2E922d2b0AF7506526",
+                    "network": "Arbitrum One",
+                    "chainId": "42161",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+                    "protocols": [
+                        {
+                            "name": "GNS",
+                            "addresses": [
+                                {
+                                    "name": "GNS",
+                                    "type": "Token",
+                                    "address": "0x18c11FD286C5EC11c3b683Caa813B77f5163A122"
+                                },
+                                {
+                                    "name": "DAI",
+                                    "type": "Reward Token",
+                                    "address": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1"
+                                },
+                                {
+                                    "name": "GNS Vault",
+                                    "type": "Staking pool",
+                                    "address": "0x6B8D3C08072a020aC065c467ce922e3A36D3F9d6"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "GMDStrategy": {
+                    "address": "0xC9FDdB51E0EfFb94adbe13E1118Ec5530bb733B0",
+                    "network": "Arbitrum One",
+                    "chainId": "42161",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+                    "protocols": [
+                        {
+                            "name": "GMD",
+                            "addresses": [
+                                {
+                                    "name": "GMD",
+                                    "type": "Token",
+                                    "address": "0x4945970EfeEc98D393b4b979b9bE265A3aE28A8B"
+                                },
+                                {
+                                    "name": "WETH",
+                                    "type": "Reward Token",
+                                    "address": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1"
+                                },
+                                {
+                                    "name": "GMD Staking",
+                                    "type": "Staking pool",
+                                    "address": "0x48C81451D1FDdecA84b47ff86F91708fa5c32e93"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "JOEStrategy": {
+                    "address": "0xcA16676Ba8512688884195B611aE1C00Ff2F3183",
+                    "network": "Arbitrum One",
+                    "chainId": "42161",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+                    "protocols": [
+                        {
+                            "name": "JOE",
+                            "addresses": [
+                                {
+                                    "name": "JOE",
+                                    "type": "Token",
+                                    "address": "0x371c7ec6D8039ff7933a2AA28EB827Ffe1F52f07"
+                                },
+                                {
+                                    "name": "USDC",
+                                    "type": "Reward Token",
+                                    "address": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
         "lvOMV": {
             "chain": {
                 "nativeToken": "ETH",

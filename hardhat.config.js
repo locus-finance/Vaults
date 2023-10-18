@@ -41,9 +41,7 @@ module.exports = {
                 settings: {
                     optimizer: {
                         enabled: true,
-
-                        runs: 5,
-
+                        runs: 5
                     },
                     outputSelection: {
                         "*": {
