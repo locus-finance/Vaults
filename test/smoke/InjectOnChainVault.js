@@ -172,18 +172,21 @@ describe("InjectOnChainVault", function () {
         return totalAssets.sub(lockedProfit);
     }
 
-    it("should make PPS like in old vault", async function () {
-        const { vault } = await loadFixture(
+    it("should make PPS like in old vault and deposit should be performed", async function () {
+        const { vault, whale } = await loadFixture(
             deployContractAndSetVariables
         );
 
         const oldVault = await ethers.getContractAt("OnChainVault", oldVaultAddress);
         const freeFundsToInject = await calculateFreeFunds(oldVault, parseInt(ETH_FORK_BLOCK));
-        console.log(freeFundsToInject.toString());
+        console.log(`Free Funds of an old vault: ${freeFundsToInject.toString()}`);
         const totalSupplyToInject = await oldVault.totalSupply();
 
         await vault.injectForMigration(totalSupplyToInject, freeFundsToInject);
 
-        expect (await vault.pricePerShare()).to.be.equal(await oldVault.pricePerShare());
+        expect(await vault.pricePerShare()).to.be.equal(await oldVault.pricePerShare());
+        
+        await vault.connect(whale)["deposit(uint256)"]("1000000");
+        expect(await vault.balanceOf(whale.address)).to.be.gt(0);
     });
 });
