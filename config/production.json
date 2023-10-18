@@ -485,11 +485,11 @@
             "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
             "address": "0x3daB4DDE35F0e218705E747e7c24269ADDed130e",
             "decimals": "6",
-            "managementFee": "1.5",
-            "performanceFee": "10",
+            "managementFee": "0",
+            "performanceFee": "0",
             "strategies": {
                 "GMXStrategy": {
-                    "address": "0x8e84FA3F87C4965F91EF5b218891295515d62E85",
+                    "address": "0x90d413b4b193c12b7d28bfedc1fbed17e8d118bb",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "nativeToken": "ETH",
@@ -514,7 +514,7 @@
                     ]
                 },
                 "GNSStrategy": {
-                    "address": "0x18b9430d9ab251f7C27b7F2E922d2b0AF7506526",
+                    "address": " ",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "nativeToken": "ETH",
@@ -543,38 +543,8 @@
                         }
                     ]
                 },
-                "GMDStrategy": {
-                    "address": "0xC9FDdB51E0EfFb94adbe13E1118Ec5530bb733B0",
-                    "network": "Arbitrum One",
-                    "chainId": "42161",
-                    "nativeToken": "ETH",
-                    "wantTokenTicker": "USDC",
-                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
-                    "protocols": [
-                        {
-                            "name": "GMD",
-                            "addresses": [
-                                {
-                                    "name": "GMD",
-                                    "type": "Token",
-                                    "address": "0x4945970EfeEc98D393b4b979b9bE265A3aE28A8B"
-                                },
-                                {
-                                    "name": "WETH",
-                                    "type": "Reward Token",
-                                    "address": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1"
-                                },
-                                {
-                                    "name": "GMD Staking",
-                                    "type": "Staking pool",
-                                    "address": "0x48C81451D1FDdecA84b47ff86F91708fa5c32e93"
-                                }
-                            ]
-                        }
-                    ]
-                },
                 "JOEStrategy": {
-                    "address": "0xcA16676Ba8512688884195B611aE1C00Ff2F3183",
+                    "address": " ",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "nativeToken": "ETH",
