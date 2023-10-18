@@ -77,7 +77,9 @@ contract GNSStrategy is BaseStrategy {
     }
 
     function balanceOfStakedGns() public view returns (uint256) {
-        IGNSVault.Staker memory staker = IGNSVault(GNS_VAULT).stakers(address(this));
+        IGNSVault.Staker memory staker = IGNSVault(GNS_VAULT).stakers(
+            address(this)
+        );
         return staker.stakedGns;
     }
 
