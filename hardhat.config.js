@@ -1,6 +1,6 @@
 require("@openzeppelin/hardhat-upgrades");
-
 require("@nomiclabs/hardhat-waffle");
+// eslint-disable-next-line node/no-extraneous-require
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-truffle5");
 require("@nomiclabs/hardhat-ethers");
@@ -11,16 +11,16 @@ require("hardhat-abi-exporter");
 require("dotenv").config();
 require("solidity-coverage");
 require("hardhat-contract-sizer");
+require("hardhat-deploy");
 
 const fs = require("fs");
+
 
 const {
     DEPLOYER_PRIVATE_KEY,
     PROD_DEPLOYER_PRIVATE_KEY,
     ETH_NODE,
     ETH_FORK_BLOCK,
-    ARBITRUM_NODE,
-    ARBITRUM_FORK_BLOCK
 } = process.env;
 
 task("fork_reset", "Reset to local fork", async (taskArgs) => {
@@ -79,37 +79,42 @@ module.exports = {
     vyper: {
         version: "0.3.3",
     },
+    namedAccounts: {
+        deployer: {
+            default: 0
+        }
+    },
     networks: {
         localhost: {},
         hardhat: {
             chainId: 43114,
             forking: {
                 url: ETH_NODE,
-                blockNumber: Number(ETH_FORK_BLOCK),
+                blockNumber: Number(ETH_FORK_BLOCK)
             },
-            allowUnlimitedContractSize: true,
+            allowUnlimitedContractSize: true
         },
         mainnet: {
             url: ETH_NODE,
             chainId: 1,
-            accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
+            accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`]
         },
         optimismgoerli: {
             url: `https://rpc.ankr.com/optimism_testnet`,
-            accounts: [`0x${DEPLOYER_PRIVATE_KEY}`],
+            accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
         },
         sepolia: {
             url: `https://rpc.ankr.com/eth_sepolia`,
-            accounts: [`0x${DEPLOYER_PRIVATE_KEY}`],
+            accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
         },
         optimism: {
             url: `https://rpc.ankr.com/optimism`,
-            accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
+            accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`]
         },
         bsctestnet: {
             url: `https://rpc.ankr.com/bsc_testnet_chapel`,
             chainId: 97,
-            accounts: [`${DEPLOYER_PRIVATE_KEY}`],
+            accounts: [`${DEPLOYER_PRIVATE_KEY}`]
         },
         polygonmumbai: {
             url: `https://rpc.ankr.com/polygon_mumbai`,
