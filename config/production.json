@@ -839,7 +839,7 @@
             "performanceFee": "0",
             "strategies": {
                 "GMXStrategy": {
-                    "address": " ",
+                    "address": "0x2ba1bdd7fe84e707fdb4f5f5e94d22017ba91716",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "nativeToken": "ETH",
@@ -864,7 +864,7 @@
                     ]
                 },
                 "GNSStrategy": {
-                    "address": " ",
+                    "address": "0xecef0b87919a3646ae03661775e496f87403bf7e",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "nativeToken": "ETH",
@@ -894,7 +894,7 @@
                     ]
                 },
                 "JOEStrategy": {
-                    "address": " ",
+                    "address": "0xec3bcdc717e9a95cc8c68054a36111059f679141",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "nativeToken": "ETH",
