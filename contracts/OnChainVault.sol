@@ -66,7 +66,7 @@ contract OnChainVault is
         approve(treasury, type(uint256).max);
     }
 
-    modifier onlyAuthorized {
+    modifier onlyAuthorized() {
         if (
             msg.sender != governance &&
             msg.sender != owner() &&
@@ -75,7 +75,10 @@ contract OnChainVault is
         _;
     }
 
-    function injectForMigration(uint256 _injectedTotalSupply, uint256 _injectedFreeFunds) external onlyAuthorized {
+    function injectForMigration(
+        uint256 _injectedTotalSupply,
+        uint256 _injectedFreeFunds
+    ) external onlyAuthorized {
         if (!isInjectedOnce) {
             injectedTotalSupply = _injectedTotalSupply;
             injectedFreeFunds = _injectedFreeFunds;
