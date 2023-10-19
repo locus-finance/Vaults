@@ -154,7 +154,7 @@
             "performanceFee": "0",
             "strategies": {
                 "RocketAuraStrategy": {
-                    "address": " ",
+                    "address": "0xb7b25828ccf97c49e779cee2688c329f1f662c82",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
