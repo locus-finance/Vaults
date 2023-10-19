@@ -209,7 +209,7 @@
                     ]
                 },
                 "AuraTriPoolStrategy": {
-                    "address": " ",
+                    "address": "0x37a794d704b836420cec85a64f09c245d348a369",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",

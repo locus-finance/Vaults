@@ -9,21 +9,11 @@ const DEPLOY_SETTINGS = {
     vaultAddress: getEnv("lvETH_ADDRESS"),
     RocketAuraStrategy: {
         ratio: "3000",
-        minDebtHarvestWeth: "0",
-        maxDebtHarvestWeth: "100000000000000000000000",
-    },
-    LidoAuraStrategy: {
-        ratio: "0",
-        minDebtHarvestWeth: "0",
-        maxDebtHarvestWeth: "100000000000000000000000",
-    },
-    FraxStrategy: {
-        ratio: "0",
-        minDebtHarvestWeth: "0",
+        minDebtHarvestWeth: "2850",
         maxDebtHarvestWeth: "100000000000000000000000",
     },
     AuraTriPoolStrategy: {
-        ratio: "6750",
+        ratio: "6650",
         minDebtHarvestWeth: "0",
         maxDebtHarvestWeth: "100000000000000000000000",
     },
