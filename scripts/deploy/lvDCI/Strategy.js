@@ -2,33 +2,32 @@ const hre = require("hardhat");
 
 const { getEnv } = require("../../utils");
 
-const USDC_DECIMALS = 6;
 const TARGET_STRATEGY = getEnv("TARGET_STRATEGY");
 
 const DEPLOY_SETTINGS = {
-    vaultAddress: getEnv("DVAULT_ADDRESS"),
+    vaultAddress: getEnv("lvDCI_ADDRESS"),
     YCRVStrategy: {
-        ratio: "2000",
+        ratio: "2145",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
     },
     CVXStrategy: {
-        ratio: "2400",
+        ratio: "2402",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
     },
     FXSStrategy: {
-        ratio: "2400",
+        ratio: "2914",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
     },
     AuraBALStrategy: {
-        ratio: "1500",
+        ratio: "1292",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
     },
     AuraWETHStrategy: {
-        ratio: "1900",
+        ratio: "748",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
     },

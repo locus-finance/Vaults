@@ -614,7 +614,7 @@
                     ]
                 },
                 "FXSStrategy": {
-                    "address": " ",
+                    "address": "0xe6a4affc67dd8336078e2fc7a85f0707b07d0d10",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -664,7 +664,7 @@
                     ]
                 },
                 "YCRVStrategy": {
-                    "address": " ",
+                    "address": "0x8d34145ca2c2ce05f672f4b9c8a934799901daa1",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
