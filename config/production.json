@@ -504,7 +504,7 @@
             "performanceFee": "0",
             "strategies": {
                 "AuraBALStrategy": {
-                    "address": " ",
+                    "address": "0xfCce65908f48E8C0b0FD79Ee11a0Baa788a25790",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -539,7 +539,7 @@
                     ]
                 },
                 "AuraWETHStrategy": {
-                    "address": " ",
+                    "address": "0x3eedd56de682b26a526b311b80490e6a097caf04",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -579,7 +579,7 @@
                     ]
                 },
                 "CVXStrategy": {
-                    "address": " ",
+                    "address": "0xf28688260568be94d112cddc2beaa1256c451bd7",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",

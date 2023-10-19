@@ -47,6 +47,21 @@
       "address": "0xe6A4aFfC67Dd8336078e2Fc7a85F0707b07d0D10",
       "txHash": "0xc3d56094beb90e3d04260c5dcafc7d3ecc523680e370ad3121783e99ac43f4c7",
       "kind": "transparent"
+    },
+    {
+      "address": "0xfCce65908f48E8C0b0FD79Ee11a0Baa788a25790",
+      "txHash": "0x7f54b077acb10ceba67eb68749125e7f0abb49ec0f0d86b9d7f116acd81ba938",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x3EEdD56DE682B26A526B311b80490e6A097cAf04",
+      "txHash": "0xfb23034bd27dc431b00410e17599cd236fe507beb6b027817876d584201dc286",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xf28688260568BE94d112cdDc2bEaa1256C451bd7",
+      "txHash": "0xd5b6f151570c49efa8b12d76d79bee5be5366470e02adfb32792dc75acdf768f",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -1834,6 +1849,511 @@
             "type": "t_uint256",
             "contract": "FXSStrategy",
             "src": "contracts/strategies/FXSStrategy.sol:52"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)2398": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(VaultAPI)35712": {
+            "label": "contract VaultAPI",
+            "numberOfBytes": "20"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "0900eda30e9afe9a0e2387db0016f6e4b8e827ccbd63b7aff31c680f552e2d50": {
+      "address": "0xa5f97985fE165a18De8B1C8019a90150b56B1e0f",
+      "txHash": "0xcf88b1c5d7e89c4fbe60bb46d8014778a09ca0a40b147de4a28deb777766ed97",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "metadataURI",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_string_storage",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:194"
+          },
+          {
+            "label": "doHealthCheck",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_bool",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:197"
+          },
+          {
+            "label": "healthCheck",
+            "offset": 1,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:198"
+          },
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(VaultAPI)35712",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:240"
+          },
+          {
+            "label": "strategist",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:241"
+          },
+          {
+            "label": "rewards",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:242"
+          },
+          {
+            "label": "keeper",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:243"
+          },
+          {
+            "label": "want",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_contract(IERC20)2398",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:245"
+          },
+          {
+            "label": "minReportDelay",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_uint256",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:275"
+          },
+          {
+            "label": "maxReportDelay",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_uint256",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:279"
+          },
+          {
+            "label": "emergencyExit",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_bool",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:282"
+          },
+          {
+            "label": "baseFeeOracle",
+            "offset": 1,
+            "slot": "9",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:285"
+          },
+          {
+            "label": "creditThreshold",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_uint256",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:288"
+          },
+          {
+            "label": "forceHarvestTriggerOnce",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_bool",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:291"
+          },
+          {
+            "label": "slippage",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_uint256",
+            "contract": "AuraBALStrategy",
+            "src": "contracts/strategies/AuraBALStrategy.sol:60"
+          },
+          {
+            "label": "WANT_DECIMALS",
+            "offset": 0,
+            "slot": "13",
+            "type": "t_uint256",
+            "contract": "AuraBALStrategy",
+            "src": "contracts/strategies/AuraBALStrategy.sol:62"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)2398": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(VaultAPI)35712": {
+            "label": "contract VaultAPI",
+            "numberOfBytes": "20"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "f22e706fcf00286ea2de5f14438066afda4ccf0d5b6901b3b38e953109530690": {
+      "address": "0x2e255494B3fAF2863486F5f32D7C2b752d6dF88f",
+      "txHash": "0x4094959a1dedf9e551889830a3318159b4b83bd144cc3df4424946084db4df1b",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "metadataURI",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_string_storage",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:194"
+          },
+          {
+            "label": "doHealthCheck",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_bool",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:197"
+          },
+          {
+            "label": "healthCheck",
+            "offset": 1,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:198"
+          },
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(VaultAPI)35712",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:240"
+          },
+          {
+            "label": "strategist",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:241"
+          },
+          {
+            "label": "rewards",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:242"
+          },
+          {
+            "label": "keeper",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:243"
+          },
+          {
+            "label": "want",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_contract(IERC20)2398",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:245"
+          },
+          {
+            "label": "minReportDelay",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_uint256",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:275"
+          },
+          {
+            "label": "maxReportDelay",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_uint256",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:279"
+          },
+          {
+            "label": "emergencyExit",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_bool",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:282"
+          },
+          {
+            "label": "baseFeeOracle",
+            "offset": 1,
+            "slot": "9",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:285"
+          },
+          {
+            "label": "creditThreshold",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_uint256",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:288"
+          },
+          {
+            "label": "forceHarvestTriggerOnce",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_bool",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:291"
+          },
+          {
+            "label": "slippage",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_uint256",
+            "contract": "AuraWETHStrategy",
+            "src": "contracts/strategies/AuraWETHStrategy.sol:54"
+          },
+          {
+            "label": "AURA_PID",
+            "offset": 0,
+            "slot": "13",
+            "type": "t_uint256",
+            "contract": "AuraWETHStrategy",
+            "src": "contracts/strategies/AuraWETHStrategy.sol:56"
+          },
+          {
+            "label": "AURA_WETH_REWARDS",
+            "offset": 0,
+            "slot": "14",
+            "type": "t_address",
+            "contract": "AuraWETHStrategy",
+            "src": "contracts/strategies/AuraWETHStrategy.sol:57"
+          },
+          {
+            "label": "WANT_DECIMALS",
+            "offset": 0,
+            "slot": "15",
+            "type": "t_uint256",
+            "contract": "AuraWETHStrategy",
+            "src": "contracts/strategies/AuraWETHStrategy.sol:59"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)2398": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(VaultAPI)35712": {
+            "label": "contract VaultAPI",
+            "numberOfBytes": "20"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "0cb4aa3d1a98a48c8b2974befca4f5e51e5395b755800aba44664adaa04a2352": {
+      "address": "0x4c42EdE83AaBbDd332eC90541057Bb8F9A3C38d4",
+      "txHash": "0x179bed6c7f14dae1261caacd448c8c716c6fe9f70eeb3a95491044a6d16a7a21",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "metadataURI",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_string_storage",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:194"
+          },
+          {
+            "label": "doHealthCheck",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_bool",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:197"
+          },
+          {
+            "label": "healthCheck",
+            "offset": 1,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:198"
+          },
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(VaultAPI)35712",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:240"
+          },
+          {
+            "label": "strategist",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:241"
+          },
+          {
+            "label": "rewards",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:242"
+          },
+          {
+            "label": "keeper",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:243"
+          },
+          {
+            "label": "want",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_contract(IERC20)2398",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:245"
+          },
+          {
+            "label": "minReportDelay",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_uint256",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:275"
+          },
+          {
+            "label": "maxReportDelay",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_uint256",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:279"
+          },
+          {
+            "label": "emergencyExit",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_bool",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:282"
+          },
+          {
+            "label": "baseFeeOracle",
+            "offset": 1,
+            "slot": "9",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:285"
+          },
+          {
+            "label": "creditThreshold",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_uint256",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:288"
+          },
+          {
+            "label": "forceHarvestTriggerOnce",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_bool",
+            "contract": "BaseStrategy",
+            "src": "lib/yearn-vaults/contracts/BaseStrategy.sol:291"
+          },
+          {
+            "label": "slippage",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_uint256",
+            "contract": "CVXStrategy",
+            "src": "contracts/strategies/CVXStrategy.sol:46"
+          },
+          {
+            "label": "WANT_DECIMALS",
+            "offset": 0,
+            "slot": "13",
+            "type": "t_uint256",
+            "contract": "CVXStrategy",
+            "src": "contracts/strategies/CVXStrategy.sol:48"
           }
         ],
         "types": {
