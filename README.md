@@ -58,10 +58,9 @@ TARGET_STRATEGY="FXSStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86F
 
 TARGET_STRATEGY="YCRVStrategy" DVAULT_ADDRESS="0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B" npx hardhat run scripts/deploy/lvDCI/Strategy.js --network mainnet
 
-TARGET_STRATEGY="GMXStrategy" lvAYI_ADDRESS="0x3daB4DDE35F0e218705E747e7c24269ADDed130e" npx hardhat run scripts/deploy/lvAYI/Strategy.js --network arbitrumOne
+TARGET_STRATEGY="GMXStrategy" lvAYI_ADDRESS="0x40725d3f8D6aDAe6Cf0dFaA0224683C869526765" npx hardhat run scripts/deploy/lvAYI/Strategy.js --network arbitrumOne
 
-TARGET_STRATEGY="GNSStrategy" lvAYI_ADDRESS="0x3daB4DDE35F0e218705E747e7c24269ADDed130e" npx hardhat run scripts/deploy/lvAYI/Strategy.js --network arbitrumOne
+TARGET_STRATEGY="GNSStrategy" lvAYI_ADDRESS="0x40725d3f8D6aDAe6Cf0dFaA0224683C869526765" npx hardhat run scripts/deploy/lvAYI/Strategy.js --network arbitrumOne
 
-TARGET_STRATEGY="JOEStrategy" lvAYI_ADDRESS="0x3daB4DDE35F0e218705E747e7c24269ADDed130e" npx hardhat run scripts/deploy/lvAYI/Strategy.js --network arbitrumOne
-
+TARGET_STRATEGY="JOEStrategy" lvAYI_ADDRESS="0x40725d3f8D6aDAe6Cf0dFaA0224683C869526765" npx hardhat run scripts/deploy/lvAYI/Strategy.js --network arbitrumOne
 ```

@@ -961,6 +961,12 @@
                     "wantTokenAddress": "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca"
                 }
             }
+        },
+        "V2_test_vault" : {
+            "vault" : "0xa3ad082861e47688589f09ff13e767fae4dce50f",
+            "GNSStrategy": " ",
+            "GMXStrategy": "0xCC489f60B17f040DB8899e8c39F7A0E63FF61242",
+            "JOEStrategy": " "
         }
     },
     "migration" : {
