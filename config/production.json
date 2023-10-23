@@ -833,13 +833,13 @@
             },
             "wantTokenTicker": "USDC",
             "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
-            "address": "0x1fbD7e1758CbF3D3c4826e3E2795327b867E969D",
+            "address": "0x0f094f6deb056af1fa1299168188fd8c78542a07",
             "decimals": "6",
             "managementFee": "0",
             "performanceFee": "0",
             "strategies": {
                 "GMXStrategy": {
-                    "address": "0x2ba1bdd7fe84e707fdb4f5f5e94d22017ba91716",
+                    "address": "0xc36900bab1dd0886b0809dbc832214d58b082b88",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "nativeToken": "ETH",
@@ -864,7 +864,7 @@
                     ]
                 },
                 "GNSStrategy": {
-                    "address": "0xecef0b87919a3646ae03661775e496f87403bf7e",
+                    "address": " ",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "nativeToken": "ETH",
@@ -894,7 +894,7 @@
                     ]
                 },
                 "JOEStrategy": {
-                    "address": "0xec3bcdc717e9a95cc8c68054a36111059f679141",
+                    "address": "0xbfb2df948a541d932d6d72e988eccd4c9cde768a",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "nativeToken": "ETH",
