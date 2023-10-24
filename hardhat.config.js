@@ -37,7 +37,7 @@ module.exports = {
     solidity: {
         compilers: [
             {
-                version: "0.8.20",
+                version: "0.8.19",
                 settings: {
                     optimizer: {
                         enabled: true,
@@ -163,7 +163,7 @@ module.exports = {
         alphaSort: true,
         disambiguatePaths: false,
         runOnCompile: true,
-        strict: true,
+        strict: false,
     },
     abiExporter: {
         path: "./abi",

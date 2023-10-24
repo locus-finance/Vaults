@@ -79,6 +79,31 @@
       "address": "0xbfb2dF948A541d932d6d72E988EccD4C9cDE768a",
       "txHash": "0xdbfb2634ea89f135ac7bde6f1c714d60f90e5578157311b37f756a1e6a21759d",
       "kind": "transparent"
+    },
+    {
+      "address": "0x2A683B4Db3c018817F8A79e0554049e23Ad2c84F",
+      "txHash": "0x9a13183e79f796d82cf4220d31d16429d51a3e350d26a092e0f271276e0bd102",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x4488B69067eaE5e201A7330C56198Aba5a595E3F",
+      "txHash": "0xdefdf191a53a76f4625f77c65503e300a58bf752b00ce761c5ec759b85175775",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x9C073294BaFcD23150bA3364DaBE37571b47Dabd",
+      "txHash": "0x204cde1d9e2578cd1de9325c644c02d15633621dd65f2fa3ff5cd1ed6721bdf2",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x381D91367317A9edb49C770ffaDe27FE91c977F5",
+      "txHash": "0x3812aec1ac0f2d730088d4c51e1fff5787528737138363d14e0548819663605a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x6B1c7A6e061baa46e2BB79e862e68a4690dd4061",
+      "txHash": "0x70f0f3d7676a356a664901ea466f84aca9076a1db3f41f5e6f80f900fdb41dd4",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -1960,6 +1985,161 @@
           "t_uint8": {
             "label": "uint8",
             "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "2af47f683e9b55b5f855b13dd31af2328278be66ae91482c1e4320a7a2fe52c4": {
+      "address": "0xa504B036A0cA72Cf9325B87E34e3D3D8392bb14d",
+      "txHash": "0x307b74868375144ffb7cf15ba2c54569dfd710fc07ce4cd2b871cb5c18ac5f83",
+      "layout": {
+        "solcVersion": "0.8.19",
+        "storage": [
+          {
+            "label": "metadataURI",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_string_storage",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:194"
+          },
+          {
+            "label": "doHealthCheck",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_bool",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:197"
+          },
+          {
+            "label": "healthCheck",
+            "offset": 1,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:198"
+          },
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(VaultAPI)35843",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:240"
+          },
+          {
+            "label": "strategist",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:241"
+          },
+          {
+            "label": "rewards",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:242"
+          },
+          {
+            "label": "keeper",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:243"
+          },
+          {
+            "label": "want",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_contract(IERC20)2398",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:245"
+          },
+          {
+            "label": "minReportDelay",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_uint256",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:275"
+          },
+          {
+            "label": "maxReportDelay",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_uint256",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:279"
+          },
+          {
+            "label": "emergencyExit",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_bool",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:282"
+          },
+          {
+            "label": "baseFeeOracle",
+            "offset": 1,
+            "slot": "9",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:285"
+          },
+          {
+            "label": "creditThreshold",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_uint256",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:288"
+          },
+          {
+            "label": "forceHarvestTriggerOnce",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_bool",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:291"
+          },
+          {
+            "label": "slippage",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_uint256",
+            "contract": "GNSStrategy",
+            "src": "contracts\\strategies\\arbitrum\\GNSStrategy.sol:39"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)2398": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(VaultAPI)35843": {
+            "label": "contract VaultAPI",
+            "numberOfBytes": "20"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
           }
         }
       }

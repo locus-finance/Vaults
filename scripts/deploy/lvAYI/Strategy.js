@@ -8,17 +8,17 @@ const TARGET_STRATEGY = getEnv("TARGET_STRATEGY");
 const DEPLOY_SETTINGS = {
     vaultAddress: getEnv("lvAYI_ADDRESS"),
     GMXStrategy: {
-        ratio: "3300",
+        ratio: "4000",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
     },
     GNSStrategy: {
-        ratio: "3100",
+        ratio: "2400",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
     },
     JOEStrategy: {
-        ratio: "3100",
+        ratio: "3048",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
     }
@@ -62,9 +62,9 @@ async function main() {
     ](
         strategy.address,
         Number(ratio),
+        0,
         ethers.utils.parseUnits(minDebtHarvestUsdc, USDC_DECIMALS),
         ethers.utils.parseUnits(maxDebtHarvestUsdc, USDC_DECIMALS),
-        0
     );
     await addStrategyTx.wait();
 

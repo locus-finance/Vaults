@@ -864,7 +864,7 @@
                     ]
                 },
                 "GNSStrategy": {
-                    "address": " ",
+                    "address": "0x6B1c7A6e061baa46e2BB79e862e68a4690dd4061",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "nativeToken": "ETH",
