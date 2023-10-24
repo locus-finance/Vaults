@@ -1,4 +1,4 @@
-function getData(file) {
+export function getData(file) {
   let result = [];
   return new Promise((resolve, reject) => {
     fs.createReadStream(file)
