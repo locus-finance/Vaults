@@ -91,10 +91,10 @@ module.exports = {
     networks: {
         localhost: {},
         hardhat: {
-            chainId: 43114,
+            chainId: 42161, //43114,
             forking: {
-                url: ETH_NODE,
-                blockNumber: Number(ETH_FORK_BLOCK)
+                url: `https://arb1.arbitrum.io/rpc` //,
+                // blockNumber: Number(ETH_FORK_BLOCK)
             },
             allowUnlimitedContractSize: true
         },

@@ -4,7 +4,7 @@ module.exports = (task) => task(
   "calculateInjectableValuesForLvETH",
   "Calculates and returns injectable values for the lvETH vault.",
   async (taskArgs, hre) => {
-    await calculateInjectableValues(
+    return await calculateInjectableValues(
       "0x3edbE670D03C4A71367dedA78E73EA4f8d68F2E4",
       parseInt(process.env.ETH_FORK_BLOCK)
     )();
