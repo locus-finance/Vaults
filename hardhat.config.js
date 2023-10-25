@@ -12,6 +12,7 @@ require("dotenv").config();
 require("solidity-coverage");
 require("hardhat-contract-sizer");
 require("hardhat-deploy");
+require("hardhat-tracer");
 
 const fs = require("fs");
 
@@ -22,6 +23,11 @@ const {
     ETH_NODE,
     ETH_FORK_BLOCK,
 } = process.env;
+
+require("./tasks/migration/calculateInjectableValuesForLvDCI")(task);
+require("./tasks/migration/calculateInjectableValuesForLvETH")(task);
+require("./tasks/migration/executeDropLvDCI")(task);
+require("./tasks/migration/executeDropLvETH")(task);
 
 task("fork_reset", "Reset to local fork", async (taskArgs) => {
     await network.provider.request({

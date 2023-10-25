@@ -1,25 +1,23 @@
-const { ethers } = require("hardhat");
-
 module.exports = (
   oldVaultAddress,
   blockNumber
 ) => async () => {
   console.log(`Using input params: oldVaultAddress=${oldVaultAddress}, blockNumber=${blockNumber}`);
 
-  const oldVault = await ethers.getContractAt(
+  const oldVault = await hre.ethers.getContractAt(
     "OnChainVault",
     oldVaultAddress
   );
 
-  const blockTimestamp = ethers.BigNumber.from(
-    (await ethers.provider.getBlock(blockNumber)).timestamp
+  const blockTimestamp = hre.ethers.BigNumber.from(
+    (await hre.ethers.provider.getBlock(blockNumber)).timestamp
   );
   const lastReport = await oldVault.lastReport();
   const lockedProfitDegradation = await oldVault.lockedProfitDegradation();
   const lockedFundsRatio = blockTimestamp
     .sub(lastReport)
     .mul(lockedProfitDegradation);
-  const DEGRADATION_COEFFICIENT = ethers.utils.parseEther("10");
+  const DEGRADATION_COEFFICIENT = hre.ethers.utils.parseEther("10");
 
   let lockedProfit = await oldVault.lockedProfit();
   if (lockedFundsRatio.lt(DEGRADATION_COEFFICIENT)) {
@@ -27,7 +25,7 @@ module.exports = (
       lockedFundsRatio.mul(lockedProfit).div(DEGRADATION_COEFFICIENT)
     );
   } else {
-    lockedProfit = ethers.constants.Zero;
+    lockedProfit = hre.ethers.constants.Zero;
   }
 
   const totalAssets = await oldVault.totalAssets();
@@ -37,4 +35,9 @@ module.exports = (
   console.log(`Total Supply to inject: ${totalSupplyToInject.toString()}`);
   console.log(`Free Funds to inject: ${freeFundsToInject.toString()}`);
   console.log('---');
+
+  return {
+    freeFundsToInject,
+    totalSupplyToInject
+  }
 }

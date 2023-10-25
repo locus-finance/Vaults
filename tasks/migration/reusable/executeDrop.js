@@ -1,5 +1,4 @@
 const csvParser = require("csv-parser");
-const { ethers } = require("hardhat");
 const fsExtra = require("fs-extra")
 
 const parseHoldersAndBalances = file => {
@@ -12,7 +11,7 @@ const parseHoldersAndBalances = file => {
       .pipe(csvParser())
       .on("data", data => result.push({
         address: data['HolderAddress'],
-        balance: ethers.utils.parseEther(data['Balance'].replace(",", ""))
+        balance: hre.ethers.utils.parseEther(data['Balance'].replace(",", ""))
       }))
       .on("end", () => {
         resolve(result);
@@ -24,13 +23,13 @@ module.exports = (
   csvFileRelativePath,
   vaultAddress
 ) => async () => {
-  const [deployer] = await ethers.getSigners();
+  const [deployer] = await hre.ethers.getSigners();
   const holdersInfo = await parseHoldersAndBalances(csvFileRelativePath);
 
   console.log(`Signer: ${deployer.address}`);
   console.log(`Using data source: ${csvFileRelativePath}`);
 
-  const dropper = await ethers.getContractAt(
+  const dropper = await hre.ethers.getContractAt(
     "Dropper",
     "0xEB20d24d42110B586B3bc433E331Fe7CC32D1471"
   );
