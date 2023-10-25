@@ -21,9 +21,34 @@ const parseHoldersAndBalances = file => {
 }
 
 module.exports = (
-  csvFileRelativePath
+  csvFileRelativePath,
+  vaultAddress
 ) => async () => {
   const [deployer] = await ethers.getSigners();
   const holdersInfo = await parseHoldersAndBalances(csvFileRelativePath);
-  console.log(holdersInfo);
+
+  console.log(`Signer: ${deployer.address}`);
+  console.log(`Using data source: ${csvFileRelativePath}`);
+
+  const dropper = await ethers.getContractAt(
+    "Dropper",
+    "0xEB20d24d42110B586B3bc433E331Fe7CC32D1471"
+  );
+
+  await dropper.setVault(vaultAddress);
+
+  const accounts = [];
+  const balances = [];
+
+  for (const holderInfo of holdersInfo) {
+    accounts.push(holderInfo.address);
+    balances.push(holderInfo.balance);
+  }
+
+  const dropTx = await dropper.drop(accounts, balances);
+  const end = await dropTx.wait();
+
+  console.log(`Cumulative gas used: ${end.cumulativeGasUsed}`);
+  console.log(`Effective gas price: ${end.effectiveGasPrice}`);
+  console.log('---');
 }

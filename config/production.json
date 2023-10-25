@@ -994,10 +994,6 @@
                 "name": "ARBITRUM ONE"
             }
         },
-        "Dropper" : {
-            "lvETH": "",
-            "lvDCI": "0xEB20d24d42110B586B3bc433E331Fe7CC32D1471",
-            "lvAYI": "0x7E1AEb6a32a9c30E6Ce393382417D6726a52b7E8"
-        }
+        "Dropper" : "0xEB20d24d42110B586B3bc433E331Fe7CC32D1471"
     }
 }
