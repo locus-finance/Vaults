@@ -1,5 +1,5 @@
 const csvParser = require("csv-parser");
-const fsExtra = require("fs-extra")
+const fsExtra = require("fs-extra");
 
 const parseHoldersAndBalances = file => {
   let result = [];
@@ -43,11 +43,14 @@ module.exports = (
 
   const accounts = [];
   const balances = [];
-
+  let totalBalances = hre.ethers.constants.Zero;
   for (const holderInfo of holdersInfo) {
     accounts.push(holderInfo.address);
     balances.push(holderInfo.balance);
+    totalBalances = totalBalances.add(holderInfo.balance);
   }
+
+  console.log(`Amount to be dropped: ${hre.ethers.utils.formatEther(totalBalances)}, for ${accounts.length} accounts.`);
 
   let dropTx;
   if (customSigner !== undefined) {
@@ -60,4 +63,10 @@ module.exports = (
   console.log(`Cumulative gas used: ${end.cumulativeGasUsed}`);
   console.log(`Effective gas price: ${end.effectiveGasPrice}`);
   console.log('---');
+
+  return {
+    totalBalances,
+    accounts,
+    balances
+  }
 }

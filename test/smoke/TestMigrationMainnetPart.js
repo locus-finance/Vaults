@@ -35,11 +35,21 @@ describe("TestMigrationMainnetPart", () => {
       "Migration",
       "0xd25d0de43579223429c28f2d64183a47a79078C7"
     );
+    const dropper = await hre.ethers.getContractAt(
+      "Dropper",
+      "0xEB20d24d42110B586B3bc433E331Fe7CC32D1471"
+    );
 
-    const migrationOwner = "0xAe7B63DAd95581947d2925A9e62E57CCbb2dA046";
-    const vaultOwner = migrationOwner;
+    const migrationOwner = await migration.owner();
+    const vaultOwner = await vault.owner();
+    const droppedOwner = await dropper.owner();
+    const treasury = await migration.treasury();
 
     await mintNativeTokens(migrationOwner, "0x10000000000000000000000");
+    await mintNativeTokens(vaultOwner, "0x10000000000000000000000");
+    await mintNativeTokens(droppedOwner, "0x10000000000000000000000");
+    await mintNativeTokens(treasury, "0x10000000000000000000000");
+
     await withImpersonatedSigner(migrationOwner, async (migrationOwnerSigner) => {
       await migration.connect(migrationOwnerSigner).withdraw();
     });
@@ -64,12 +74,14 @@ describe("TestMigrationMainnetPart", () => {
       await migration.connect(migrationOwnerSigner).emergencyExit();
     });
 
-    const dropper = await hre.ethers.getContractAt(
-      "Dropper",
-      "0xEB20d24d42110B586B3bc433E331Fe7CC32D1471"
-    );
+    await withImpersonatedSigner(treasury, async (treasurySigner) => {
+      await vault.connect(treasurySigner).transfer(
+        dropper.address,
+        await vault.balanceOf(treasury)
+      );
+    });
 
-    const droppedOwner = await dropper.owner();
+    console.log((await vault.balanceOf(dropper.address)).toString());
     
     await withImpersonatedSigner(droppedOwner, async (droppedOwnerSigner) => {
       await executeDrop(
