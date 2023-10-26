@@ -81,12 +81,15 @@ describe("TestMigrationMainnetPart", () => {
       );
     });
 
-    console.log((await vault.balanceOf(dropper.address)).toString());
+    console.log(ethers.utils.formatUnits(await vault.balanceOf(dropper.address)));
     
     await withImpersonatedSigner(droppedOwner, async (droppedOwnerSigner) => {
       await executeDrop(
-        "./tasks/migration/csv/lvEthTokenHolders.csv",
-        "0x3edbE670D03C4A71367dedA78E73EA4f8d68F2E4",
+        'receiver',
+        'balance',
+        "./tasks/migration/csv/lvEthV2TokenReceiversReadyForDrop.csv",
+        "0x0e86f93145d097090acbbb8ee44c716dacff04d7",
+        "0xEB20d24d42110B586B3bc433E331Fe7CC32D1471",
         droppedOwnerSigner
       )();
     });

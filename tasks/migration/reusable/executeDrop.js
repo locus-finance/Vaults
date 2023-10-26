@@ -1,7 +1,7 @@
 const csvParser = require("csv-parser");
 const fsExtra = require("fs-extra");
 
-const parseHoldersAndBalances = file => {
+const parseHoldersAndBalances = (addressKey, balanceKey, file) => {
   let result = [];
   return new Promise((resolve, reject) => {
     fsExtra.createReadStream(file)
@@ -10,8 +10,8 @@ const parseHoldersAndBalances = file => {
       })
       .pipe(csvParser())
       .on("data", data => result.push({
-        address: data['HolderAddress'],
-        balance: hre.ethers.utils.parseEther(data['Balance'].replace(",", ""))
+        address: data[addressKey],
+        balance: data[balanceKey].toString().includes(',') ? hre.ethers.utils.parseEther(data[balanceKey].replace(",", "")) : hre.ethers.BigNumber.from(data[balanceKey])
       }))
       .on("end", () => {
         resolve(result);
@@ -20,19 +20,20 @@ const parseHoldersAndBalances = file => {
 }
 
 module.exports = (
+  csvAddressKey,
+  csvBalanceKey,
   csvFileRelativePath,
   vaultAddress,
+  dropperAddress,
   customSigner
 ) => async () => {
-  const [deployer] = await hre.ethers.getSigners();
-  const holdersInfo = await parseHoldersAndBalances(csvFileRelativePath);
-
-  console.log(`Signer: ${deployer.address}`);
+  const holdersInfo = await parseHoldersAndBalances(csvAddressKey, csvBalanceKey, csvFileRelativePath);
+  
   console.log(`Using data source: ${csvFileRelativePath}`);
 
   const dropper = await hre.ethers.getContractAt(
     "Dropper",
-    "0xEB20d24d42110B586B3bc433E331Fe7CC32D1471"
+    dropperAddress
   );
 
   if (customSigner !== undefined) {

@@ -28,6 +28,9 @@ require("./tasks/migration/calculateInjectableValuesForLvDCI")(task);
 require("./tasks/migration/calculateInjectableValuesForLvETH")(task);
 require("./tasks/migration/executeDropLvDCI")(task);
 require("./tasks/migration/executeDropLvETH")(task);
+require("./tasks/migration/saveDropReceiversFromMigration")(task);
+require("./tasks/migration/countDropReceiversFromMigration")(task);
+
 
 task("fork_reset", "Reset to local fork", async (taskArgs) => {
     await network.provider.request({
