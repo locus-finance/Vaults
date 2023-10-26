@@ -5,7 +5,7 @@ module.exports = (task) => task(
   "Executes drop(...) operation for lvETH vault.",
   async (taskArgs, hre) => {
     await executeDrop(
-      "./scripts/utils/migration/csv/lvEthTokenHolders.csv",
+      "./tasks/migration/csv/lvEthTokenHolders.csv",
       "0x3edbE670D03C4A71367dedA78E73EA4f8d68F2E4"
     )();
   }

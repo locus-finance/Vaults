@@ -1,73 +1,82 @@
-const {
-    loadFixture,
-  } = require("@nomicfoundation/hardhat-network-helpers");
-  const { expect } = require("chai");
-  const { utils } = require("ethers");
-  const { ethers } = require("hardhat");
-  
-  const { getEnv } = require("../../scripts/utils");
-  
-  const IERC20_SOURCE = "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20";
-  
-  const ETH_NODE_URL = getEnv("ETH_NODE");
-  const ETH_FORK_BLOCK = getEnv("ETH_FORK_BLOCK");
-  
-  upgrades.silenceWarnings();
-  
-  const mintNativeTokens = async (signer, amountHex) => {
-    await hre.network.provider.send("hardhat_setBalance", [
-      signer.address || signer,
-      amountHex
-    ]);
-  }
-  
-  const withImpersonatedSigner = async (signerAddress, action) => {
-    await hre.network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [signerAddress],
+const { ethers } = require("hardhat");
+const executeDrop = require('../../tasks/migration/reusable/executeDrop');
+
+upgrades.silenceWarnings();
+
+const mintNativeTokens = async (signer, amountHex) => {
+  await hre.network.provider.send("hardhat_setBalance", [
+    signer.address || signer,
+    amountHex
+  ]);
+}
+
+const withImpersonatedSigner = async (signerAddress, action) => {
+  await hre.network.provider.request({
+    method: "hardhat_impersonateAccount",
+    params: [signerAddress],
+  });
+
+  const impersonatedSigner = await hre.ethers.getSigner(signerAddress);
+  await action(impersonatedSigner);
+
+  await hre.network.provider.request({
+    method: "hardhat_stopImpersonatingAccount",
+    params: [signerAddress],
+  });
+}
+
+describe("TestMigrationMainnetPart", () => {
+  it("should make perform migrations withdraw, inject, deposit, emergencyExit, drop (using fork with real lvETH Vault)", async function () {
+    const vault = await ethers.getContractAt(
+      "OnChainVault",
+      "0x0e86f93145d097090acbbb8ee44c716dacff04d7"
+    );
+    const migration = await ethers.getContractAt(
+      "Migration",
+      "0xd25d0de43579223429c28f2d64183a47a79078C7"
+    );
+
+    const migrationOwner = "0xAe7B63DAd95581947d2925A9e62E57CCbb2dA046";
+    const vaultOwner = migrationOwner;
+
+    await mintNativeTokens(migrationOwner, "0x10000000000000000000000");
+    await withImpersonatedSigner(migrationOwner, async (migrationOwnerSigner) => {
+      await migration.connect(migrationOwnerSigner).withdraw();
     });
-  
-    const impersonatedSigner = await hre.ethers.getSigner(signerAddress);
-    await action(impersonatedSigner);
-  
-    await hre.network.provider.request({
-      method: "hardhat_stopImpersonatingAccount",
-      params: [signerAddress],
+
+    if (!(await vault.isInjectedOnce())) {
+      console.log(`A vault: ${vault.address} was not injected. Injecting...`);
+      await withImpersonatedSigner(vaultOwner, async (vaultOwnerSigner) => {
+        const { totalSupplyToInject, freeFundsToInject } = await hre.run("calculateInjectableValuesForLvETH");
+        await vault.connect(vaultOwnerSigner).injectForMigration(totalSupplyToInject, freeFundsToInject);
+        if ((await vault.depositLimit()).eq(0)) {
+          await vault.connect(vaultOwnerSigner).setDepositLimit(ethers.constants.MaxUint256);
+        }
+      });
+    }
+
+    await withImpersonatedSigner(vaultOwner, async (vaultOwnerSigner) => {
+      await vault.connect(vaultOwnerSigner).setDepositLimit(ethers.constants.MaxUint256);
     });
-  }
-  
 
-  describe("TestMigrationMainnetPart", () => {
-  
-    it("should make perform migrations withdraw, inject, deposit, emergencyExit, drop (using fork with real lvETH Vault)", async function () {
-      const vault = await ethers.getContractAt(
-        "OnChainVault",
-        "0x0e86f93145d097090acbbb8ee44c716dacff04d7"
-      );
-      const migration = await ethers.getContractAt(
-        "Migration",
-        "0xd25d0de43579223429c28f2d64183a47a79078C7"
-      );
+    await withImpersonatedSigner(migrationOwner, async (migrationOwnerSigner) => {
+      await migration.connect(migrationOwnerSigner).deposit();
+      await migration.connect(migrationOwnerSigner).emergencyExit();
+    });
 
-      const migrationOwner = "0xAe7B63DAd95581947d2925A9e62E57CCbb2dA046";
-      const vaultOwner = migrationOwner;
-      
-      await mintNativeTokens(migrationOwner, "0x10000000000000000000000");
-      await withImpersonatedSigner(migrationOwner, async (migrationOwnerSigner) => {
-        await migration.connect(migrationOwnerSigner).withdraw();
-      });
+    const dropper = await hre.ethers.getContractAt(
+      "Dropper",
+      "0xEB20d24d42110B586B3bc433E331Fe7CC32D1471"
+    );
 
-      // await withImpersonatedSigner(vaultOwner, async (vaultOwnerSigner) => {
-      //   const {totalSupplyToInject, freeFundsToInject} = await hre.run("calculateInjectableValuesForLvETH");
-      //   await vault.connect(vaultOwnerSigner).injectForMigration(totalSupplyToInject, freeFundsToInject);
-      // });
-
-      await withImpersonatedSigner(migrationOwner, async (migrationOwnerSigner) => {
-        await migration.connect(migrationOwnerSigner).deposit();
-        await migration.connect(migrationOwnerSigner).emergencyExit();
-      });
-
-      await hre.run("executeDropLvETH");
+    const droppedOwner = await dropper.owner();
+    
+    await withImpersonatedSigner(droppedOwner, async (droppedOwnerSigner) => {
+      await executeDrop(
+        "./tasks/migration/csv/lvEthTokenHolders.csv",
+        "0x3edbE670D03C4A71367dedA78E73EA4f8d68F2E4",
+        droppedOwnerSigner
+      )();
     });
   });
-  
+});

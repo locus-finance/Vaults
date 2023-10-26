@@ -21,7 +21,8 @@ const parseHoldersAndBalances = file => {
 
 module.exports = (
   csvFileRelativePath,
-  vaultAddress
+  vaultAddress,
+  customSigner
 ) => async () => {
   const [deployer] = await hre.ethers.getSigners();
   const holdersInfo = await parseHoldersAndBalances(csvFileRelativePath);
@@ -34,7 +35,11 @@ module.exports = (
     "0xEB20d24d42110B586B3bc433E331Fe7CC32D1471"
   );
 
-  await dropper.setVault(vaultAddress);
+  if (customSigner !== undefined) {
+    await dropper.connect(customSigner).setVault(vaultAddress);
+  } else {
+    await dropper.setVault(vaultAddress);
+  }
 
   const accounts = [];
   const balances = [];
@@ -44,7 +49,12 @@ module.exports = (
     balances.push(holderInfo.balance);
   }
 
-  const dropTx = await dropper.drop(accounts, balances);
+  let dropTx;
+  if (customSigner !== undefined) {
+    dropTx = await dropper.connect(customSigner).drop(accounts, balances);
+  } else {
+    dropTx = await dropper.drop(accounts, balances);
+  }
   const end = await dropTx.wait();
 
   console.log(`Cumulative gas used: ${end.cumulativeGasUsed}`);
