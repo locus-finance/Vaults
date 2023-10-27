@@ -1,5 +1,3 @@
-const fsExtra = require('fs-extra');
-
 module.exports = (task) => 
   task(
     "countDropReceiversFromMigration",
@@ -7,7 +5,7 @@ module.exports = (task) =>
   )
     .addOptionalParam('migration', "Define an address of Migration contract from where the task should gather info about drop receivers.", '0xd25d0de43579223429c28f2d64183a47a79078C7', types.string)
     .setAction(async ({ migration }, hre) => {
-      const migrationInstance = await ethers.getContractAt(
+      const migrationInstance = await hre.ethers.getContractAt(
         "Migration",
         migration
       );

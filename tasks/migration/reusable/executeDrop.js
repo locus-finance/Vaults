@@ -23,7 +23,7 @@ module.exports = (
   csvAddressKey,
   csvBalanceKey,
   csvFileRelativePath,
-  vaultAddress,
+  vaultV2Address,
   dropperAddress,
   customSigner
 ) => async () => {
@@ -36,11 +36,13 @@ module.exports = (
     dropperAddress
   );
 
+  let setVaultTx;
   if (customSigner !== undefined) {
-    await dropper.connect(customSigner).setVault(vaultAddress);
+    setVaultTx = await dropper.connect(customSigner).setVault(vaultV2Address);
   } else {
-    await dropper.setVault(vaultAddress);
+    setVaultTx = await dropper.setVault(vaultV2Address);
   }
+  await setVaultTx.wait();
 
   const accounts = [];
   const balances = [];
@@ -63,7 +65,6 @@ module.exports = (
 
   console.log(`Cumulative gas used: ${end.cumulativeGasUsed}`);
   console.log(`Effective gas price: ${end.effectiveGasPrice}`);
-  console.log('---');
 
   return {
     totalBalances,

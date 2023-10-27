@@ -1,12 +1,12 @@
 module.exports = (
-  oldVaultAddress,
+  v1vault,
   blockNumber
 ) => async () => {
-  console.log(`Using input params: oldVaultAddress=${oldVaultAddress}, blockNumber=${blockNumber}`);
+  console.log(`Using input params: v1vault=${v1vault}, blockNumber=${blockNumber}`);
 
   const oldVault = await hre.ethers.getContractAt(
     "OnChainVault",
-    oldVaultAddress
+    v1vault
   );
 
   const blockTimestamp = hre.ethers.BigNumber.from(
@@ -34,7 +34,6 @@ module.exports = (
 
   console.log(`Total Supply to inject: ${totalSupplyToInject.toString()}`);
   console.log(`Free Funds to inject: ${freeFundsToInject.toString()}`);
-  console.log('---');
 
   return {
     freeFundsToInject,
