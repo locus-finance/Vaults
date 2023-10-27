@@ -1,3 +1,4 @@
+const helpers = require("@nomicfoundation/hardhat-network-helpers");
 const { ethers } = require("hardhat");
 const executeDropActionBuilder = require('../../tasks/migration/reusable/executeDrop');
 const migrateVaultActionBuilder = require('../../tasks/migration/reusable/migrateVault');
@@ -27,7 +28,13 @@ const withImpersonatedSigner = async (signerAddress, action) => {
 }
 
 describe("TestMigrationMainnetPart", () => {
-  xit("should make perform migrations withdraw, inject, deposit, emergencyExit, drop (using fork with real lvETH Vault)", async function () {
+  beforeEach(async () => {
+    await helpers.reset(
+      hre.config.networks.hardhat.forking.url,
+      hre.config.networks.hardhat.forking.blockNumber
+    );
+  });
+  it("should make perform migrations withdraw, inject, deposit, emergencyExit, drop (using fork with real lvETH Vault)", async function () {
     const vault = await ethers.getContractAt(
       "OnChainVault",
       "0x0e86f93145d097090acbbb8ee44c716dacff04d7"

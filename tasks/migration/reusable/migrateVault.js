@@ -42,7 +42,7 @@ module.exports = (customSigner) =>
     if (customSigner !== undefined) {
       setDepositLimitTx = await v2vaultInstance.connect(customSigner).setDepositLimit(hre.ethers.constants.MaxUint256);
       await setDepositLimitTx.wait();
-      
+
       depositTx = await migrationInstance.connect(customSigner).deposit();
       await depositTx.wait();
 
@@ -50,7 +50,7 @@ module.exports = (customSigner) =>
       await emergencyExitTx.wait();
 
       transferTx = await v2vaultInstance.connect(customSigner).transfer(
-        dropper.address,
+        dropper,
         await v2vaultInstance.balanceOf(treasury)
       );
       await transferTx.wait();
@@ -65,7 +65,7 @@ module.exports = (customSigner) =>
       await emergencyExitTx.wait();
 
       transferTx = await v2vaultInstance.transfer(
-        dropper.address,
+        dropper,
         await v2vaultInstance.balanceOf(treasury)
       );
       await transferTx.wait();
@@ -76,11 +76,11 @@ module.exports = (customSigner) =>
     const csvFileName = `./tasks/migration/csv/${csv}`;
 
     const maxAmountOfUsers = await hre.run("countDropReceiversFromMigration", {
-      migration: migration.address
+      migration
     });
 
     await hre.run('saveDropReceiversFromMigration', {
-      migration: migration.address,
+      migration,
       csv: csvFileName,
       count: maxAmountOfUsers
     });
