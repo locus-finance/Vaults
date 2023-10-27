@@ -16,7 +16,6 @@ require("hardhat-tracer");
 
 const fs = require("fs");
 
-
 const {
     DEPLOYER_PRIVATE_KEY,
     PROD_DEPLOYER_PRIVATE_KEY,
@@ -30,8 +29,9 @@ require("./tasks/migration/executeDropLvDCI")(task);
 require("./tasks/migration/executeDropLvETH")(task);
 require("./tasks/migration/saveDropReceiversFromMigration")(task);
 require("./tasks/migration/countDropReceiversFromMigration")(task);
-require("./tasks/migration/migrate")(task);
-
+require("./tasks/migration/migrateVaults")(task);
+require("./tasks/migration/treasuryAction")(task);
+require("./tasks/migration/dropToVaults")(task);
 
 task("fork_reset", "Reset to local fork", async (taskArgs) => {
     await network.provider.request({

@@ -1,7 +1,10 @@
 const helpers = require("@nomicfoundation/hardhat-network-helpers");
 const { ethers } = require("hardhat");
 const executeDropActionBuilder = require('../../tasks/migration/reusable/executeDrop');
-const migrateVaultActionBuilder = require('../../tasks/migration/reusable/migrateVault');
+
+const dropperContractInteractionActionBuilder = require('../../tasks/migration/reusable/steps/dropperContractInteraction');
+const treasuryTransferActionBuilder = require('../../tasks/migration/reusable/steps/treasuryTransfer');
+const migrationContractInteractionActionBuilder = require('../../tasks/migration/reusable/steps/migrationContractInteraction');
 
 upgrades.silenceWarnings();
 
@@ -34,6 +37,7 @@ describe("TestMigrationMainnetPart", () => {
       hre.config.networks.hardhat.forking.blockNumber
     );
   });
+
   it("should make perform migrations withdraw, inject, deposit, emergencyExit, drop (using fork with real lvETH Vault)", async function () {
     const vault = await ethers.getContractAt(
       "OnChainVault",
@@ -86,7 +90,7 @@ describe("TestMigrationMainnetPart", () => {
       );
     });
 
-    console.log(ethers.utils.formatUnits(await vault.balanceOf(dropper.address)));
+    console.log(`Actual Dropper balance: ${ethers.utils.formatUnits(await vault.balanceOf(dropper.address))}`);
 
     const csvFileName = "./tasks/migration/csv/lvEthV2TokenReceiversReadyForDrop.csv";
 
@@ -112,20 +116,51 @@ describe("TestMigrationMainnetPart", () => {
     });
   });
 
-  it('should perform migrate task successfully', async () => {
+  it('should perform migrate step tasks successfully', async () => {
     const vault = await ethers.getContractAt(
       "OnChainVault",
       "0x0e86f93145d097090acbbb8ee44c716dacff04d7"
     );
+    const migration = await ethers.getContractAt(
+      "Migration",
+      "0xd25d0de43579223429c28f2d64183a47a79078C7"
+    );
     const globalOwner = await vault.owner();
+    const treasury = await migration.treasury();
+
+    const migrationParams = {
+      v1vault: "0x3edbE670D03C4A71367dedA78E73EA4f8d68F2E4",
+      v2vault: vault.address,
+      migration: migration.address,
+      dropper: "0xEB20d24d42110B586B3bc433E331Fe7CC32D1471",
+      csv: "./tasks/migration/csv/lvEthV2TokenReceiversReadyForDrop.csv"
+    };
+    
+    await mintNativeTokens(globalOwner, "0xF0000000000000000000000");
+    await mintNativeTokens(treasury, "0xF0000000000000000000000");
+    
     await withImpersonatedSigner(globalOwner, async (globalOwnerSigner) => {
-      await mintNativeTokens(globalOwnerSigner, "0xF0000000000000000000000");
-      await migrateVaultActionBuilder(globalOwnerSigner)({
-        v1vault: "0x3edbE670D03C4A71367dedA78E73EA4f8d68F2E4",
-        v2vault: vault.address,
-        migration: "0xd25d0de43579223429c28f2d64183a47a79078C7",
-        dropper: "0xEB20d24d42110B586B3bc433E331Fe7CC32D1471",
-        csv: "lvEthV2TokenReceiversReadyForDrop.csv"
+      await migrationContractInteractionActionBuilder(globalOwnerSigner)({
+        v1vault: migrationParams.v1vault,
+        v2vault: migrationParams.v2vault,
+        migration: migrationParams.migration
+      }, hre);
+    });
+
+    await withImpersonatedSigner(treasury, async (treasurySigner) => {
+      await treasuryTransferActionBuilder(treasurySigner)({
+        v2vault: migrationParams.v2vault,
+        dropper: migrationParams.dropper,
+        migration: migrationParams.migration
+      }, hre);
+    });
+
+    await withImpersonatedSigner(globalOwner, async (globalOwnerSigner) => {
+      await dropperContractInteractionActionBuilder(globalOwnerSigner)({
+        v2vault: migrationParams.v2vault,
+        migration: migrationParams.migration,
+        dropper: migrationParams.dropper,
+        csv: migrationParams.csv
       }, hre);
     });
   });
