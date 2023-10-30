@@ -54,10 +54,8 @@ module.exports = (
     totalBalances = totalBalances.add(holderInfo.balance);
   }
 
-  ///
-  // accounts.pop();
-  // balances.pop();
-  ///
+  accounts.pop();
+  balances.pop();
 
   console.log(`Amount to be dropped: ${totalBalances.toString()} wei, for ${accounts.length} accounts.`);
 
