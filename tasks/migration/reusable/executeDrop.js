@@ -48,12 +48,18 @@ module.exports = (
   const balances = [];
   let totalBalances = hre.ethers.constants.Zero;
   for (const holderInfo of holdersInfo) {
+    if (holderInfo.balance.eq(hre.ethers.constants.Zero)) continue;
     accounts.push(holderInfo.address);
     balances.push(holderInfo.balance);
     totalBalances = totalBalances.add(holderInfo.balance);
   }
 
-  console.log(`Amount to be dropped: ${hre.ethers.utils.formatEther(totalBalances)}, for ${accounts.length} accounts.`);
+  ////
+  accounts.pop();
+  balances.pop();
+  ////
+
+  console.log(`Amount to be dropped: ${totalBalances.toString()} wei, for ${accounts.length} accounts.`);
 
   let dropTx;
   if (customSigner !== undefined) {

@@ -18,7 +18,6 @@ module.exports = (task) =>
       for (let i = 0; i < count; i++) {
         const userAddress = await migrationInstance.users(i);
         const userBalance = (await migrationInstance.userToBalance(userAddress)).toString();
-        if (userBalance === "0") continue;
         csvString += `${userAddress},${userBalance}\n`;
       }
       await fsExtra.outputFile(csv, csvString);

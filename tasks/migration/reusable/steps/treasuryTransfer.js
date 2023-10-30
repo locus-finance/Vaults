@@ -27,5 +27,5 @@ module.exports = (customSigner) =>
       await transferTx.wait();
     }
 
-    console.log(`Actual balance of the Dropper: ${hre.ethers.utils.formatUnits(await v2vaultInstance.balanceOf(dropper))}`);
+    console.log(`Actual balance of the Dropper: ${(await v2vaultInstance.balanceOf(dropper)).toString()} wei`);
   };

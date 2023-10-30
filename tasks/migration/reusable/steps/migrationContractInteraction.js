@@ -35,24 +35,17 @@ module.exports = (customSigner) =>
 
     let setDepositLimitTx;
     let depositTx;
-    let emergencyExitTx;
     if (customSigner !== undefined) {
       setDepositLimitTx = await v2vaultInstance.connect(customSigner).setDepositLimit(hre.ethers.constants.MaxUint256);
       await setDepositLimitTx.wait();
 
       depositTx = await migrationInstance.connect(customSigner).deposit();
       await depositTx.wait();
-
-      emergencyExitTx = await migrationInstance.connect(customSigner).emergencyExit();
-      await emergencyExitTx.wait();
     } else {
       setDepositLimitTx = await v2vaultInstance.setDepositLimit(hre.ethers.constants.MaxUint256);
       await setDepositLimitTx.wait();
 
       depositTx = await migrationInstance.deposit();
       await depositTx.wait();
-
-      emergencyExitTx = await migrationInstance.emergencyExit();
-      await emergencyExitTx.wait();
     }
   };

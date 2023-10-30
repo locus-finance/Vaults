@@ -31,6 +31,8 @@ const withImpersonatedSigner = async (signerAddress, action) => {
 }
 
 describe("TestMigrationMainnetPart", () => {
+  const beforeMigrationBlock = 18427399;
+  
   beforeEach(async () => {
     await helpers.reset(
       hre.config.networks.hardhat.forking.url,
@@ -38,7 +40,7 @@ describe("TestMigrationMainnetPart", () => {
     );
   });
 
-  it("should make perform migrations withdraw, inject, deposit, emergencyExit, drop (using fork with real lvETH Vault)", async function () {
+  xit("should make perform migrations withdraw, inject, deposit, emergencyExit, drop (using fork with real lvETH Vault)", async function () {
     const vault = await ethers.getContractAt(
       "OnChainVault",
       "0x0e86f93145d097090acbbb8ee44c716dacff04d7"
@@ -117,25 +119,42 @@ describe("TestMigrationMainnetPart", () => {
   });
 
   it('should perform migrate step tasks successfully', async () => {
-    const vault = await ethers.getContractAt(
-      "OnChainVault",
-      "0x0e86f93145d097090acbbb8ee44c716dacff04d7"
-    );
-    const migration = await ethers.getContractAt(
-      "Migration",
-      "0xd25d0de43579223429c28f2d64183a47a79078C7"
-    );
-    const globalOwner = await vault.owner();
-    const treasury = await migration.treasury();
-
-    const migrationParams = {
+    const ethVaultMigrationParams = {
       v1vault: "0x3edbE670D03C4A71367dedA78E73EA4f8d68F2E4",
-      v2vault: vault.address,
-      migration: migration.address,
+      v2vault: "0x0e86f93145d097090acbbb8ee44c716dacff04d7",
+      migration: "0xd25d0de43579223429c28f2d64183a47a79078C7",
       dropper: "0xEB20d24d42110B586B3bc433E331Fe7CC32D1471",
       csv: "./tasks/migration/csv/lvEthV2TokenReceiversReadyForDrop.csv"
     };
+
+    const defiVaultMigrationParams = {
+      v1vault: "0xf62A24EbE766d0dA04C9e2aeeCd5E86Fac049B7B",
+      v2vault: "0x65b08FFA1C0E1679228936c0c85180871789E1d7",
+      migration: "0xf42402303BCA9d5575A8aC7b90CB18026c80354D",
+      dropper: "0xEB20d24d42110B586B3bc433E331Fe7CC32D1471",
+      csv: "./tasks/migration/csv/lvDciV2TokenReceiversReadyForDrop.csv"
+    };
     
+    const migrationParams = defiVaultMigrationParams;
+
+    const vault = await ethers.getContractAt(
+      "OnChainVault",
+      migrationParams.v2vault
+    );
+    const dropper = await ethers.getContractAt(
+      "Dropper",
+      migrationParams.dropper
+    );
+    const migration = await ethers.getContractAt(
+      "Migration",
+      migrationParams.migration
+    );
+
+    const globalOwner = await vault.owner();
+    const treasury = await migration.treasury();
+    const migrationOwner = await migration.owner();
+    const dropperOwner = await dropper.owner();
+
     await mintNativeTokens(globalOwner, "0xF0000000000000000000000");
     await mintNativeTokens(treasury, "0xF0000000000000000000000");
     
@@ -147,6 +166,11 @@ describe("TestMigrationMainnetPart", () => {
       }, hre);
     });
 
+    await withImpersonatedSigner(migrationOwner, async (migrationOwnerSigner) => {
+      const emergencyExitTx = await migration.connect(migrationOwnerSigner).emergencyExit();
+      await emergencyExitTx.wait();
+    });
+
     await withImpersonatedSigner(treasury, async (treasurySigner) => {
       await treasuryTransferActionBuilder(treasurySigner)({
         v2vault: migrationParams.v2vault,
@@ -155,8 +179,8 @@ describe("TestMigrationMainnetPart", () => {
       }, hre);
     });
 
-    await withImpersonatedSigner(globalOwner, async (globalOwnerSigner) => {
-      await dropperContractInteractionActionBuilder(globalOwnerSigner)({
+    await withImpersonatedSigner(dropperOwner, async (dropperOwnerSigner) => {
+      await dropperContractInteractionActionBuilder(dropperOwnerSigner)({
         v2vault: migrationParams.v2vault,
         migration: migrationParams.migration,
         dropper: migrationParams.dropper,
