@@ -11,7 +11,7 @@ const parseHoldersAndBalances = (addressKey, balanceKey, file) => {
       .pipe(csvParser())
       .on("data", data => result.push({
         address: data[addressKey],
-        balance: data[balanceKey].toString().includes(',') ? hre.ethers.utils.parseEther(data[balanceKey].replace(",", "")) : hre.ethers.BigNumber.from(data[balanceKey])
+        balance: hre.ethers.BigNumber.from(data[balanceKey])
       }))
       .on("end", () => {
         resolve(result);
@@ -54,10 +54,10 @@ module.exports = (
     totalBalances = totalBalances.add(holderInfo.balance);
   }
 
-  ////
-  accounts.pop();
-  balances.pop();
-  ////
+  ///
+  // accounts.pop();
+  // balances.pop();
+  ///
 
   console.log(`Amount to be dropped: ${totalBalances.toString()} wei, for ${accounts.length} accounts.`);
 

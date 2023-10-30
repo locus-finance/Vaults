@@ -3,6 +3,7 @@ const calculateInjectableValues = require('../calculateInjectableValues');
 module.exports = (customSigner) =>
   async (taskParams, hre) => {
     const { v2vault, v1vault, migration } = taskParams;
+    
     const v2vaultInstance = await hre.ethers.getContractAt(
       "OnChainVault",
       v2vault
@@ -11,6 +12,7 @@ module.exports = (customSigner) =>
       "Migration",
       migration
     );
+
     let withdrawTx;
     if (customSigner !== undefined) {
       withdrawTx = await migrationInstance.connect(customSigner).withdraw();
