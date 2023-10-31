@@ -26,7 +26,7 @@ After configuration vault can be deployed with following command. `GOVERNANCE_AC
 ```
 GOVERNANCE_ACCOUNT="" TREASURY_ACCOUNT="" npx hardhat run scripts/deploy/<vault name>/Vault.js --network <hardhat.config.js network>
 ```
-Deployer account is configuring in `hardhat.config.js` networks.
+Deployer account is configured in `hardhat.config.js` networks.
 
 ## Deploy new Strategy
 
