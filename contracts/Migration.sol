@@ -35,13 +35,16 @@ contract Migration is Ownable, ReentrancyGuard {
     }
 
     function addUsers(address[] memory _newUsers) external onlyOwner {
-        for (uint256 i = 0; i < _newUsers.length; i++) {
+        for (uint256 i; i < _newUsers.length;) {
             users.push(_newUsers[i]);
+            unchecked {
+                ++i;
+            }
         }
     }
 
     function withdraw() external nonReentrant {
-        for (uint256 i = 0; i < users.length; i++) {
+        for (uint256 i; i < users.length;) {
             uint256 userBalance = IERC20(address(vaultV1)).balanceOf(users[i]);
             if (userBalance == 0) {
                 continue;
@@ -62,6 +65,10 @@ contract Migration is Ownable, ReentrancyGuard {
             );
 
             userToBalance[users[i]] += userBalance;
+
+            unchecked {
+                ++i;
+            }
         }
         if (IERC20(address(vaultV1)).balanceOf(address(this)) > 0) {
             vaultV1.withdraw();
@@ -69,7 +76,7 @@ contract Migration is Ownable, ReentrancyGuard {
     }
 
     function withdrawUsersWithDetectedError() external nonReentrant {
-        for (uint256 i = 0; i < notWithdrawnUsers.length; i++) {
+        for (uint256 i; i < notWithdrawnUsers.length;) {
             if (notWithdrawnUsers[i] == address(0)) {
                 continue;
             }
@@ -95,6 +102,10 @@ contract Migration is Ownable, ReentrancyGuard {
             userToBalance[notWithdrawnUsers[i]] += userBalance;
 
             notWithdrawnUsers[i] = address(0);
+
+            unchecked {
+                ++i;
+            }
         }
         vaultV1.withdraw();
     }
@@ -116,9 +127,12 @@ contract Migration is Ownable, ReentrancyGuard {
     }
 
     function checkUserExistence(address _user) internal view returns (bool) {
-        for (uint256 i = 0; i < notWithdrawnUsers.length; i++) {
+        for (uint256 i; i < notWithdrawnUsers.length;) {
             if (notWithdrawnUsers[i] == _user) {
                 return true;
+            }
+            unchecked {
+                ++i;
             }
         }
         return false;
