@@ -1,23 +1,4 @@
-const csvParser = require("csv-parser");
-const fsExtra = require("fs-extra");
-
-const parseHoldersAndBalances = (addressKey, balanceKey, file) => {
-  let result = [];
-  return new Promise((resolve, reject) => {
-    fsExtra.createReadStream(file)
-      .on("error", error => {
-        reject(error);
-      })
-      .pipe(csvParser())
-      .on("data", data => result.push({
-        address: data[addressKey],
-        balance: hre.ethers.BigNumber.from(data[balanceKey])
-      }))
-      .on("end", () => {
-        resolve(result);
-      });
-  });
-}
+const parseHoldersAndBalances = require("./parseHoldersAndBalances");
 
 module.exports = (
   csvAddressKey,
@@ -27,7 +8,7 @@ module.exports = (
   dropperAddress,
   customSigner
 ) => async () => {
-  const holdersInfo = await parseHoldersAndBalances(csvAddressKey, csvBalanceKey, csvFileRelativePath);
+  const holdersInfo = await parseHoldersAndBalances(csvAddressKey, csvBalanceKey, csvFileRelativePath, hre.ethers.BigNumber.from);
   
   console.log(`Using data source: ${csvFileRelativePath}`);
 
