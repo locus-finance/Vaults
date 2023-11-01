@@ -14,5 +14,5 @@ interface IGNSVault {
 
     function stakers(address staker) external view returns (Staker memory);
 
-    function pendingRewardDai() external view returns (uint);
+    function pendingRewardDai(address staker) external view returns (uint);
 }
