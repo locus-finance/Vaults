@@ -12,9 +12,9 @@ require("dotenv").config();
 require("solidity-coverage");
 require("hardhat-contract-sizer");
 require("hardhat-deploy");
+require("hardhat-tracer");
 
 const fs = require("fs");
-
 
 const {
     DEPLOYER_PRIVATE_KEY,
@@ -22,6 +22,17 @@ const {
     ETH_NODE,
     ETH_FORK_BLOCK,
 } = process.env;
+
+require("./tasks/migration/calculateInjectableValuesForLvDCI")(task);
+require("./tasks/migration/calculateInjectableValuesForLvETH")(task);
+require("./tasks/migration/executeDropLvDCI")(task);
+require("./tasks/migration/executeDropLvETH")(task);
+require("./tasks/migration/saveDropReceiversFromMigration")(task);
+require("./tasks/migration/countDropReceiversFromMigration")(task);
+require("./tasks/migration/migrateVaults")(task);
+require("./tasks/migration/treasuryAction")(task);
+require("./tasks/migration/dropToVaults")(task);
+require("./tasks/migration/gatherUnmigrated")(task);
 
 task("fork_reset", "Reset to local fork", async (taskArgs) => {
     await network.provider.request({
@@ -85,7 +96,7 @@ module.exports = {
     networks: {
         localhost: {},
         hardhat: {
-            chainId: 43114,
+            // chainId: 43114,
             forking: {
                 url: ETH_NODE,
                 blockNumber: Number(ETH_FORK_BLOCK)
