@@ -16,7 +16,7 @@ module.exports = (task) =>
         migration
       );
       const v1vaultInstance = await hre.ethers.getContractAt(
-        "IERC20",
+        "OnChainVault",
         v1vault
       );
 
@@ -29,43 +29,49 @@ module.exports = (task) =>
       });
 
       const isAddressIncludedInMigration = async (address) => {
-        let result;
         for (let i = 0; i < maxAmountOfUsers; i++) {
           const userAddress = await migrationInstance.users(i);
           if (address === userAddress) {
-            result = {
+            return {
               inlcuded: true,
               registeredBalance: (await migrationInstance.userToBalance(userAddress)).toString()
             };
-            console.log(result);
-            return result;
           }
         }
-        result = {
+        return {
           included: false,
           registeredBalance: hre.ethers.constants.Zero
         };
-        console.log(result);
-        return result;
       }
+
+      const decimals = await v1vaultInstance.decimals();
 
       const parsedHolders = await parseHoldersAndBalances(
         "HolderAddress", 
         "Balance", 
         csvIn,
         (rawBalance) => rawBalance.includes(",")
-          ? hre.ethers.utils.parseEther(rawBalance.replace(",", ""))
-          : hre.ethers.utils.parseEther(rawBalance)
+          ? hre.ethers.utils.parseUnits(rawBalance.replace(",", ""), decimals)
+          : hre.ethers.utils.parseUnits(rawBalance, decimals)
       );
       
+      
+      let allowancesSum = hre.ethers.constants.Zero;
+      const pricePerShare = await v1vaultInstance.pricePerShare();
+
       for (const parsedHolder of parsedHolders) {
+        console.log(`Processing:\n${JSON.stringify(parsedHolder)}`);
         const allowance = await v1vaultInstance.allowance(parsedHolder.address, migrationInstance.address);
+        
         const isAddressIncludedInfo = await isAddressIncludedInMigration(parsedHolder.address);     
-        csvString += `${parsedHolder.address},${hre.ethers.utils.formatUnits(parsedHolder.balance)},${hre.ethers.utils.formatUnits(allowance.toString())},${isAddressIncludedInfo.included},${hre.ethers.utils.formatUnits(isAddressIncludedInfo.registeredBalance)}\n`;
+        csvString += `${parsedHolder.address},${parsedHolder.balance},${allowance.toString()},${isAddressIncludedInfo.included},${isAddressIncludedInfo.registeredBalance}\n`;
         console.log(csvString);
+        allowancesSum = allowancesSum.add(allowance);
       }
 
       await fsExtra.outputFile(csvOut, csvString);
 
+      console.log(`PPS: ${pricePerShare.toString()}`);
+      console.log(`Allowances Sum: ${allowancesSum.toString()}`);
       console.log(`Gathered info about post migration holders to ${csvOut}`);
     });
