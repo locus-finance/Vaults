@@ -150,8 +150,8 @@
             "wantTokenAddress": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
             "address": "0x0e86f93145d097090acbbb8ee44c716dacff04d7",
             "decimals": "18",
-            "managementFee": "0",
-            "performanceFee": "0",
+            "managementFee": "0.7",
+            "performanceFee": "5",
             "strategies": {
                 "RocketAuraStrategy": {
                     "address": "0xb7b25828ccf97c49e779cee2688c329f1f662c82",
@@ -500,7 +500,7 @@
             "wantTokenAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
             "address": "0x65b08FFA1C0E1679228936c0c85180871789E1d7",
             "decimals": "6",
-            "managementFee": "0",
+            "managementFee": "1.5",
             "performanceFee": "0",
             "strategies": {
                 "AuraBALStrategy": {
@@ -835,7 +835,7 @@
             "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
             "address": "0x0f094f6deb056af1fa1299168188fd8c78542a07",
             "decimals": "6",
-            "managementFee": "0",
+            "managementFee": "1.5",
             "performanceFee": "0",
             "strategies": {
                 "GMXStrategy": {

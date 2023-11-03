@@ -43,50 +43,50 @@ task("fork_reset", "Reset to local fork", async (taskArgs) => {
 
 module.exports = {
     mocha: {
-        timeout: 100000000,
+        timeout: 100000000
     },
     solidity: {
         compilers: [
+            {
+                version: "0.8.20",
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 10
+                    },
+                    outputSelection: {
+                        "*": {
+                            "*": ["storageLayout"],
+                        }
+                    }
+                }
+            },
             {
                 version: "0.8.19",
                 settings: {
                     optimizer: {
                         enabled: true,
-                        runs: 5
+                        runs: 10
                     },
                     outputSelection: {
                         "*": {
-                            "*": ["storageLayout"],
-                        },
-                    },
-                },
-            },
-            {
-                version: "0.8.18",
-                settings: {
-                    optimizer: {
-                        enabled: true,
-                        runs: 5,
-                    },
-                    outputSelection: {
-                        "*": {
-                            "*": ["storageLayout"],
-                        },
-                    },
-                },
-            },
+                            "*": ["storageLayout"]
+                        }
+                    }
+                }
+            }
         ],
         overrides: {
             "contracts/strategies/arbitrum/*.sol": {
-                version: "0.8.18",
+                version: "0.8.18"
             },
             "contracts/mock/arbitrum/*.sol": {
-                version: "0.8.18",
-            },
-        },
+                version: "0.8.18"
+            }
+        }
     },
     vyper: {
-        version: "0.3.3",
+        version: "0.3.3"
     },
     namedAccounts: {
         deployer: {
@@ -127,54 +127,54 @@ module.exports = {
         },
         polygonmumbai: {
             url: `https://rpc.ankr.com/polygon_mumbai`,
-            accounts: [`${DEPLOYER_PRIVATE_KEY}`],
+            accounts: [`${DEPLOYER_PRIVATE_KEY}`]
         },
         bsc_mainnet: {
             url: `https://bsc-dataseed.binance.org/`,
             chainId: 56,
-            accounts: [`0x${DEPLOYER_PRIVATE_KEY}`],
+            accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
         },
         fujiavax: {
             url: `https://rpc.ankr.com/avalanche_fuji`,
             chainId: 43113,
-            accounts: [`0x${DEPLOYER_PRIVATE_KEY}`],
+            accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
         },
         avalanche: {
             url: `https://api.avax.network/ext/bc/C/rpc`,
             chainId: 43114,
-            accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
+            accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`]
         },
         polygon: {
             url: `https://rpc.ankr.com/polygon`,
             chainId: 137,
-            accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
+            accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`]
         },
         arbitrumOne: {
             url: `https://arb1.arbitrum.io/rpc`,
             chainId: 42161,
-            accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
-        },
+            accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`]
+        }
     },
     etherscan: {
         apiKey: {
             mainnet: process.env.ETHERSCAN_API_KEY,
             sepolia: process.env.ETHERSCAN_API_KEY,
-            arbitrumOne: process.env.ARBISCAN_API_KEY,
-        },
+            arbitrumOne: process.env.ARBISCAN_API_KEY
+        }
     },
     gasReporter: {
         enable: true,
-        currency: "USD",
+        currency: "USD"
     },
     spdxLicenseIdentifier: {
         overwrite: false,
-        runOnCompile: true,
+        runOnCompile: true
     },
     contractSizer: {
         alphaSort: true,
         disambiguatePaths: false,
         runOnCompile: true,
-        strict: false,
+        strict: false
     },
     abiExporter: {
         path: "./abi",
@@ -198,7 +198,7 @@ module.exports = {
             ":FXSStrategy$",
             ":LidoAuraStrategy$",
             ":RocketAuraStrategy$",
-            ":YCRVStrategy$",
+            ":YCRVStrategy$"
         ],
     },
 };
@@ -275,7 +275,7 @@ subtask(
                     !i++ ? m : ""
             )(0)
         );
-        // Remove every line started with "pragma abicoder v2;" except the first one
+        // Remove every line started with "pragma abi coder v2;" except the first one
         flattened = flattened.replace(
             /pragma abicoder v2;\n/gm,
             (
@@ -338,7 +338,7 @@ task("flat", "Flattens and prints contracts and their dependencies")
         console.log(
             await run("flat:get-flattened-sources", {
                 files,
-                output,
+                output
             })
         );
     });
