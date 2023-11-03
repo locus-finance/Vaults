@@ -23,14 +23,9 @@ const {
     ETH_FORK_BLOCK,
 } = process.env;
 
-require("./tasks/migration/calculateInjectableValuesForLvDCI")(task);
-require("./tasks/migration/calculateInjectableValuesForLvETH")(task);
-require("./tasks/migration/executeDropLvDCI")(task);
-require("./tasks/migration/executeDropLvETH")(task);
 require("./tasks/migration/saveDropReceiversFromMigration")(task);
 require("./tasks/migration/countDropReceiversFromMigration")(task);
 require("./tasks/migration/migrateVaults")(task);
-require("./tasks/migration/treasuryAction")(task);
 require("./tasks/migration/dropToVaults")(task);
 require("./tasks/migration/gatherUnmigrated")(task);
 
