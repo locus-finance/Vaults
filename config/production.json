@@ -931,7 +931,7 @@
             "address": "0xd39583c9d1001c237151a5a6d4c7a7207b2c08e3",
             "decimals": "6",
             "managementFee": "1.5",
-            "performanceFee": "10",
+            "performanceFee": "0",
             "strategies": {
                 "HopStrategy": {
                     "address": "0xe6aAE58caC2c7c7A785a38e7147be92e8e3F6484",
