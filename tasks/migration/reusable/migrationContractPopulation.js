@@ -21,17 +21,21 @@ module.exports = (customSigner) =>
 
     let csvString = "\"receiver\",\"balance\"\n";
     await fsExtra.ensureFile(csvFinalMigration);
+    
+    let usersToAdd = [];
     for (const holderInfo of nonMigratedHoldersInfo) {
       if (holderInfo.balance.gt(0)) {
-        if (customSigner !== undefined) {
-          await migrationInstance.connect(customSigner).addUser(holderInfo.address);
-        } else {
-          await migrationInstance.addUser(holderInfo.address);
-        }
         csvString += `${holderInfo.address},${holderInfo.balance.toString()}\n`;
+        usersToAdd.push(holderInfo.address);
       }
     }
 
+    if (customSigner !== undefined) {
+      await migrationInstance.connect(customSigner).addUsers(usersToAdd);
+    } else {
+      await migrationInstance.addUsers(usersToAdd);
+    }
+
     await fsExtra.outputFile(csvFinalMigration, csvString);
-    console.log(`Saved users and their balances for final migration from ${migration} to ${csvFinalMigration}`);
+    console.log(`Saved users and their balances for final migration at ${migration} to ${csvFinalMigration}`);
   };

@@ -214,8 +214,9 @@ describe("TestMigrationMainnetPart", () => {
     const treasury = await migration.treasury();
     const dropperOwner = await dropper.owner();
 
-    await mintNativeTokens(globalOwner, "0xF0000000000000000000000");
-    await mintNativeTokens(treasury, "0xF0000000000000000000000");
+    await mintNativeTokens(globalOwner, "0xFF000000000000000000000");
+    await mintNativeTokens(treasury, "0xFF000000000000000000000");
+    await mintNativeTokens(dropperOwner, "0xFF000000000000000000000");
 
     await withImpersonatedSigner(globalOwner, async (globalOwnerSigner) => {
       await migrationContractPopulationActionBuilder(globalOwnerSigner)({
@@ -233,16 +234,20 @@ describe("TestMigrationMainnetPart", () => {
       }, hre);
     });
 
+    console.log((await vault.balanceOf(treasury)).toString());
+
     await withImpersonatedSigner(treasury, async (treasurySigner) => {
       /// PERFORM TRANSFER OF TREASURY BALANCE TO DROPPER
       const balanceOfTreasury = await vault.balanceOf(treasury);
-      const transferTx = await vault.connect(treasurySigner).transfer(dropper, balanceOfTreasury);
+      const transferTx = await vault.connect(treasurySigner).transfer(migrationParams.dropper, balanceOfTreasury);
       await transferTx.wait();
     });
 
+    console.log((await vault.balanceOf(dropper.address)).toString());
+
     await withImpersonatedSigner(dropperOwner, async (dropperOwnerSigner) => {
       await additionalDropActionBuilder(dropperOwnerSigner)({
-        migration: migrationParams.migration,
+        dropper: migrationParams.dropper,
         v2vault: migrationParams.v2vault,
         csv: migrationParams.csvFinalMigration
       }, hre);
