@@ -1,7 +1,7 @@
 const additionalDropActionBuilder = require('./reusable/additionalDrop');
 module.exports = (task) =>
   task(
-    "dropToVaults",
+    "finalDrop",
     "Drop tokens on Dropper to Vaults V2.",
   )
     .addOptionalParam('v2vault', "Define to where the migration should occur.", '0x0e86f93145d097090acbbb8ee44c716dacff04d7', types.string)

@@ -28,6 +28,7 @@ require("./tasks/migration/countDropReceiversFromMigration")(task);
 require("./tasks/migration/migrateVaults")(task);
 require("./tasks/migration/dropToVaults")(task);
 require("./tasks/migration/gatherUnmigrated")(task);
+require("./tasks/migration/finalDrop")(task);
 
 task("fork_reset", "Reset to local fork", async (taskArgs) => {
     await network.provider.request({
