@@ -96,10 +96,9 @@ module.exports = {
     networks: {
         localhost: {},
         hardhat: {
-            // chainId: 43114,
             forking: {
-                url: ETH_NODE,
-                blockNumber: Number(ETH_FORK_BLOCK)
+                url: ETH_NODE //,
+                // blockNumber: Number(ETH_FORK_BLOCK)
             },
             allowUnlimitedContractSize: true
         },
