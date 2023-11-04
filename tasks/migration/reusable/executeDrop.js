@@ -6,7 +6,8 @@ module.exports = (
   csvFileRelativePath,
   vaultV2Address,
   dropperAddress,
-  customSigner
+  customSigner,
+  popLast=false
 ) => async () => {
   const holdersInfo = await parseHoldersAndBalances(csvAddressKey, csvBalanceKey, csvFileRelativePath, hre.ethers.BigNumber.from);
   
@@ -35,8 +36,11 @@ module.exports = (
     totalBalances = totalBalances.add(holderInfo.balance);
   }
 
-  accounts.pop();
-  balances.pop();
+  // true if funds are not enough to distribute
+  if (popLast) {
+    accounts.pop();
+    balances.pop();
+  }
 
   console.log(`Amount to be dropped: ${totalBalances.toString()} wei, for ${accounts.length} accounts.`);
 

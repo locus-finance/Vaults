@@ -33,6 +33,8 @@ module.exports = (customSigner) =>
         injectTx = await v2vaultInstance.injectForMigration(totalSupplyToInject, freeFundsToInject);
       }
       await injectTx.wait();
+    } else {
+      console.log(`A v2vault ${v2vaultInstance.address} is already injected. Continue...`);
     }
 
     let setDepositLimitTx;
