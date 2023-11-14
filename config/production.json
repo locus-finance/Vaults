@@ -942,23 +942,32 @@
                     "wantTokenTicker": "USDC.e",
                     "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8"
                 },
-                "PearlStrategy": {
-                    "address": "0x7A5374650b4Dc4Fa15408412bD01fb1BdcB97BA8",
-                    "network": "Polygon",
-                    "chainId": "137",
-                    "lzChainId": "109",
-                    "nativeToken": "MATIC",
-                    "wantTokenTicker": "USDC",
-                    "wantTokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
-                },
                 "VeloDrome" : {
-                    "address": " ",
-                    "network": "Base",
-                    "chainId": "137",
-                    "lzChainId": "109",
+                    "address": "0xBfADFc8db4B28Fc75119A0672cbB17f6092D596D",
+                    "network": "Optimism",
+                    "chainId": "10",
+                    "lzChainId": "111",
                     "nativeToken": "ETH",
                     "wantTokenTicker": "USDbC",
                     "wantTokenAddress": "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca"
+                },
+                "BeefyStrategyOnKava" : {
+                    "address": "0xD6D7673D94BAcDD1FA3D67D38B5A643Ba24F85b3",
+                    "network": "Kava",
+                    "chainId": "2222",
+                    "lzChainId": "177",
+                    "nativeToken": "KAVA",
+                    "wantTokenTicker": "USDT",
+                    "wantTokenAddress": "0x919C1c267BC06a7039e03fcc2eF738525769109c"
+                },
+                "BeefyStrategyOnBase" : {
+                    "address": "0x13bf88e6d5105f7935C0A8F88d7e87716e9Bb535",
+                    "network": "Base",
+                    "chainId": "8453",
+                    "lzChainId": "184",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDbC",
+                    "wantTokenAddress": "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA"
                 }
             }
         },
