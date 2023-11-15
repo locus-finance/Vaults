@@ -6,10 +6,10 @@ module.exports = (task) =>
     "gatherUnmigrated",
     "Saves into CSV file addresses and approves of unmigrated fellows.",
   )
-    .addOptionalParam('v1vault', "Define from where the migration should occur.", '0xBE55f53aD3B48B3ca785299f763d39e8a12B1f98', types.string)
-    .addOptionalParam('migration', "Define from where the task should gather the drop receivers.", '0xC7469254416Ad546A5F07e5530a0c3eA468F1FCE', types.string)
-    .addOptionalParam('csvIn', "Define a relative path for CSV file of holders.", './tasks/migration/csv/postMigration/secondWave/lvAyiV1HoldersPostMigration.csv', types.string)
-    .addOptionalParam('csvOut', "Define a relative path for CSV file output information: holder - migration status.", './tasks/migration/csv/postMigration/secondWave/nonMigrated/lvAyiV1HoldersNonMigrated.csv', types.string)
+    .addOptionalParam('v1vault', "Define from where the migration should occur.", '0x3edbE670D03C4A71367dedA78E73EA4f8d68F2E4', types.string)
+    .addOptionalParam('migration', "Define from where the task should gather the drop receivers.", '0xd25d0de43579223429c28f2d64183a47a79078C7', types.string)
+    .addOptionalParam('csvIn', "Define a relative path for CSV file of holders.", './tasks/migration/csv/postMigration/secondWave/lvEthV1HoldersPostMigration.csv', types.string)
+    .addOptionalParam('csvOut', "Define a relative path for CSV file output information: holder - migration status.", './tasks/migration/csv/postMigration/secondWave/nonMigrated/lvEthV1HoldersNonMigrated.csv', types.string)
     .setAction(async ({ migration, v1vault, csvOut, csvIn }, hre) => {
       const migrationInstance = await hre.ethers.getContractAt(
         "Migration",
