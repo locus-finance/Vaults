@@ -12,6 +12,7 @@ require("dotenv").config();
 require("solidity-coverage");
 require("hardhat-contract-sizer");
 require("hardhat-deploy");
+require("hardhat-tracer");
 
 const fs = require("fs");
 
@@ -22,6 +23,14 @@ const {
   ETH_FORK_BLOCK,
   ARBITRUM_NODE,
 } = process.env;
+
+require("./tasks/migration/saveDropReceiversFromMigration")(task);
+require("./tasks/migration/countDropReceiversFromMigration")(task);
+require("./tasks/migration/migrateVaults")(task);
+require("./tasks/migration/dropToVaults")(task);
+require("./tasks/migration/gatherUnmigrated")(task);
+require("./tasks/migration/finalDrop")(task);
+require("./tasks/migration/populateMigration")(task);
 
 task("fork_reset", "Reset to local fork", async (taskArgs) => {
   await network.provider.request({
