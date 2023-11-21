@@ -84,7 +84,7 @@ contract GNSStrategy is BaseStrategy {
     }
 
     function balanceOfRewards() public view returns (uint256) {
-        return IGNSVault(GNS_VAULT).pendingRewardDai();
+        return IGNSVault(GNS_VAULT).pendingRewardDai(address(this));
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {

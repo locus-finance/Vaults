@@ -617,10 +617,10 @@ contract OnChainVault is
             uint256 reward = _issueSharesForAmount(address(this), totalFee);
             if (_strategistFee > 0) {
                 uint256 strategistReward = (_strategistFee * reward) / totalFee;
-                transfer(treasury, strategistReward);
+                _transfer(address(this), treasury, strategistReward);
             }
             if (balanceOf(address(this)) > 0) {
-                transfer(treasury, balanceOf(address(this)));
+                _transfer(address(this), treasury, balanceOf(address(this)));
             }
         }
         return totalFee;
