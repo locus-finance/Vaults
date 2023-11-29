@@ -923,18 +923,18 @@
         "lvOMV": {
             "chain": {
                 "nativeToken": "ETH",
-                "chainId": 10,
-                "name": "Optimism"
+                "chainId": 42161,
+                "name": "Arbitrum"
             },
-            "wantTokenTicker": "USDC",
-            "wantTokenAddress": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
-            "address": "0xd39583c9d1001c237151a5a6d4c7a7207b2c08e3",
-            "decimals": "6",
-            "managementFee": "1.5",
+            "wantTokenTicker": "USDC.e",
+            "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+            "address": "0xEb8DbF81241026CCADD86394c5C90863979E926e",
+            "decimals": "18",
+            "managementFee": "0.7",
             "performanceFee": "0",
             "strategies": {
                 "HopStrategy": {
-                    "address": "0xe6aAE58caC2c7c7A785a38e7147be92e8e3F6484",
+                    "address": "0x244d8c59E7eB516DC98a81CC606D4f20E139C69e",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "lzChainId": "110",
@@ -943,25 +943,16 @@
                     "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8"
                 },
                 "VeloDrome" : {
-                    "address": "0xBfADFc8db4B28Fc75119A0672cbB17f6092D596D",
+                    "address": "0xf712eE1C45C84aEC0bfA1581f34B9dc9a54D7e60",
                     "network": "Optimism",
                     "chainId": "10",
                     "lzChainId": "111",
                     "nativeToken": "ETH",
-                    "wantTokenTicker": "USDbC",
-                    "wantTokenAddress": "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca"
-                },
-                "BeefyStrategyOnKava" : {
-                    "address": "0xD6D7673D94BAcDD1FA3D67D38B5A643Ba24F85b3",
-                    "network": "Kava",
-                    "chainId": "2222",
-                    "lzChainId": "177",
-                    "nativeToken": "KAVA",
-                    "wantTokenTicker": "USDT",
-                    "wantTokenAddress": "0x919C1c267BC06a7039e03fcc2eF738525769109c"
+                    "wantTokenTicker": "USDC.e",
+                    "wantTokenAddress": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607"
                 },
                 "BeefyStrategyOnBase" : {
-                    "address": "0x13bf88e6d5105f7935C0A8F88d7e87716e9Bb535",
+                    "address": "0xa2DaD0bECB705215098C3eb2Ec252CD8613eEB81",
                     "network": "Base",
                     "chainId": "8453",
                     "lzChainId": "184",
