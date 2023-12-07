@@ -920,7 +920,7 @@
                 }
             }
         },
-        "lvOMV": {
+        "lyUSD": {
             "chain": {
                 "nativeToken": "ETH",
                 "chainId": 42161,
@@ -928,13 +928,13 @@
             },
             "wantTokenTicker": "USDC.e",
             "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
-            "address": "0xEb8DbF81241026CCADD86394c5C90863979E926e",
-            "decimals": "18",
-            "managementFee": "0.7",
-            "performanceFee": "0",
+            "address": "0x6c090e79A9399c0003A310E219b2D5ed4E6b0428",
+            "decimals": "6",
+            "managementFee": "0.5%",
+            "performanceFee": "5%",
             "strategies": {
                 "HopStrategy": {
-                    "address": "0x244d8c59E7eB516DC98a81CC606D4f20E139C69e",
+                    "address": "0x205D6195fa2ebFE04CDa0be91365c43aA9e1b739",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "lzChainId": "110",
@@ -943,7 +943,7 @@
                     "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8"
                 },
                 "VeloDrome" : {
-                    "address": "0xf712eE1C45C84aEC0bfA1581f34B9dc9a54D7e60",
+                    "address": "0xa5e7eB6391F34Ec9691A5d39E93A8b2336B7E717",
                     "network": "Optimism",
                     "chainId": "10",
                     "lzChainId": "111",
@@ -952,7 +952,7 @@
                     "wantTokenAddress": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607"
                 },
                 "BeefyStrategyOnBase" : {
-                    "address": "0xa2DaD0bECB705215098C3eb2Ec252CD8613eEB81",
+                    "address": "0xAcB31C5520635e4791C94E26D114e2bb40e43100",
                     "network": "Base",
                     "chainId": "8453",
                     "lzChainId": "184",
