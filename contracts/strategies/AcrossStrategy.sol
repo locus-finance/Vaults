@@ -9,8 +9,6 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {OracleLibrary} from "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
 import {ISwapRouter} from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
-
-
 import "../utils/Utils.sol";
 import "../integrations/across/IAcrossHub.sol";
 import "../integrations/across/IAcrossStaker.sol";
@@ -24,7 +22,7 @@ contract AcrossStrategy is BaseStrategy {
     address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address public constant REWARD_TOKEN = 0x44108f0223A3C3028F5Fe7AEC7f9bb2E66beF82F;
     address public constant UNISWAP_V3_ROUTER = 0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
-    address public constant ACX_WETH_UNI_POOL = 0x508acdc358be2ed126b1441f0cff853dec49d40f;
+    address public constant ACX_WETH_UNI_POOL = 0x508acdC358be2ed126B1441F0Cff853dEc49d40F;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
     uint256 public slippage;
@@ -41,6 +39,10 @@ contract AcrossStrategy is BaseStrategy {
         IERC20(LP_TOKEN).safeApprove(ACROSS_HUB, type(uint256).max);
         WANT_DECIMALS = ERC20(address(want)).decimals();
         slippage = 9800; // 2%
+    }
+
+    function ethToWant(uint256 _amtInWei) public view virtual override returns (uint256){
+        return 0;
     }
 
     function setSlippage(uint256 _slippage) external onlyStrategist {
@@ -65,7 +67,7 @@ contract AcrossStrategy is BaseStrategy {
             IAcrossStaker(ACROSS_STAKER).getUserStake(LP_TOKEN, address(this)).cumulativeBalance;
     }
 
-    function rewards() public view virtual returns (uint256) {
+    function getRewards() public view virtual returns (uint256) {
         return IAcrossStaker(ACROSS_STAKER).getOutstandingRewards(LP_TOKEN, address(this));
     }
 
@@ -98,8 +100,12 @@ contract AcrossStrategy is BaseStrategy {
         returns (uint256 _wants)
     {
         _wants += want.balanceOf(address(this));
-        _wants += LPToWant(IAcrossStaker(ACROSS_STAKER).getUserStake(WETH, address(this)).cumulativeBalance);
+        _wants += LPToWant(IAcrossStaker(ACROSS_STAKER).getUserStake(LP_TOKEN, address(this)).cumulativeBalance);
         _wants += AcxToWant(IAcrossStaker(ACROSS_STAKER).getOutstandingRewards(WETH, address(this)));
+        _wants += LPToWant(IERC20(LP_TOKEN).balanceOf(address(this)));
+        // console.log(want.balanceOf(address(this)));
+        // console.log(IAcrossStaker(ACROSS_STAKER).getUserStake(WETH, address(this)).cumulativeBalance);
+        // console.log(IAcrossStaker(ACROSS_STAKER).getOutstandingRewards(WETH, address(this)));
     }
 
     function prepareReturn(
@@ -157,6 +163,9 @@ contract AcrossStrategy is BaseStrategy {
 
         if (_excessWant > 0) {
             IAcrossHub(ACROSS_HUB).addLiquidity(WETH, _excessWant);
+
+        }
+        if (balanceOfLPUnstaked() > 0) {
             IAcrossStaker(ACROSS_STAKER).stake(LP_TOKEN, IERC20(LP_TOKEN).balanceOf(address(this)));
         }
     }
@@ -180,6 +189,9 @@ contract AcrossStrategy is BaseStrategy {
     function AcxToWant(
         uint256 amountIn
     ) internal view returns (uint256 amountOut) {
+        if (amountIn == 0) {
+            return 0;
+        }
         amountOut = smthToSmth(
             ACX_WETH_UNI_POOL,
             REWARD_TOKEN,
@@ -247,10 +259,6 @@ contract AcrossStrategy is BaseStrategy {
         IERC20(LP_TOKEN).safeTransfer(
             _newStrategy,
             IERC20(LP_TOKEN).balanceOf(address(this))
-        );
-        IERC20(WETH).safeTransfer(
-            _newStrategy,
-            IERC20(WETH).balanceOf(address(this))
         );
     }
 

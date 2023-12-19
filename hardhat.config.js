@@ -95,9 +95,9 @@ module.exports = {
   networks: {
     localhost: {},
     hardhat: {
-      // forking: {
-      //   url: ETH_NODE || "",
-      // },
+      forking: {
+        url: ETH_NODE || "",
+      },
       allowUnlimitedContractSize: true,
     },
     mainnet: {
