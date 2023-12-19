@@ -41,8 +41,9 @@ describe("DropTest", () => {
       "0xEB20d24d42110B586B3bc433E331Fe7CC32D1471"
     );
     await withImpersonatedSigner(owner, async (ownerSigner) => {
-      await mintNativeTokens(owner, "0x100000000000000000");
-      await dropper.connect(ownerSigner).drop([person], [amount]);
+      // await mintNativeTokens(owner, "0x100000000000000000");
+      // await dropper.connect(ownerSigner).drop([person], [amount]);
+      await dropper.connect(ownerSigner).emergencyExit();
     });
   });
 });
