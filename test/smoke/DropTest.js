@@ -43,7 +43,7 @@ describe("DropTest", () => {
     await withImpersonatedSigner(owner, async (ownerSigner) => {
       // await mintNativeTokens(owner, "0x100000000000000000");
       // await dropper.connect(ownerSigner).drop([person], [amount]);
-      await dropper.connect(ownerSigner).emergencyExit();
+      console.log((await dropper.connect(ownerSigner).estimateGas.emergencyExit()).toString());
     });
   });
 });
