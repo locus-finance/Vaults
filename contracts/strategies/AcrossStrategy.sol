@@ -21,7 +21,7 @@ contract AcrossStrategy is BaseStrategy {
     address public constant LP_TOKEN = 0x28F77208728B0A45cAb24c4868334581Fe86F95B;
     address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     address public constant REWARD_TOKEN = 0x44108f0223A3C3028F5Fe7AEC7f9bb2E66beF82F;
-    address public constant UNISWAP_V3_ROUTER = 0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
+    address public constant UNISWAP_V3_ROUTER = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
     address public constant ACX_WETH_UNI_POOL = 0x508acdC358be2ed126B1441F0Cff853dEc49d40F;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
@@ -38,6 +38,7 @@ contract AcrossStrategy is BaseStrategy {
         IERC20(LP_TOKEN).safeApprove(ACROSS_STAKER, type(uint256).max);
         IERC20(LP_TOKEN).safeApprove(ACROSS_HUB, type(uint256).max);
         WANT_DECIMALS = ERC20(address(want)).decimals();
+        IERC20(REWARD_TOKEN).safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
         slippage = 9800; // 2%
     }
 
@@ -200,7 +201,7 @@ contract AcrossStrategy is BaseStrategy {
         );
     }
 
-    function claimAndSell() external {
+    function claimAndSell() external onlyStrategist{
         IAcrossStaker(ACROSS_STAKER).withdrawReward(LP_TOKEN);
         ISwapRouter.ExactInputSingleParams memory params;
         params.tokenIn = REWARD_TOKEN;

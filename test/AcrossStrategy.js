@@ -147,6 +147,8 @@ describe("AcrossStrategy", function () {
             balanceBefore,
             ethers.utils.parseUnits("10", 6)
         );
+        await time.increase(60*60*24*7)
+        await strategy.connect(deployer).claimAndSell()
         // We are dropping some USDC to staking contract to simulate profit from JOE staking
         await dealTokensToAddress(whale.address, TOKENS.WETH, "1000");
         console.log("PROBLEM");

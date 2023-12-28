@@ -153,6 +153,26 @@
             "managementFee": "0.7",
             "performanceFee": "5",
             "strategies": {
+                "AcrossStrategy": {
+                    "address": "0xDBd53985603F7E303Aaa40348906135B58c55430",
+                    "network": "Ethereum Mainnet",
+                    "chainId": "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "ETH",
+                    "wantTokenAddress": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+                    "protocols": [
+                        {
+                            "name": "AcrossPool",
+                            "addresses": [
+                                {
+                                    "name": "Across V2 Wrapped Ether LP Token",
+                                    "type": "Token",
+                                    "address": "0x28F77208728B0A45cAb24c4868334581Fe86F95B"
+                                }
+                            ]
+                        }
+                    ]
+                },
                 "RocketAuraStrategy": {
                     "address": "0xB7b25828ccF97c49E779Cee2688c329f1f662c82",
                     "network": "Ethereum Mainnet",
