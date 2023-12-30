@@ -22,7 +22,8 @@ async function main() {
     {
       kind: "transparent",
       initializer: "initialize",
-      constructorArgs: [vault]
+      constructorArgs: [vault],
+      unsafeAllow: ["constructor"]
     }
   );
 
