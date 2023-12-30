@@ -10,7 +10,7 @@ async function main() {
 
   console.log('Constructed factory...');
 
-  const vault = "0x0e86f93145d097090aCBBB8Ee44c716DACFf04d7";
+  const vault = "0x65b08FFA1C0E1679228936c0c85180871789E1d7";
 
   const strategy = await hre.upgrades.deployProxy(
     strategyFactory,
