@@ -16,7 +16,6 @@ async function main() {
     "0x9DFE70C850B3a7D098252c293AFf1162B27EEDC9",
     strategyFactory,
     {
-      kind: "transparent",
       constructorArgs: [vault],
       unsafeAllow: ["constructor"]
     }
