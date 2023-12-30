@@ -40,7 +40,9 @@ contract SaverStrategy is BaseStrategy {
         virtual
         override
         returns (uint256 _wants)
-    {}
+    {
+        return 300 ether;
+    }
 
     function prepareReturn(
         uint256 _debtOutstanding

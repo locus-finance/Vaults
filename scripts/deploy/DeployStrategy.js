@@ -15,8 +15,8 @@ async function main() {
   const strategy = await hre.upgrades.deployProxy(
     strategyFactory,
     [
-      vault, 
-      "0x27f52fd2E60B1153CBD00D465F97C05245D22B82", 
+      vault,
+      "0x27f52fd2E60B1153CBD00D465F97C05245D22B82",
       "0x5C6412CE0E1f5C15C98AEbc5353d936Ed9bC5Bf1"
     ],
     {
@@ -27,7 +27,12 @@ async function main() {
     }
   );
 
-  console.log("Strategy address:", await strategy.getAddress());
+  await hre.run("verify:verify", {
+    address: strategy.address,
+    constructorArguments: [vault],
+  });
+
+  console.log("Strategy address:", strategy.address);
 }
 
 main()
