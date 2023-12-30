@@ -950,8 +950,8 @@
             "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
             "address": "0x6c090e79A9399c0003A310E219b2D5ed4E6b0428",
             "decimals": "6",
-            "managementFee": "0.5%",
-            "performanceFee": "5%",
+            "managementFee": "0.5",
+            "performanceFee": "5",
             "strategies": {
                 "HopStrategy": {
                     "address": "0x205D6195fa2ebFE04CDa0be91365c43aA9e1b739",
