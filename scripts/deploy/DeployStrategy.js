@@ -26,6 +26,7 @@ async function main() {
       unsafeAllow: ["constructor"]
     }
   );
+  await strategy.deployed();
 
   await hre.run("verify:verify", {
     address: strategy.address,
