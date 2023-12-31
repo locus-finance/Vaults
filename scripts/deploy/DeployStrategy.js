@@ -6,11 +6,11 @@ async function main() {
 
   console.log("Deploying contracts with the account:", deployer.address);
 
-  const strategyFactory = await ethers.getContractFactory("SaverDCIStrategy");
+  const strategyFactory = await ethers.getContractFactory("SaverAYIStrategy");
 
   console.log('Constructed factory...');
 
-  const vault = "0x65b08FFA1C0E1679228936c0c85180871789E1d7";
+  const vault = "0x0f094F6DEB056aF1fA1299168188fd8C78542A07";
 
   const strategy = await hre.upgrades.deployProxy(
     strategyFactory,
