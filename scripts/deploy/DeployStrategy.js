@@ -6,7 +6,7 @@ async function main() {
 
   console.log("Deploying contracts with the account:", deployer.address);
 
-  const strategyFactory = await ethers.getContractFactory("SaverStrategy");
+  const strategyFactory = await ethers.getContractFactory("SaverDCIStrategy");
 
   console.log('Constructed factory...');
 
