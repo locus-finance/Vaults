@@ -395,7 +395,7 @@ contract OnChainVault is
         uint256 totalFees = _assessFees(msg.sender, _gain);
         strategies[msg.sender].totalGain += _gain;
         uint256 credit = _creditAvailable(msg.sender);
-
+        
         uint256 debt = _debtOutstanding(msg.sender);
         uint256 debtPayment = Math.min(debt, _debtPayment);
 
