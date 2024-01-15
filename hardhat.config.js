@@ -51,7 +51,7 @@ module.exports = {
           viaIR: true,
           optimizer: {
             enabled: true,
-            runs: 5,
+            runs: 10,
           },
           outputSelection: {
             "*": {
@@ -147,7 +147,7 @@ module.exports = {
       accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
     },
     arbitrumOne: {
-      url: `https://arb1.arbitrum.io/rpc`,
+      url: ARBITRUM_NODE || "",
       chainId: 42161,
       accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
     },
