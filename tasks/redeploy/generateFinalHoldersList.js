@@ -43,29 +43,25 @@ module.exports = (task) =>
       }
 
       for (const csvUserAddress in csvUsersDict) {
-        if (usersAtTimestampDict[csvUserAddress] !== undefined) {
+        validatedUsers.push({
+          address: csvUserAddress,
+          balance: 
+            usersAtTimestampDict[csvUserAddress] !== undefined 
+              && csvUsersDict[csvUserAddress].gte(usersAtTimestampDict[csvUserAddress]) 
+            ? usersAtTimestampDict[csvUserAddress] 
+            : csvUsersDict[csvUserAddress]
+        });
+      }
+
+      for (const userAtTimestampAddress in usersAtTimestampDict) {
+        if (csvUsersDict[userAtTimestampAddress] === undefined) {
+          console.log(`Found one not in token tracker list: ${userAtTimestampAddress}. Adding...`);
           validatedUsers.push({
-            address: csvUserAddress,
-            balance: csvUsersDict[csvUserAddress].gte(usersAtTimestampDict[csvUserAddress]) 
-              ? usersAtTimestampDict[csvUserAddress] 
-              : csvUsersDict[csvUserAddress]
+            address: userAtTimestampAddress,
+            balance: usersAtTimestampDict[userAtTimestampAddress]
           });
         }
       }
-
-      // for (const csvUser of csvUsers) {
-      //   for (const userAtTimestamp of usersAtTimestamp) {
-      //     if (csvUser.address === userAtTimestamp.user_addr) {
-      //       console.log(csvUser.address, csvUser.balance.toString());
-      //       console.log(userAtTimestamp.user_addr, userAtTimestamp.amount.toString());
-      //       console.log(csvUser.address === userAtTimestamp.user_addr && csvUser.balance.gte(userAtTimestamp.amount));
-      //       validatedUsers.push({
-      //         address: csvUser.address,
-      //         balance: csvUser.balance.gte(userAtTimestamp.amount) ? userAtTimestamp.amount : csvUser.balance
-      //       });
-      //     }
-      //   }
-      // }
 
       console.log('Gathered validated users. Composing resulting table...');
 
@@ -76,12 +72,4 @@ module.exports = (task) =>
       }
       await fsExtra.outputFile(result, csvString);
       console.log('Validation finished successfully.');
-
-      // console.log(csvUsers);
-      // console.log('**************************************');
-      // console.log(usersAtTimestamp.map(e => {
-      //   return {address: e.user_addr, balance: e.amount};
-      // }));
-      // console.log('**************************************');
-      // console.log(validatedUsers);
     });
