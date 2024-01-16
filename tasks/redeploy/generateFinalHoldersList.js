@@ -50,16 +50,16 @@ module.exports = (task) =>
       let csvString = "\"receiver\",\"balance\"\n";
       await fsExtra.ensureFile(result);
       for (let i = 0; i < validatedUsers.length; i++) {
-        csvString += `${validatedUsers.address},${validatedUsers.balance}\n`;
+        csvString += `${validatedUsers[i].address},${validatedUsers[i].balance}\n`;
       }
       await fsExtra.outputFile(result, csvString);
       console.log('Validation finished successfully.');
 
-      console.log(csvUsers);
-      console.log('**************************************');
-      console.log(usersAtTimestamp.map(e => {
-        return {address: e.user_addr, balance: e.amount};
-      }));
-      console.log('**************************************');
-      console.log(validatedUsers);
+      // console.log(csvUsers);
+      // console.log('**************************************');
+      // console.log(usersAtTimestamp.map(e => {
+      //   return {address: e.user_addr, balance: e.amount};
+      // }));
+      // console.log('**************************************');
+      // console.log(validatedUsers);
     });
