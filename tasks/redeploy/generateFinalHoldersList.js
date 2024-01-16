@@ -18,35 +18,34 @@ module.exports = (task) =>
         "HolderAddress",
         "Balance",
         csv,
-        balance => {
-          // console.log(balance);
-          return hre.ethers.utils.parseUnits(
-            balance.includes(',')
-              ? balance.replace(',', '')
-              : balance,
-            decimals
-          );
-        },
+        balance => hre.ethers.utils.parseUnits(
+          balance.includes(',')
+            ? balance.replace(',', '')
+            : balance,
+          decimals
+        ),
         hre.ethers.utils.getAddress
       );
       const usersAtTimestamp = await readAllFromDBService(network, datetime, decimals);
 
-      const validatedUsers = [];
+      const validatedUsers = {};
 
       console.log('Validation has been started...');
-      for (const csvUser of csvUsers) {
-        for (const userAtTimestamp of usersAtTimestamp) {
-          if (csvUser.address === userAtTimestamp.user_addr && csvUser.balance.gte(userAtTimestamp.amount)) {
-            console.log(csvUser.address, csvUser.balance.toString());
-            console.log(userAtTimestamp.user_addr, userAtTimestamp.amount.toString());
-            console.log(csvUser.address === userAtTimestamp.user_addr && csvUser.balance.gte(userAtTimestamp.amount));
-            validatedUsers.push({
-              address: csvUser.address,
-              balance: userAtTimestamp.amount
-            });
-          }
-        }
-      }
+      
+      // INCORRECT - DOUBLES ARE IN, USE SET INSTEAD
+      // for (const csvUser of csvUsers) {
+      //   for (const userAtTimestamp of usersAtTimestamp) {
+      //     if (csvUser.address === userAtTimestamp.user_addr) {
+      //       console.log(csvUser.address, csvUser.balance.toString());
+      //       console.log(userAtTimestamp.user_addr, userAtTimestamp.amount.toString());
+      //       console.log(csvUser.address === userAtTimestamp.user_addr && csvUser.balance.gte(userAtTimestamp.amount));
+      //       validatedUsers.push({
+      //         address: csvUser.address,
+      //         balance: csvUser.balance.gte(userAtTimestamp.amount) ? userAtTimestamp.amount : csvUser.balance
+      //       });
+      //     }
+      //   }
+      // }
       console.log('Gathered validated users. Composing resulting table...');
 
       let csvString = "\"receiver\",\"balance\"\n";
@@ -56,4 +55,12 @@ module.exports = (task) =>
       }
       await fsExtra.outputFile(result, csvString);
       console.log('Validation finished successfully.');
+
+      console.log(csvUsers);
+      console.log('**************************************');
+      console.log(usersAtTimestamp.map(e => {
+        return {address: e.user_addr, balance: e.amount};
+      }));
+      console.log('**************************************');
+      console.log(validatedUsers);
     });
