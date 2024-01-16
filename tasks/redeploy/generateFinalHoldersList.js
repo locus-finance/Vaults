@@ -31,20 +31,42 @@ module.exports = (task) =>
       const validatedUsers = [];
 
       console.log('Validation has been started...');
-      
+
+      const csvUsersDict = {};
       for (const csvUser of csvUsers) {
-        for (const userAtTimestamp of usersAtTimestamp) {
-          if (csvUser.address === userAtTimestamp.user_addr) {
-            console.log(csvUser.address, csvUser.balance.toString());
-            console.log(userAtTimestamp.user_addr, userAtTimestamp.amount.toString());
-            console.log(csvUser.address === userAtTimestamp.user_addr && csvUser.balance.gte(userAtTimestamp.amount));
-            validatedUsers.push({
-              address: csvUser.address,
-              balance: csvUser.balance.gte(userAtTimestamp.amount) ? userAtTimestamp.amount : csvUser.balance
-            });
-          }
+        csvUsersDict[csvUser.address] = csvUser.balance;
+      }
+
+      const usersAtTimestampDict = {};
+      for (const userAtTimestamp of usersAtTimestamp) {
+        usersAtTimestampDict[userAtTimestamp.user_addr] = userAtTimestamp.amount;
+      }
+
+      for (const csvUserAddress in csvUsersDict) {
+        if (usersAtTimestampDict[csvUserAddress] !== undefined) {
+          validatedUsers.push({
+            address: csvUserAddress,
+            balance: csvUsersDict[csvUserAddress].gte(usersAtTimestampDict[csvUserAddress]) 
+              ? usersAtTimestampDict[csvUserAddress] 
+              : csvUsersDict[csvUserAddress]
+          });
         }
       }
+
+      // for (const csvUser of csvUsers) {
+      //   for (const userAtTimestamp of usersAtTimestamp) {
+      //     if (csvUser.address === userAtTimestamp.user_addr) {
+      //       console.log(csvUser.address, csvUser.balance.toString());
+      //       console.log(userAtTimestamp.user_addr, userAtTimestamp.amount.toString());
+      //       console.log(csvUser.address === userAtTimestamp.user_addr && csvUser.balance.gte(userAtTimestamp.amount));
+      //       validatedUsers.push({
+      //         address: csvUser.address,
+      //         balance: csvUser.balance.gte(userAtTimestamp.amount) ? userAtTimestamp.amount : csvUser.balance
+      //       });
+      //     }
+      //   }
+      // }
+
       console.log('Gathered validated users. Composing resulting table...');
 
       let csvString = "\"receiver\",\"balance\"\n";
