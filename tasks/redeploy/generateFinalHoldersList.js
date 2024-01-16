@@ -8,7 +8,7 @@ module.exports = (task) =>
     "Generates vaults holders list with validation in the DB.",
   )
     .addOptionalParam('result', "Define a path to where the validated CSV data would go.", './tasks/redeploy/csv/output/holdersLvETH-ETH-result.csv', types.string)
-    .addOptionalParam('csv', "Define a path where CSV from vault token tracker exists.", './tasks/redeploy/csv/input/holdersLvETH-ETH.csv', types.string)
+    .addOptionalParam('csv', "Define a path where CSV from vault token tracker exists. NAME MUST BE FORMATTED AS <name>-<network symbol>.csv", './tasks/redeploy/csv/input/holdersLvETH-ETH.csv', types.string)
     .addOptionalParam('datetime', "Define a timestamp from which the database validator should start to select.", '2023-12-31T01:00:00.000Z', types.string)
     .addOptionalParam('decimals', "Define a decimals for balance formatting in the CSV table.", 18, types.int)
     .setAction(async ({ result, csv, datetime, decimals }, hre) => {
