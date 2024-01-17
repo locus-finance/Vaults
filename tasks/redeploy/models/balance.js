@@ -21,7 +21,12 @@ module.exports = (connection, decimals) => connection.define(
       type: DataTypes.FLOAT(4),
       get() {
         const rawValue = this.getDataValue('amount');
-        return rawValue ? hre.ethers.utils.parseUnits(rawValue.toString(), decimals) : null; // cast to BigNumber for comparison
+        return rawValue 
+          ? hre.ethers.utils.parseUnits(
+              rawValue.toString().substring(0, decimals).replace(",", ""), 
+              decimals
+            ) 
+          : null; // cast to BigNumber for comparison
       }
     },
     created_at: {
