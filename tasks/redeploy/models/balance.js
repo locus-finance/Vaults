@@ -5,7 +5,8 @@ module.exports = (connection, decimals) => connection.define(
   'Balance',
   {
     vault_addr: {
-      type: DataTypes.TEXT
+      type: DataTypes.TEXT,
+      isLowercase: true
     },
     network: {
       type: DataTypes.TEXT

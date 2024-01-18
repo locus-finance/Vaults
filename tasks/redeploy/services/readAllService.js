@@ -15,13 +15,14 @@ const prepare = async (decimals) => {
   await connection.sync();
 }
 
-module.exports = async (network, created_at, decimals) => {
+module.exports = async (vault_addr, network, created_at, decimals) => {
   try {
     await prepare(decimals);
-    console.log(`There are ${await Balance.count({ where: { network, created_at } })} balances in the network ${network}. Wrapping this up into a variable.`);
+    const predicate = { where: { network, created_at, vault_addr } };
+    console.log(`There are ${await Balance.count(predicate)} balances in the network ${network}. Wrapping this up into a variable.`);
     const balances = await Balance.findAll({ 
       attributes: ['amount', 'user_addr'],
-      where: { network, created_at }
+      where: predicate.where
     });
     await connection.close();
     return balances;
