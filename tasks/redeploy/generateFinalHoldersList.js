@@ -7,10 +7,10 @@ module.exports = (task) =>
     "generateFinalHoldersList",
     "Generates vaults holders list with validation in the DB.",
   )
-    .addOptionalParam('vault', "Define an address of the vault for DB queue.", '0x65b08FFA1C0E1679228936c0c85180871789E1d7', types.string)
-    .addOptionalParam('result', "Define a path to where the validated CSV data would go.", './tasks/redeploy/csv/output/validated/holdersLvDCI-ETH-result-vault-tokens.csv', types.string)
-    .addOptionalParam('csv', "Define a path where CSV from vault token tracker exists. NAME MUST BE FORMATTED AS <name>-<network symbol>.csv", './tasks/redeploy/csv/input/holdersLvDCI-ETH.csv', types.string)
-    .addOptionalParam('datetime', "Define a timestamp from which the database validator should start to select.", '2023-12-31 01:52:00', types.string)
+    .addOptionalParam('vault', "Define an address of the vault for DB queue.", '0x6c090e79A9399c0003A310E219b2D5ed4E6b0428', types.string)
+    .addOptionalParam('result', "Define a path to where the validated CSV data would go.", './tasks/redeploy/csv/output/validated/holdersLyUSD-ARB-result-vault-tokens.csv', types.string)
+    .addOptionalParam('csv', "Define a path where CSV from vault token tracker exists. NAME MUST BE FORMATTED AS <name>-<network symbol>.csv", './tasks/redeploy/csv/input/holdersLyUSD-ARB.csv', types.string)
+    .addOptionalParam('datetime', "Define a timestamp from which the database validator should start to select.", '2023-12-31 01:51:00', types.string)
     .addOptionalParam('decimals', "Define a decimals for balance formatting in the CSV table.", 6, types.int)
     .setAction(async ({ vault, result, csv, datetime, decimals }, hre) => {
       const network = csv.split('-')[1].split('.')[0];

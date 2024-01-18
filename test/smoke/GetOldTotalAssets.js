@@ -3,7 +3,7 @@ const { ethers } = require("hardhat");
 
 describe("GetOldTotalAssets", () => {
   it('should get old total assets', async () => {
-    const vault = "0x65b08FFA1C0E1679228936c0c85180871789E1d7";
+    const vault = "0x6c090e79A9399c0003A310E219b2D5ed4E6b0428";
     const vaultInstance = await ethers.getContractAt(
       "OnChainVault",
       vault
