@@ -140,7 +140,7 @@
                 }
             }
         },
-        "lvETH_v2": {
+        "xETH": {
             "chain": {
                 "nativeToken": "ETH",
                 "chainId": 1,
@@ -498,7 +498,7 @@
                 }
             }
         },
-        "lvDCI_v2": {
+        "xDEFI": {
             "chain": {
                 "nativeToken": "ETH",
                 "chainId": 1,
@@ -798,7 +798,7 @@
                 }
             }
         },
-        "lvAYI_v2": {
+        "xARB": {
             "chain": {
                 "nativeToken": "ETH",
                 "chainId": 42161,
@@ -893,7 +893,7 @@
                 }
             }
         },
-        "lyUSD": {
+        "xUSD": {
             "chain": {
                 "nativeToken": "ETH",
                 "chainId": 42161,
