@@ -412,7 +412,7 @@
                     ]
                 },
                 "FXSStrategy": {
-                    "address": "0x2C0C2E3aAd2938411319FE596A5127280e75cEaB",
+                    "address": "0x854F178112008143014ECffd4059e3f913a47B40",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -462,7 +462,7 @@
                     ]
                 },
                 "YCRVStrategy": {
-                    "address": "0x3E5e9B5E4C08f1d0E7d5a75204edcd57e44ee2cf",
+                    "address": "0xCaA70cC97165D8168E3DA7A99f6430D64e2f09A1",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -901,13 +901,13 @@
             },
             "wantTokenTicker": "USDC.e",
             "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
-            "address": "",
+            "address": "0x2a889E9ef10c7Bd607473Aadc8c806c4511EB26f",
             "decimals": "6",
             "managementFee": "0.5%",
             "performanceFee": "5%",
             "strategies": {
                 "HopStrategy": {
-                    "address": "",
+                    "address": "0xA93e1DfF89dcCCA3C3CadFd0A28aD071C230eD84",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "lzChainId": "110",
@@ -915,17 +915,8 @@
                     "wantTokenTicker": "USDC.e",
                     "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8"
                 },
-                "VeloDrome" : {
-                    "address": "",
-                    "network": "Optimism",
-                    "chainId": "10",
-                    "lzChainId": "111",
-                    "nativeToken": "ETH",
-                    "wantTokenTicker": "USDC.e",
-                    "wantTokenAddress": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607"
-                },
                 "BeefyStrategyOnBase" : {
-                    "address": "",
+                    "address": "0xf12c92cBe97F16cFB8Dc007545C29A55912177fE",
                     "network": "Base",
                     "chainId": "8453",
                     "lzChainId": "184",

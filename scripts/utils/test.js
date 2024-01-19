@@ -1,27 +1,35 @@
 const hre = require("hardhat");
-
+const {
+  impersonateAccount
+} = require("@nomicfoundation/hardhat-network-helpers");
 const ABI = [
   "function harvest() external",
   "function name() external view returns (string memory)",
+  "function deposit(uint256) external"
 ];
 
 async function main() {
-  // const sigs = await hre.ethers.getSigners();
-  // const provider = new hre.ethers.providers.JsonRpcProvider(
-  //   "http://127.0.0.1:8545"
-  // );
+  const sigs = await hre.ethers.getSigners();
+  const provider = new hre.ethers.providers.JsonRpcProvider(
+    "http://127.0.0.1:8545"
+  );
+  await impersonateAccount("0xC0496FE72226E6463A30Cf0E0f0B5BE525262B4E")
+  const buyer = await ethers.provider.getSigner(
+    "0xC0496FE72226E6463A30Cf0E0f0B5BE525262B4E"
+  );
   // console.log(sigs[0].address);
   // console.log(await provider.getBalance(sigs[0].address));
   // let wallet = new hre.ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY).connect(
   //   provider
   // );
+    console.log(buyer._address);
+  const tx2 = await sigs[0].sendTransaction({
+    to: buyer._address,
+    value: hre.ethers.utils.parseEther("100"),
+  });
+  await tx2.wait();
 
-  // const tx2 = await sigs[0].sendTransaction({
-  //   to: wallet.address,
-  //   value: hre.ethers.utils.parseEther("5000"),
-  // });
-
-  await upgradeVault();
+  // await upgradeVault();
 
   // const tx = await sigs[0].sendTransaction({
   //   to: "0x27f52fd2E60B1153CBD00D465F97C05245D22B82",
@@ -36,10 +44,13 @@ async function main() {
   //   "0x27f52fd2E60B1153CBD00D465F97C05245D22B82"
   // );
 
-  // const targetContract = await hre.ethers.getContractAt(
-  //   ABI,
-  //   "0xe6A4aFfC67Dd8336078e2Fc7a85F0707b07d0D10"
-  // );
+  const targetContract = await hre.ethers.getContractAt(
+    ABI,
+    "0x0CD5cda0E120F7E22516f074284e5416949882C2",
+    buyer
+  );
+  console.log(await targetContract.name())
+  console.log(await targetContract.deposit(ethers.utils.parseEther("0.0001"), {gasLimit: 30000000}));
   // console.log(await targetContract.connect(signer).name());
   // console.log(
   //   await provider.getBalance("0x27f52fd2E60B1153CBD00D465F97C05245D22B82")

@@ -15,7 +15,7 @@ const DEPLOY_SETTINGS = {
         maxDebtHarvestUsdc: "1000000000000",
     },
     FXSStrategy: {
-        ratio: "2914",
+        ratio: "3700",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
     },
@@ -29,6 +29,11 @@ const DEPLOY_SETTINGS = {
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
     },
+    YCRVStrategy: {
+        ratio: "2700",
+        minDebtHarvestUsdc: "0",
+        maxDebtHarvestUsdc: "1000000000000",
+    }
 };
 const OWNABLE_ABI = ["function owner() view returns (address)"];
 
