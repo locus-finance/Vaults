@@ -31,6 +31,8 @@ require("./tasks/migration/dropToVaults")(task);
 require("./tasks/migration/gatherUnmigrated")(task);
 require("./tasks/migration/finalDrop")(task);
 require("./tasks/migration/populateMigration")(task);
+require("./tasks/redeploy/generateFinalHoldersList")(task);
+require("./tasks/redeploy/calculateWantBalances")(task);
 
 task("fork_reset", "Reset to local fork", async (taskArgs) => {
   await network.provider.request({
@@ -51,7 +53,7 @@ module.exports = {
           viaIR: true,
           optimizer: {
             enabled: true,
-            runs: 5,
+            runs: 10,
           },
           outputSelection: {
             "*": {
@@ -95,9 +97,10 @@ module.exports = {
   networks: {
     localhost: {},
     hardhat: {
-      // forking: {
-      //   url: ETH_NODE || "",
-      // },
+      forking: {
+        url: ARBITRUM_NODE || "",
+        blockNumber: 165461174
+      },
       allowUnlimitedContractSize: true,
     },
     mainnet: {
@@ -147,7 +150,7 @@ module.exports = {
       accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
     },
     arbitrumOne: {
-      url: `https://arb1.arbitrum.io/rpc`,
+      url: ARBITRUM_NODE || "",
       chainId: 42161,
       accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
     },

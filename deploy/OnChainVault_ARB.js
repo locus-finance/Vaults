@@ -1,19 +1,22 @@
 const { ethers, upgrades } = require("hardhat");
 
-module.exports = async function ({ getNamedAccounts }) {
+async function main() {
   const { deployer } = await getNamedAccounts();
 
   console.log(`Your address: ${deployer}. Network: ${hre.network.name}`);
+
+  const treasury = "0xf4bEC3e032590347Fc36AD40152C7155f8361d39"
+  const strategist = "0x942f39555D430eFB3230dD9e5b86939EFf185f0A"
 
   const Vault = await ethers.getContractFactory("OnChainVault");
   const vault = await upgrades.deployProxy(
     Vault,
     [
       "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
-      deployer,
-      deployer,
+      strategist,
+      treasury,
       "Arbitrum Yield Index",
-      "lvAYI",
+      "xARB",
     ],
     {
       initializer: "initialize",
@@ -29,4 +32,9 @@ module.exports = async function ({ getNamedAccounts }) {
   });
 };
 
-module.exports.tags = ["OnChainVault_ARB"];
+main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error);
+        process.exitCode = 1;
+    });

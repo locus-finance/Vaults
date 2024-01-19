@@ -148,13 +148,13 @@
             },
             "wantTokenTicker": "WETH",
             "wantTokenAddress": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-            "address": "0x0e86f93145d097090aCBBB8Ee44c716DACFf04d7",
+            "address": "0x0CD5cda0E120F7E22516f074284e5416949882C2",
             "decimals": "18",
             "managementFee": "0.7",
             "performanceFee": "5",
             "strategies": {
                 "RocketAuraStrategy": {
-                    "address": "0xB7b25828ccF97c49E779Cee2688c329f1f662c82",
+                    "address": "0xf12c92cBe97F16cFB8Dc007545C29A55912177fE",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -209,7 +209,7 @@
                     ]
                 },
                 "AuraTriPoolStrategy": {
-                    "address": "0x37a794D704B836420CEc85A64f09C245D348a369",
+                    "address": "0x50670B867aa20319Fd8E3C685005576FdF40147F",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -277,6 +277,14 @@
                             ]
                         }
                     ]
+                },
+                "AcrossStrategy" :{
+                    "address": "0x4A8a7539AD59c277C1915c3938D2b0c15CD0ee97",
+                    "network": "Ethereum Mainnet",
+                    "chainId": "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "ETH",
+                    "wantTokenAddress": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
                 }
             }
         },
@@ -498,13 +506,13 @@
             },
             "wantTokenTicker": "USDC",
             "wantTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-            "address": "0x65b08FFA1C0E1679228936c0c85180871789E1d7",
+            "address": "0xB0a66dD3B92293E5DC946B47922C6Ca9De464649",
             "decimals": "6",
             "managementFee": "1.5",
             "performanceFee": "0",
             "strategies": {
                 "AuraBALStrategy": {
-                    "address": "0xfCce65908f48E8C0b0FD79Ee11a0Baa788a25790",
+                    "address": "0x1B4C9A314117E037461FBdc980C9DeBeFEE6F891",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -539,7 +547,7 @@
                     ]
                 },
                 "AuraWETHStrategy": {
-                    "address": "0x3EEdD56DE682B26A526B311b80490e6A097cAf04",
+                    "address": "0xbcFA151c40FA0DBd33B559B3cA49F019D3dCAe9c",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -579,7 +587,7 @@
                     ]
                 },
                 "CVXStrategy": {
-                    "address": "0xf28688260568BE94d112cdDc2bEaa1256C451bd7",
+                    "address": "0xF99302d3d4a30D2AC26B4f8E0390171b29D5f547",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -614,7 +622,7 @@
                     ]
                 },
                 "FXSStrategy": {
-                    "address": "0xe6A4aFfC67Dd8336078e2Fc7a85F0707b07d0D10",
+                    "address": "",
                     "network": "Ethereum Mainnet",
                     "chainId": "1",
                     "nativeToken": "ETH",
@@ -658,41 +666,6 @@
                                     "name": "CVX",
                                     "type": "Token",
                                     "address": "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                "YCRVStrategy": {
-                    "address": "0x8D34145Ca2c2CE05F672f4B9C8A934799901Daa1",
-                    "network": "Ethereum Mainnet",
-                    "chainId": "1",
-                    "nativeToken": "ETH",
-                    "wantTokenTicker": "ETH",
-                    "wantTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-                    "protocols": [
-                        {
-                            "name": "Yearn",
-                            "addresses": [
-                                {
-                                    "name": "yCRV",
-                                    "type": "Token",
-                                    "address": "0xFCc5c47bE19d06BF83eB04298b026F81069ff65b"
-                                },
-                                {
-                                    "name": "Yearn styCRV",
-                                    "type": "Vault",
-                                    "address": "0x27B5739e22ad9033bcBf192059122d163b60349D"
-                                }
-                            ]
-                        },
-                        {
-                            "name": "Curve",
-                            "addresses": [
-                                {
-                                    "name": "CRV",
-                                    "type": "Token",
-                                    "address": "0xD533a949740bb3306d119CC777fa900bA034cd52"
                                 }
                             ]
                         }
@@ -833,13 +806,13 @@
             },
             "wantTokenTicker": "USDC",
             "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
-            "address": "0x0f094F6DEB056aF1fA1299168188fd8C78542A07",
+            "address": "0xF8F045583580C4Ba954CD911a8b161FafD89A9EF",
             "decimals": "6",
             "managementFee": "1.5",
             "performanceFee": "0",
             "strategies": {
                 "GMXStrategy": {
-                    "address": "0xc36900bAb1dd0886B0809DbC832214D58b082B88",
+                    "address": "0xBf8181f3b5E71fa0CbBE1e067f408a9a0558C60f",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "nativeToken": "ETH",
@@ -864,7 +837,7 @@
                     ]
                 },
                 "GNSStrategy": {
-                    "address": "0x6B1c7A6e061baa46e2BB79e862e68a4690dd4061",
+                    "address": "0xa7eb4efe088A3618C9BA21e1520E0c8460b42D37",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "nativeToken": "ETH",
@@ -894,7 +867,7 @@
                     ]
                 },
                 "JOEStrategy": {
-                    "address": "0xbfb2dF948A541d932d6d72E988EccD4C9cDE768a",
+                    "address": "0xB0a66dD3B92293E5DC946B47922C6Ca9De464649",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "nativeToken": "ETH",
@@ -928,13 +901,13 @@
             },
             "wantTokenTicker": "USDC.e",
             "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
-            "address": "0x6c090e79A9399c0003A310E219b2D5ed4E6b0428",
+            "address": "",
             "decimals": "6",
             "managementFee": "0.5%",
             "performanceFee": "5%",
             "strategies": {
                 "HopStrategy": {
-                    "address": "0x205D6195fa2ebFE04CDa0be91365c43aA9e1b739",
+                    "address": "",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "lzChainId": "110",
@@ -943,7 +916,7 @@
                     "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8"
                 },
                 "VeloDrome" : {
-                    "address": "0xa5e7eB6391F34Ec9691A5d39E93A8b2336B7E717",
+                    "address": "",
                     "network": "Optimism",
                     "chainId": "10",
                     "lzChainId": "111",
@@ -952,7 +925,7 @@
                     "wantTokenAddress": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607"
                 },
                 "BeefyStrategyOnBase" : {
-                    "address": "0xAcB31C5520635e4791C94E26D114e2bb40e43100",
+                    "address": "",
                     "network": "Base",
                     "chainId": "8453",
                     "lzChainId": "184",
