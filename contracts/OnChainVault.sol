@@ -304,7 +304,7 @@ contract OnChainVault is
 
         _burn(msg.sender, shares);
         token.safeTransfer(recipient, value);
-        emit Withdraw(recipient, shares, value);
+        emit Withdraw(recipient, shares, value, block.timestamp);
         return value;
     }
 
@@ -379,6 +379,7 @@ contract OnChainVault is
         if (emergencyShutdown) revert Vault__V13();
         uint256 shares = _issueSharesForAmount(_recipient, _amount);
         token.safeTransferFrom(msg.sender, address(this), _amount);
+        emit Deposit(_recipient, shares, _amount, block.timestamp);
         return shares;
     }
 
