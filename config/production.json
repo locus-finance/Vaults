@@ -285,6 +285,14 @@
                     "nativeToken": "ETH",
                     "wantTokenTicker": "ETH",
                     "wantTokenAddress": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+                },
+                "OriginEthStrategy" :{
+                    "address": "0x8A82566BB321873701191878cEbbC27Ee984AA6b",
+                    "network": "Ethereum Mainnet",
+                    "chainId": "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "ETH",
+                    "wantTokenAddress": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
                 }
             }
         },

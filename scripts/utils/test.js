@@ -12,7 +12,8 @@ const ABI = [
   "function setSlippage(uint256) external",
   "function withdraw(uint256,address,uint256) external",
   "function depositLimit() external view returns(uint256)",
-  "function transferOwnership(address) external"
+  "function transferOwnership(address) external",
+  "function CONVEX() external view returns(address)"
 ];
 
 require("dotenv").config();
@@ -20,12 +21,13 @@ require("dotenv").config();
 const {
   DEPLOYER_PRIVATE_KEY,
   ARBITRUM_NODE,
+  ETH_NODE
 } = process.env;
 
 async function main() {
   // const sigs = await hre.ethers.getSigners();
   const provider = new hre.ethers.providers.JsonRpcProvider(
-    ARBITRUM_NODE || ""
+    ETH_NODE || ""
   );
   // await impersonateAccount("0xc0496fe72226e6463a30cf0e0f0b5be525262b4e")
   // const signer = await ethers.provider.getSigner(
@@ -48,17 +50,35 @@ async function main() {
 
   const targetContract = await hre.ethers.getContractAt(
     ABI,
-    "0x0B4cF39B345AAfe16957794636E5B0E7c90d0f87",
+    "0x8A82566BB321873701191878cEbbC27Ee984AA6b",
     wallet
   );
+  console.log(await targetContract.name());
+  console.log(await targetContract.CONVEX());
 
-  const want = await hre.ethers.getContractAt(
-    ABI,
-    "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
-    wallet
-  );
-  console.log(123);
+  // const want = await hre.ethers.getContractAt(
+  //   ABI,
+  //   "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+  //   wallet
+  // );
+  // const vaultAddress = "0x0CD5cda0E120F7E22516f074284e5416949882C2"
+  // const strategist = "0xC1287e8e489e990b424299376f37c83CD39Bfc4c"
 
+  // const OriginStrategy = await ethers.getContractFactory("OriginEthStrategy");
+  //     const strategy = await upgrades.deployProxy(
+  //       OriginStrategy,
+  //       [vaultAddress, strategist],
+  //       {
+  //         kind: "uups",
+  //         unsafeAllow: ["constructor"],
+  //         constructorArgs: [vaultAddress],
+  //       }
+  //     );
+  //     await strategy.deployed();
+  //     await hre.run("verify:verify", {
+  //       address: strategy.address,
+  //       constructorArguments: [vaultAddress],
+  //   });
   // await want.connect(wallet).approve(targetContract.address, ethers.utils.parseEther("100000000000"))
 // console.log(await want.balanceOf(wallet.address));
 //   console.log(await targetContract.name())

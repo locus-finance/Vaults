@@ -48,7 +48,7 @@ module.exports = {
   solidity: {
     compilers: [
       {
-        version: "0.8.19",
+        version: "0.8.23",
         settings: {
           viaIR: true,
           optimizer: {
@@ -98,7 +98,7 @@ module.exports = {
     localhost: {},
     hardhat: {
       forking: {
-        url: ARBITRUM_NODE || "",
+        url: ETH_NODE || "",
       },
       allowUnlimitedContractSize: true,
     },
