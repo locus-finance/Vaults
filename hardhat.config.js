@@ -98,8 +98,7 @@ module.exports = {
     localhost: {},
     hardhat: {
       forking: {
-        url: ARBITRUM_NODE || "",
-        blockNumber: 165461174
+        url: ETH_NODE || "",
       },
       allowUnlimitedContractSize: true,
     },
