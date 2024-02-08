@@ -208,76 +208,6 @@
                         }
                     ]
                 },
-                "AuraTriPoolStrategy": {
-                    "address": "0x50670B867aa20319Fd8E3C685005576FdF40147F",
-                    "network": "Ethereum Mainnet",
-                    "chainId": "1",
-                    "nativeToken": "ETH",
-                    "wantTokenTicker": "ETH",
-                    "wantTokenAddress": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-                    "protocols": [
-                        {
-                            "name": "Aura",
-                            "addresses": [
-                                {
-                                    "name": "AURA",
-                                    "type": "Token",
-                                    "address": "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF"
-                                },
-                                {
-                                    "name": "AURA-BStEthStable",
-                                    "type": "Staked LP Token",
-                                    "address": "0xe4683Fe8F53da14cA5DAc4251EaDFb3aa614d528"
-                                },
-                                {
-                                    "name": "Booster",
-                                    "type": "Protocol rewards",
-                                    "address": "0xA57b8d98dAE62B26Ec3bcC4a365338157060B234"
-                                }
-                            ]
-                        },
-                        {
-                            "name": "Curve",
-                            "addresses": [
-                                {
-                                    "name": "frxETH",
-                                    "type": "Pool",
-                                    "address": "0xa1F8A6807c402E4A15ef4EBa36528A3FED24E577"
-                                },
-                                {
-                                    "name": "Swap router",
-                                    "type": "Router",
-                                    "address": "0x99a58482BD75cbab83b27EC03CA68fF489b5788f"
-                                }
-                            ]
-                        },
-                        {
-                            "name": "Lido",
-                            "addresses": [
-                                {
-                                    "name": "wstETH",
-                                    "type": "Token",
-                                    "address": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"
-                                }
-                            ]
-                        },
-                        {
-                            "name": "Balancer",
-                            "addresses": [
-                                {
-                                    "name": "BAL",
-                                    "type": "Token",
-                                    "address": "0xba100000625a3754423978a60c9317c58a424e3D"
-                                },
-                                {
-                                    "name": "BStEthStable",
-                                    "type": "LP Token",
-                                    "address": "0x32296969Ef14EB0c6d29669C550D4a0449130230"
-                                }
-                            ]
-                        }
-                    ]
-                },
                 "AcrossStrategy" :{
                     "address": "0x4A8a7539AD59c277C1915c3938D2b0c15CD0ee97",
                     "network": "Ethereum Mainnet",
@@ -519,81 +449,6 @@
             "managementFee": "1.5",
             "performanceFee": "0",
             "strategies": {
-                "AuraBALStrategy": {
-                    "address": "0x1B4C9A314117E037461FBdc980C9DeBeFEE6F891",
-                    "network": "Ethereum Mainnet",
-                    "chainId": "1",
-                    "nativeToken": "ETH",
-                    "wantTokenTicker": "USDC",
-                    "wantTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-                    "protocols": [
-                        {
-                            "name": "Balancer",
-                            "addresses": [
-                                {
-                                    "name": "BAL",
-                                    "type": "Token",
-                                    "address": "0xba100000625a3754423978a60c9317c58a424e3D"
-                                }
-                            ]
-                        },
-                        {
-                            "name": "Aura",
-                            "addresses": [
-                                {
-                                    "name": "AURA",
-                                    "type": "Token",
-                                    "address": "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF"
-                                },
-                                {
-                                    "name": "auraBAL",
-                                    "type": "Staked Token",
-                                    "address": "0x616e8BfA43F920657B3497DBf40D6b1A02D4608d"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                "AuraWETHStrategy": {
-                    "address": "0xbcFA151c40FA0DBd33B559B3cA49F019D3dCAe9c",
-                    "network": "Ethereum Mainnet",
-                    "chainId": "1",
-                    "nativeToken": "ETH",
-                    "wantTokenTicker": "USDC",
-                    "wantTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-                    "protocols": [
-                        {
-                            "name": "Balancer",
-                            "addresses": [
-                                {
-                                    "name": "BAL",
-                                    "type": "Token",
-                                    "address": "0xba100000625a3754423978a60c9317c58a424e3D"
-                                },
-                                {
-                                    "name": "WETH-AURA LP",
-                                    "type": "Pool",
-                                    "address": "0xCfCA23cA9CA720B6E98E3Eb9B6aa0fFC4a5C08B9"
-                                }
-                            ]
-                        },
-                        {
-                            "name": "Aura",
-                            "addresses": [
-                                {
-                                    "name": "AURA",
-                                    "type": "Token",
-                                    "address": "0xC0c293ce456fF0ED870ADd98a0828Dd4d2903DBF"
-                                },
-                                {
-                                    "name": "Booster",
-                                    "type": "Booster",
-                                    "address": "0xA57b8d98dAE62B26Ec3bcC4a365338157060B234"
-                                }
-                            ]
-                        }
-                    ]
-                },
                 "CVXStrategy": {
                     "address": "0xF99302d3d4a30D2AC26B4f8E0390171b29D5f547",
                     "network": "Ethereum Mainnet",
@@ -678,7 +533,16 @@
                             ]
                         }
                     ]
+                },
+                "YCRVStrategy" :{
+                    "address": "0xCaA70cC97165D8168E3DA7A99f6430D64e2f09A1",
+                    "network": "Ethereum Mainnet",
+                    "chainId": "1",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC",
+                    "wantTokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
                 }
+
             }
         },
         "lvAYI": {
