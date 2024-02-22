@@ -789,8 +789,8 @@
             "vaultAddress": "0x6318938F825F57d439B3a9E25C38F04EF97987D8",
             "tokenAddress": "0x95611DCBFfC93b97Baa9C65A23AAfDEc088b7f32",
             "decimals": "6",
-            "managementFee": "0.5%",
-            "performanceFee": "5%",
+            "managementFee": "0.5",
+            "performanceFee": "5",
             "strategies": {
                 "HopStrategy": {
                     "address": "0x68Ee86f798f247FeC4d33C224Dad360dC919450A",
