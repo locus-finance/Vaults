@@ -793,7 +793,7 @@
             "performanceFee": "5%",
             "strategies": {
                 "HopStrategy": {
-                    "address": "0xA93e1DfF89dcCCA3C3CadFd0A28aD071C230eD84",
+                    "address": "0x68Ee86f798f247FeC4d33C224Dad360dC919450A",
                     "network": "Arbitrum One",
                     "chainId": "42161",
                     "lzChainId": "110",
@@ -802,7 +802,7 @@
                     "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8"
                 },
                 "BeefyStrategyOnBase" : {
-                    "address": "0xf12c92cBe97F16cFB8Dc007545C29A55912177fE",
+                    "address": "0x395F4A621dD51B120ECe2152f45C315bb14799a0",
                     "network": "Base",
                     "chainId": "8453",
                     "lzChainId": "184",
