@@ -809,6 +809,24 @@
                     "nativeToken": "ETH",
                     "wantTokenTicker": "USDbC",
                     "wantTokenAddress": "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA"
+                },
+                "BeefyCompoundArb" : {
+                    "address": "0x57c817253E0ee2B260468e81628BC6Ccdd67C23f",
+                    "network": "Arbitrum One",
+                    "chainId": "42161",
+                    "lzChainId": "110",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC.e",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8"
+                },
+                "BeefyCurveArb" : {
+                    "address": "0xC4E7d7c15b8F5c2D77512460b84802D1D3693692",
+                    "network": "Arbitrum One",
+                    "chainId": "42161",
+                    "lzChainId": "110",
+                    "nativeToken": "ETH",
+                    "wantTokenTicker": "USDC.e",
+                    "wantTokenAddress": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8"
                 }
             }
         },
