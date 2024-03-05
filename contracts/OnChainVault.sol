@@ -36,6 +36,11 @@ contract OnChainVault is
     uint256 public performanceFee;
     address public management;
     bool public emergencyShutdown;
+
+    bool public isInjectedOnce;
+    uint256 public injectedTotalSupply;
+    uint256 public injectedFreeFunds;
+
     mapping(address => StrategyParams) public strategies;
     mapping(address strategy => uint256 position)
         public strategyPositionInArray;
@@ -68,6 +73,26 @@ contract OnChainVault is
             msg.sender != management
         ) revert Vault__OnlyAuthorized(msg.sender);
         _;
+    }
+
+    function injectForMigration(
+        uint256 _injectedTotalSupply,
+        uint256 _injectedFreeFunds
+    ) external onlyAuthorized {
+        if (!isInjectedOnce) {
+            injectedTotalSupply = _injectedTotalSupply;
+            injectedFreeFunds = _injectedFreeFunds;
+            isInjectedOnce = true;
+        } else {
+            revert("Cannot inject twice.");
+        }
+    }
+
+    function totalSupply() public view override returns (uint256) {
+        if (injectedTotalSupply > 0) {
+            return injectedTotalSupply;
+        }
+        return super.totalSupply();
     }
 
     modifier checkAmountOnDeposit(uint256 amount) {
@@ -279,7 +304,7 @@ contract OnChainVault is
 
         _burn(msg.sender, shares);
         token.safeTransfer(recipient, value);
-        emit Withdraw(recipient, shares, value);
+        emit Withdraw(recipient, shares, value, block.timestamp);
         return value;
     }
 
@@ -354,6 +379,7 @@ contract OnChainVault is
         if (emergencyShutdown) revert Vault__V13();
         uint256 shares = _issueSharesForAmount(_recipient, _amount);
         token.safeTransferFrom(msg.sender, address(this), _amount);
+        emit Deposit(_recipient, shares, _amount, block.timestamp);
         return shares;
     }
 
@@ -434,7 +460,7 @@ contract OnChainVault is
             uint256 _lockedProfit = lockedProfit;
             return
                 _lockedProfit -
-                ((lockedFundsRatio * lockedProfit) / DEGRADATION_COEFFICIENT);
+                ((lockedFundsRatio * _lockedProfit) / DEGRADATION_COEFFICIENT);
         } else {
             return 0;
         }
@@ -457,6 +483,9 @@ contract OnChainVault is
     }
 
     function _freeFunds() internal view returns (uint256) {
+        if (injectedFreeFunds > 0) {
+            return injectedFreeFunds;
+        }
         return totalAssets() - _calculateLockedProfit();
     }
 
@@ -491,10 +520,17 @@ contract OnChainVault is
         uint256 _amount
     ) internal returns (uint256) {
         uint256 shares = 0;
-        if (totalSupply() == 0) {
+        uint256 _totalSupply = totalSupply();
+        if (_totalSupply == 0) {
             shares = _amount;
         } else {
-            shares = (_amount * totalSupply()) / _freeFunds();
+            shares = (_amount * _totalSupply) / _freeFunds();
+            if (injectedTotalSupply > 0) {
+                injectedTotalSupply = 0;
+            }
+            if (injectedFreeFunds > 0) {
+                injectedFreeFunds = 0;
+            }
         }
         if (shares == 0) revert Vault__V17();
         _mint(_to, shares);
@@ -582,10 +618,10 @@ contract OnChainVault is
             uint256 reward = _issueSharesForAmount(address(this), totalFee);
             if (_strategistFee > 0) {
                 uint256 strategistReward = (_strategistFee * reward) / totalFee;
-                transfer(treasury, strategistReward);
+                _transfer(address(this), treasury, strategistReward);
             }
             if (balanceOf(address(this)) > 0) {
-                transfer(treasury, balanceOf(address(this)));
+                _transfer(address(this), treasury, balanceOf(address(this)));
             }
         }
         return totalFee;

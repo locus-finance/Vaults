@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0
 
-pragma solidity ^0.8.18;
+pragma solidity ^0.8.19;
 
 import {BaseStrategy, StrategyParams, VaultAPI} from "@yearn-protocol/contracts/BaseStrategy.sol";
 import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -77,12 +77,14 @@ contract GNSStrategy is BaseStrategy {
     }
 
     function balanceOfStakedGns() public view returns (uint256) {
-        IGNSVault.Staker memory staker = IGNSVault(GNS_VAULT).stakers(address(this));
+        IGNSVault.Staker memory staker = IGNSVault(GNS_VAULT).stakers(
+            address(this)
+        );
         return staker.stakedGns;
     }
 
     function balanceOfRewards() public view returns (uint256) {
-        return IGNSVault(GNS_VAULT).pendingRewardDai();
+        return IGNSVault(GNS_VAULT).pendingRewardDai(address(this));
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {

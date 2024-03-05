@@ -58,7 +58,15 @@ interface IOnChainVault {
     event Withdraw(
         address indexed recipient,
         uint256 indexed shares,
-        uint256 indexed value
+        uint256 indexed value,
+        uint256 timestamp
+    );
+
+    event Deposit(
+        address indexed recipient,
+        uint256 indexed shares,
+        uint256 indexed value,
+        uint256 timestamp
     );
 
     function initialize(

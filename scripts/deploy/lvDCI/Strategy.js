@@ -2,37 +2,40 @@ const hre = require("hardhat");
 
 const { getEnv } = require("../../utils");
 
-const USDC_DECIMALS = 6;
 const TARGET_STRATEGY = getEnv("TARGET_STRATEGY");
 
+const strategist = "0xC1287e8e489e990b424299376f37c83CD39Bfc4c"
+
+
 const DEPLOY_SETTINGS = {
-    vaultAddress: getEnv("DVAULT_ADDRESS"),
-    YCRVStrategy: {
-        ratio: "2000",
-        minDebtHarvestUsdc: "0",
-        maxDebtHarvestUsdc: "1000000000000",
-    },
+    vaultAddress: getEnv("lvDCI_ADDRESS"),
     CVXStrategy: {
-        ratio: "2400",
+        ratio: "3000",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
     },
     FXSStrategy: {
-        ratio: "2400",
+        ratio: "3700",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
     },
     AuraBALStrategy: {
-        ratio: "1500",
+        ratio: "3000",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
     },
     AuraWETHStrategy: {
-        ratio: "1900",
+        ratio: "3000",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
     },
+    YCRVStrategy: {
+        ratio: "2700",
+        minDebtHarvestUsdc: "0",
+        maxDebtHarvestUsdc: "1000000000000",
+    }
 };
+const OWNABLE_ABI = ["function owner() view returns (address)"];
 
 async function main() {
     if (!DEPLOY_SETTINGS[TARGET_STRATEGY]) {
@@ -42,16 +45,17 @@ async function main() {
     const [deployer] = await ethers.getSigners();
 
     const { vaultAddress } = DEPLOY_SETTINGS;
-    const { ratio, minDebtHarvestUsdc, maxDebtHarvestUsdc } =
-        DEPLOY_SETTINGS[TARGET_STRATEGY];
 
-    const Vault = await hre.ethers.getContractFactory("Vault");
+    const Vault = await hre.ethers.getContractFactory("OnChainVault");
     const vault = Vault.attach(vaultAddress);
 
-    const Strategy = await hre.ethers.getContractFactory(TARGET_STRATEGY);
-    const strategy = await hre.upgrades.deployProxy(
+    const Strategy = await hre.ethers.getContractFactory(
+        TARGET_STRATEGY,
+        deployer
+    );
+    const strategy = await upgrades.deployProxy(
         Strategy,
-        [vault.address, deployer.address],
+        [vault.address, strategist],
         {
             initializer: "initialize",
             kind: "transparent",
@@ -61,16 +65,43 @@ async function main() {
     );
     await strategy.deployed();
 
+    const adminAddr = await hre.upgrades.erc1967.getAdminAddress(
+        strategy.address
+    );
+    const ownableContract = await hre.ethers.getContractAt(
+        OWNABLE_ABI,
+        adminAddr
+    );
+
     console.log(
         `${await strategy.name()} strategy deployed to ${strategy.address} by ${
             deployer.address
         }\n`
     );
+    console.log(`Strategy proxyAdmin address: ${adminAddr}\n`);
+    console.log(`proxyAdmin owner: ${await ownableContract.owner()}\n`);
 
-    console.log(
-        "Vault strategy indicators:",
-        await vault.strategies(strategy.address)
-    );
+    try {
+        const { ratio, minDebtHarvestUsdc, maxDebtHarvestUsdc } =
+            DEPLOY_SETTINGS[TARGET_STRATEGY];
+        const addStrategyTx = await vault[
+            "addStrategy(address,uint256,uint256,uint256,uint256)"
+        ](
+            strategy.address,
+            Number(ratio),
+            500,
+            minDebtHarvestUsdc,
+            maxDebtHarvestUsdc,
+        );
+        await addStrategyTx.wait();
+
+        console.log(
+            "Vault strategy indicators:",
+            await vault.strategies(strategy.address)
+        );
+    } catch (e) {
+        console.log(`Failed to add strategy to vault: ${e}`);
+    }
 
     await hre.run("verify:verify", {
         address: strategy.address,

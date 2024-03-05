@@ -1,23 +1,142 @@
 const hre = require("hardhat");
+const {
+  impersonateAccount
+} = require("@nomicfoundation/hardhat-network-helpers");
+const ABI = [
+  "function harvest() external",
+  "function name() external view returns (string memory)",
+  "function deposit(uint256) external",
+  "function approve(address,uint256) external",
+  "function balanceOf(address) external view returns(uint256)",
+  "function estimatedTotalAssets() external view returns(uint256)",
+  "function setSlippage(uint256) external",
+  "function withdraw(uint256,address,uint256) external",
+  "function depositLimit() external view returns(uint256)",
+  "function transferOwnership(address) external",
+  "function CONVEX() external view returns(address)"
+];
 
-const { getEnv } = require("../utils");
+require("dotenv").config();
 
-// const TARGET_ADDRESS = getEnv("TARGET_ADDRESS");
-// const TARGET_STRATEGY = getEnv("TARGET_STRATEGY");
-
-const abi = ["function balanceOf(address account) external view returns (uint256)"]
+const {
+  DEPLOYER_PRIVATE_KEY,
+  ARBITRUM_NODE,
+  ETH_NODE
+} = process.env;
 
 async function main() {
+  // const sigs = await hre.ethers.getSigners();
+  const provider = new hre.ethers.providers.JsonRpcProvider(
+    ETH_NODE || ""
+  );
+  // await impersonateAccount("0xc0496fe72226e6463a30cf0e0f0b5be525262b4e")
+  // const signer = await ethers.provider.getSigner(
+  //   "0xc0496fe72226e6463a30cf0e0f0b5be525262b4e"
+  // );
 
-    const TargetContract = await ethers.getContractAt(abi, "0x7EA2be2df7BA6E54B1A9C70676f668455E329d29");
-    console.log(await TargetContract.balanceOf("0x5E583B6a1686f7Bc09A6bBa66E852A7C80d36F00"))
+  // console.log(sigs[0].address);
+  // console.log(await provider.getBalance(sigs[0].address));
+  let wallet = new hre.ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY).connect(
+    provider
+  );
+  //   console.log(signer._address);
+  // const tx2 = await sigs[0].sendTransaction({
+  //   to: wallet.address,
+  //   value: hre.ethers.utils.parseEther("100"),
+  // });
+  // await tx2.wait();
+
+  // await upgradeVault();
+
+  const targetContract = await hre.ethers.getContractAt(
+    ABI,
+    "0x8A82566BB321873701191878cEbbC27Ee984AA6b",
+    wallet
+  );
+  console.log(await targetContract.name());
+  console.log(await targetContract.CONVEX());
+
+  // const want = await hre.ethers.getContractAt(
+  //   ABI,
+  //   "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+  //   wallet
+  // );
+  // const vaultAddress = "0x0CD5cda0E120F7E22516f074284e5416949882C2"
+  // const strategist = "0xC1287e8e489e990b424299376f37c83CD39Bfc4c"
+
+  // const OriginStrategy = await ethers.getContractFactory("OriginEthStrategy");
+  //     const strategy = await upgrades.deployProxy(
+  //       OriginStrategy,
+  //       [vaultAddress, strategist],
+  //       {
+  //         kind: "uups",
+  //         unsafeAllow: ["constructor"],
+  //         constructorArgs: [vaultAddress],
+  //       }
+  //     );
+  //     await strategy.deployed();
+  //     await hre.run("verify:verify", {
+  //       address: strategy.address,
+  //       constructorArguments: [vaultAddress],
+  //   });
+  // await want.connect(wallet).approve(targetContract.address, ethers.utils.parseEther("100000000000"))
+// console.log(await want.balanceOf(wallet.address));
+//   console.log(await targetContract.name())
+//   console.log(await targetContract.depositLimit())
+  // console.log("DEPOSIT");
+  // console.log("Before", await want.balanceOf(targetContract.address));
+
+  // await targetContract.deposit(ethers.utils.parseEther("0.000000000001"),{gasLimit: 30000000});
+  
+    // await targetContract.connect(buyer).approve(targetContract.address, ethers.utils.parseEther("100000000000"))
+
+  // await targetContract.withdraw(await targetContract.balanceOf(buyer._address), buyer._address, 9000)
+  // console.log("After", await want.balanceOf(buyer._address));
+
+  // console.log("ETA a ", await strategyB.estimatedTotalAssets())
+  // console.log("ETA a ", await strategyA.estimatedTotalAssets())
 
 
+  // console.log(await targetContract.connect(signer).name());
+  // console.log(
+  //   await provider.getBalance("0x27f52fd2E60B1153CBD00D465F97C05245D22B82")
+  // );
+  // const tx1 = await targetContract.connect(impersonatedSigner).harvest();
+  // console.log(
+  //   await provider.getBalance("0x27f52fd2E60B1153CBD00D465F97C05245D22B82")
+  // );
+}
+
+async function upgradeVault() {
+  // const abiProxy = [
+  //   "function transferOwnership(address) external",
+  //   "function owner() external view returns(address)",
+  // ];
+  // const proxy = await hre.ethers.getContractAt(
+  //   abiProxy,
+  //   "0x4F202835B6E12B51ef6C4ac87d610c83E9830dD9"
+  // );
+  // console.log(await proxy.owner());
+  // const owner = await ethers.getImpersonatedSigner(
+  //   "0x729F2222aaCD99619B8B660b412baE9fCEa3d90F"
+  // );
+  // await proxy
+  //   .connect(owner)
+  //   .transferOwnership("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
+  // console.log(await proxy.owner());
+
+  const vault = await hre.ethers.getContractFactory("OnChainVault");
+  const upgraded = await hre.upgrades.upgradeProxy(
+    "0x0e86f93145d097090acbbb8ee44c716dacff04d7",
+    vault
+  );
+
+  console.log("Successfully upgraded implementation of", upgraded.address);
 }
 
 main()
-    .then(() => process.exit(0))
-    .catch((error) => {
-        console.error(error);
-        process.exit(1);
-    });
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
