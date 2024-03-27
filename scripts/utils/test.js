@@ -27,18 +27,18 @@ const {
 async function main() {
   // const sigs = await hre.ethers.getSigners();
   const provider = new hre.ethers.providers.JsonRpcProvider(
-    ETH_NODE || ""
+    "http://127.0.0.1:8545/" || ""
   );
-  // await impersonateAccount("0xc0496fe72226e6463a30cf0e0f0b5be525262b4e")
-  // const signer = await ethers.provider.getSigner(
-  //   "0xc0496fe72226e6463a30cf0e0f0b5be525262b4e"
-  // );
+  await impersonateAccount("0xB232b6791d83fCe7a99222c63a525c88c227A53D")
+  const signer = await ethers.provider.getSigner(
+    "0xB232b6791d83fCe7a99222c63a525c88c227A53D"
+  );
 
   // console.log(sigs[0].address);
   // console.log(await provider.getBalance(sigs[0].address));
-  let wallet = new hre.ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY).connect(
-    provider
-  );
+  // let wallet = new hre.ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY).connect(
+  //   provider
+  // );
   //   console.log(signer._address);
   // const tx2 = await sigs[0].sendTransaction({
   //   to: wallet.address,
@@ -46,15 +46,15 @@ async function main() {
   // });
   // await tx2.wait();
 
-  // await upgradeVault();
+  await upgradeVault();
 
   const targetContract = await hre.ethers.getContractAt(
     ABI,
-    "0x8A82566BB321873701191878cEbbC27Ee984AA6b",
-    wallet
+    "",
+    provider
   );
-  console.log(await targetContract.name());
-  console.log(await targetContract.CONVEX());
+  console.log(await targetContract.connect(signer).name());
+  console.log(await targetContract.connect(signer).withdraw(2000000, "0xB232b6791d83fCe7a99222c63a525c88c227A53D", 5000));
 
   // const want = await hre.ethers.getContractAt(
   //   ABI,
@@ -125,9 +125,19 @@ async function upgradeVault() {
   //   .transferOwnership("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
   // console.log(await proxy.owner());
 
+  const provider = new ethers.JsonRpcProvider(
+    "http://127.0.0.1:8545"
+  );
+  await impersonateAccount("0x942f39555D430eFB3230dD9e5b86939EFf185f0A")
+
+  // console.log("upgrading");
+  const owner = await ethers.provider.getSigner(
+    "0x942f39555D430eFB3230dD9e5b86939EFf185f0A"
+  );
+
   const vault = await hre.ethers.getContractFactory("OnChainVault");
   const upgraded = await hre.upgrades.upgradeProxy(
-    "0x0e86f93145d097090acbbb8ee44c716dacff04d7",
+    "0x6318938F825F57d439B3a9E25C38F04EF97987D8",
     vault
   );
 
