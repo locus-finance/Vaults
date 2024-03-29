@@ -16,9 +16,16 @@ contract InitStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
     using Math for uint256;
 
-    IInitCore public constant INIT_CORE = IInitCore(0x972BcB0284cca0152527c4f70f8F689852bCAFc5);
-    ILendingPool public constant INIT_USDC_LENDING_POOL = ILendingPool(0x00A55649E597d463fD212fBE48a3B40f0E227d06);
-    
+    struct PreviewAccrueInterestData {
+        uint256 totalAssets;
+        uint256 totalShares;
+    }
+
+    IInitCore public constant INIT_CORE =
+        IInitCore(0x972BcB0284cca0152527c4f70f8F689852bCAFc5);
+    ILendingPool public constant INIT_USDC_LENDING_POOL =
+        ILendingPool(0x00A55649E597d463fD212fBE48a3B40f0E227d06);
+
     uint8 private constant VIRTUAL_SHARE_DECIMALS = 8;
     uint256 private constant ONE_E18 = 1e18;
     uint256 private constant VIRTUAL_SHARES = 10 ** VIRTUAL_SHARE_DECIMALS;
@@ -32,7 +39,10 @@ contract InitStrategy is BaseStrategy {
         _initialize(_vault, _strategist, _strategist, _strategist);
         irm = IIRM(INIT_USDC_LENDING_POOL.irm());
         want.approve(address(INIT_USDC_LENDING_POOL), type(uint256).max);
-        IERC20(address(INIT_USDC_LENDING_POOL)).approve(address(INIT_USDC_LENDING_POOL), type(uint256).max);
+        IERC20(address(INIT_USDC_LENDING_POOL)).approve(
+            address(INIT_USDC_LENDING_POOL),
+            type(uint256).max
+        );
     }
 
     function ethToWant(uint256) public view virtual override returns (uint256) {
@@ -51,7 +61,7 @@ contract InitStrategy is BaseStrategy {
         return IERC20(address(INIT_USDC_LENDING_POOL)).balanceOf(address(this));
     }
 
-    function _wantToShares(uint256 amount) internal returns(uint256) {
+    function _wantToShares(uint256 amount) internal returns (uint256) {
         return INIT_USDC_LENDING_POOL.toSharesCurrent(amount);
     }
 
@@ -66,32 +76,43 @@ contract InitStrategy is BaseStrategy {
         _exitPosition(sharesToWithdraw);
     }
 
-    function _toShares(uint _amt, uint _totalAssets, uint _totalShares) internal pure returns (uint shares) {
-        return _amt.mulDiv(_totalShares + VIRTUAL_SHARES, _totalAssets + VIRTUAL_ASSETS);
+    function _toShares(
+        uint _amt,
+        uint _totalAssets,
+        uint _totalShares
+    ) internal pure returns (uint shares) {
+        return
+            _amt.mulDiv(
+                _totalShares + VIRTUAL_SHARES,
+                _totalAssets + VIRTUAL_ASSETS
+            );
     }
 
-    struct PreviewAccrueInterestData {
-        uint256 _totalAssets;
-        uint256 _totalShares;
+    function _toAmt(uint _shares, uint _totalAssets, uint _totalShares) internal pure returns (uint amt) {
+        return _shares.mulDiv(_totalAssets + VIRTUAL_ASSETS, _totalShares + VIRTUAL_SHARES);
     }
 
-    function _previewAccrueInterest(uint256 amount) internal view returns(PreviewAccrueInterestData memory result) {
+    /// @dev Imitates accrueInterest() in the ILendingPool to adjust total supply hence taking into account an interest in want tokens.
+    function _previewAccrueInterest() internal view returns (PreviewAccrueInterestData memory result) {
         result = PreviewAccrueInterestData({
-            _totalAssets: INIT_USDC_LENDING_POOL.totalAssets(),
-            _totalShares: IERC20(address(INIT_USDC_LENDING_POOL)).totalSupply()
+            totalAssets: INIT_USDC_LENDING_POOL.totalAssets(),
+            totalShares: IERC20(address(INIT_USDC_LENDING_POOL)).totalSupply()
         });
         uint256 _lastAccruedTime = INIT_USDC_LENDING_POOL.lastAccruedTime();
-        if (block.timestamp != _lastAccruedTime) {
-            uint256 _totalDebt = INIT_USDC_LENDING_POOL.totalDebt();
-            uint256 _cash = INIT_USDC_LENDING_POOL.cash();
-            uint256 borrowRate_e18 = IIRM(irm).getBorrowRate_e18(_cash, _totalDebt);
-            uint256 accruedInterest = (borrowRate_e18 * (block.timestamp - _lastAccruedTime) * _totalDebt) / ONE_E18;
-            uint256 reserve = (accruedInterest * INIT_USDC_LENDING_POOL.reserveFactor_e18()) / ONE_E18;
-            if (reserve > 0) {
-                // _mint(treasury, _toShares(reserve, _cash + _totalDebt + accruedInterest - reserve, totalSupply()));
-            }
-            // totalDebt = _totalDebt + accruedInterest;
-            // lastAccruedTime = block.timestamp;
+        uint256 _totalDebt = INIT_USDC_LENDING_POOL.totalDebt();
+        uint256 _cash = INIT_USDC_LENDING_POOL.cash();
+        uint256 borrowRate_e18 = IIRM(irm).getBorrowRate_e18(_cash, _totalDebt);
+        uint256 accruedInterest = (borrowRate_e18 *
+            (block.timestamp - _lastAccruedTime) *
+            _totalDebt) / ONE_E18;
+        uint256 reserve = (accruedInterest *
+            INIT_USDC_LENDING_POOL.reserveFactor_e18()) / ONE_E18;
+        if (reserve > 0) {
+            result.totalShares += _toShares(
+                reserve,
+                _cash + _totalDebt + accruedInterest - reserve,
+                result.totalShares
+            );
         }
     }
 
@@ -102,10 +123,9 @@ contract InitStrategy is BaseStrategy {
         override
         returns (uint256 _wants)
     {
-        // _wants += want.balanceOf(address(this));
-        // _wants += LPToWant(IAcrossStaker(ACROSS_STAKER).getUserStake(LP_TOKEN, address(this)).cumulativeBalance);
-        // _wants += AcxToWant(IAcrossStaker(ACROSS_STAKER).getOutstandingRewards(WETH, address(this)));
-        // _wants += LPToWant(IERC20(LP_TOKEN).balanceOf(address(this)));
+        _wants += want.balanceOf(address(this));
+        PreviewAccrueInterestData memory data = _previewAccrueInterest();
+        _wants += _toAmt(balanceOfShares(), data.totalAssets, data.totalShares);
     }
 
     function prepareReturn(
@@ -159,7 +179,10 @@ contract InitStrategy is BaseStrategy {
     }
 
     function _exitPosition(uint256 _shares) internal {
-        IERC20(address(INIT_USDC_LENDING_POOL)).safeTransfer(address(INIT_USDC_LENDING_POOL), _shares);
+        IERC20(address(INIT_USDC_LENDING_POOL)).safeTransfer(
+            address(INIT_USDC_LENDING_POOL),
+            _shares
+        );
         INIT_CORE.burnTo(address(INIT_USDC_LENDING_POOL), address(this));
     }
 
@@ -188,7 +211,10 @@ contract InitStrategy is BaseStrategy {
     }
 
     function prepareMigration(address _newStrategy) internal override {
-        IERC20(address(INIT_USDC_LENDING_POOL)).safeTransfer(_newStrategy, balanceOfShares());
+        IERC20(address(INIT_USDC_LENDING_POOL)).safeTransfer(
+            _newStrategy,
+            balanceOfShares()
+        );
     }
 
     function protectedTokens()
