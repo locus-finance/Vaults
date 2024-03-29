@@ -153,6 +153,11 @@ module.exports = {
       chainId: 42161,
       accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
     },
+    mantle: {
+      url: "https://rpc.mantle.xyz/",
+      chainId: 5000,
+      accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
+    }
   },
   etherscan: {
     apiKey: {
