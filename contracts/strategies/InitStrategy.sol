@@ -211,6 +211,11 @@ contract InitStrategy is BaseStrategy {
     }
 
     function prepareMigration(address _newStrategy) internal override {
+        uint256 wantBalance = balanceOfWant();
+        if (wantBalance > 0) {
+            want.safeTransfer(address(INIT_USDC_LENDING_POOL), wantBalance);
+            INIT_CORE.mintTo(address(INIT_USDC_LENDING_POOL), address(this));
+        }
         IERC20(address(INIT_USDC_LENDING_POOL)).safeTransfer(
             _newStrategy,
             balanceOfShares()
