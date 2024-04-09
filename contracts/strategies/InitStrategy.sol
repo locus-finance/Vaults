@@ -2,13 +2,11 @@
 
 pragma solidity ^0.8.18;
 
-import {OracleLibrary} from "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
 import {BaseStrategy} from "@yearn-protocol/contracts/BaseStrategy.sol";
 import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "../integrations/fusionx/ISwapRouter.sol";
 import "../integrations/init/IMoneyMarketHook.sol";
 import "../integrations/init/IInitCore.sol";
 import "../integrations/init/IIRM.sol";
@@ -24,8 +22,6 @@ contract InitStrategy is BaseStrategy {
         uint256 totalShares;
     }
 
-    ISwapRouter public constant FUSIONX_SWAP_ROUTER =
-        ISwapRouter(0x5989FB161568b9F133eDf5Cf6787f5597762797F);
     IMoneyMarketHook public constant MONEY_MARKET_HOOK =
         IMoneyMarketHook(0xf82CBcAB75C1138a8F1F20179613e7C0C8337346);
     IInitCore public constant INIT_CORE =
@@ -37,7 +33,7 @@ contract InitStrategy is BaseStrategy {
     address public constant USDC_ADDRESS =
         0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9;
     address public constant WRAPPED_MANTLE = 0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8;
-    address public constant USDC_MANTLE_FUSIONX_POOL = 0xe87e42ff34d6baaf619eb91dd957e4ec45226894;
+    address public constant USDC_MANTLE_FUSIONX_POOL = 0xe87E42ff34d6baAF619eB91dd957e4EC45226894;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
     uint8 public constant VIRTUAL_SHARE_DECIMALS = 8;
@@ -134,18 +130,6 @@ contract InitStrategy is BaseStrategy {
             );
     }
 
-    function _calcNativeBalanceToUSDC() internal view returns (uint256) {
-        uint256 selfBalance = address(this).balance;
-        (int24 meanTick, ) = OracleLibrary.consult(USDC_MANTLE_FUSIONX_POOL, TWAP_RANGE_SECS);
-        return
-            OracleLibrary.getQuoteAtTick(
-                meanTick,
-                uint128(selfBalance),
-                WRAPPED_MANTLE,
-                USDC_ADDRESS
-            );
-    }
-
     /// @dev Imitates accrueInterest() in the ILendingPool to adjust total supply hence taking into account an interest in want tokens.
     function _previewAccrueInterest()
         internal
@@ -184,7 +168,6 @@ contract InitStrategy is BaseStrategy {
         _wants += want.balanceOf(address(this));
         PreviewAccrueInterestData memory data = _previewAccrueInterest();
         _wants += _toAmt(balanceOfShares(), data.totalAssets, data.totalShares);
-        _wants += _calcNativeBalanceToUSDC();
     }
 
     function prepareReturn(
