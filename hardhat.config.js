@@ -163,14 +163,15 @@ module.exports = {
     apiKey: {
       mainnet: process.env.ETHERSCAN_API_KEY,
       sepolia: process.env.ETHERSCAN_API_KEY,
-      arbitrumOne: process.env.ARBISCAN_API_KEY
+      arbitrumOne: process.env.ARBISCAN_API_KEY,
+      mantle: process.env.ETHERSCAN_API_KEY
     },
     customChains: [
       {
         network: "mantle",
         chainId: 5000,
         urls: {
-          apiURL: "https://explorer.mantle.xyz/api/v2/",
+          apiURL: "https://explorer.mantle.xyz/api",
           browserURL: "https://explorer.mantle.xyz/"
         }
       }

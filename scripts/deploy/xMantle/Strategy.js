@@ -2,9 +2,9 @@ const hre = require("hardhat");
 
 const { getEnv } = require("../../utils");
 
-const TARGET_STRATEGY = getEnv("TARGET_STRATEGY");
-const strategist = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBeнн"
-const vaultAddress = "";
+const TARGET_STRATEGY = "InitStrategy";
+const strategist = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe"
+const vaultAddress = "0x4488B69067eaE5e201A7330C56198Aba5a595E3F";
 
 const DEPLOY_SETTINGS = {
     vaultAddress: vaultAddress,
