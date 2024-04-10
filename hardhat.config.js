@@ -98,7 +98,8 @@ module.exports = {
     localhost: {},
     hardhat: {
       forking: {
-        url: ETH_NODE || "",
+        url: "https://rpc.mantle.xyz/",
+        blockNumber: 62309665
       },
       allowUnlimitedContractSize: true,
     },
