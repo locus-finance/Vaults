@@ -7,10 +7,10 @@ import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "../integrations/init/IInitCore.sol";
-import "../integrations/init/IIRM.sol";
-import "../integrations/init/ILendingPool.sol";
-import "../utils/Utils.sol";
+import "../../integrations/init/IInitCore.sol";
+import "../../integrations/init/IIRM.sol";
+import "../../integrations/init/ILendingPool.sol";
+import "../../utils/Utils.sol";
 
 contract InitStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
