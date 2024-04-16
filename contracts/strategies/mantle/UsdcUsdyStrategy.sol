@@ -15,6 +15,12 @@ contract UsdcUsdyStrategy is BaseStrategy, MoeMerchantStrategyHelper {
     using SafeERC20 for IERC20;
     using Math for uint256;
 
+    event MintedCircuitShares(uint256 indexed amount);
+    event MintedMoeLp(uint256 indexed amount);
+    event BurnedCircuitShares(uint256 indexed amount);
+    event BurnedMoeLp(uint256 indexed amount);
+    event WantTokenGathered(uint256 indexed amount);
+
     ICircuitVault public constant CIRCUIT_VAULT =
         ICircuitVault(0xc425A0fC1e62bEDa428Ff628597dC8EA1C13d0e4);
     IERC20 public constant USDY =
@@ -64,6 +70,10 @@ contract UsdcUsdyStrategy is BaseStrategy, MoeMerchantStrategyHelper {
 
     function balanceOfCircuitShares() public view returns (uint256) {
         return CIRCUIT_VAULT.balanceOf(address(this));
+    }
+
+    function balanceOfMoeLp() public view returns (uint256) {
+        return MOE_MERCHANT_USDC_USDY_POOL.balanceOf(address(this));
     }
 
     function _wantToCircuitShares(
@@ -182,11 +192,37 @@ contract UsdcUsdyStrategy is BaseStrategy, MoeMerchantStrategyHelper {
     }
 
     function _mintShares(uint256 _amount) internal {
-
+        if (_amount == 0) return;
+        uint256 lpMinted = _moeMerchantAddLiquidity(address(want), address(USDY), _amount);
+        emit MintedMoeLp(lpMinted);
+        uint256 circuitShares = balanceOfCircuitShares();
+        CIRCUIT_VAULT.deposit(lpMinted);
+        circuitShares = balanceOfCircuitShares() - circuitShares;
+        emit MintedCircuitShares(circuitShares);
     }
 
     function _burnShares(uint256 _shares) internal {
-
+        if (_shares == 0) return;
+        uint256 lpTokens = balanceOfMoeLp();
+        CIRCUIT_VAULT.withdraw(_shares);
+        lpTokens = balanceOfMoeLp() - lpTokens;
+        emit BurnedCircuitShares(_shares);
+        RemoveLiquidityData memory removedLiquidityData = _moeMerchantRemoveLiquidity(
+            address(want),
+            address(USDY),
+            lpTokens
+        );
+        emit BurnedMoeLp(lpTokens);
+        uint256 reserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(address(this), uint256(ReservedTopics.RESERVE_A));
+        uint256 reserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(address(this), uint256(ReservedTopics.RESERVE_B));
+        uint256 amountUsdcOut = MOE_ROUTER.getAmountOut(removedLiquidityData.amountBWithdrawn, reserve1, reserve0);
+        uint256 usdyToUsdcSwappedAmount = _moeMerchantSwap(
+            address(USDY),
+            address(want),
+            removedLiquidityData.amountBWithdrawn,
+            amountUsdcOut - ((amountUsdcOut * STANDARD_SLIPPAGE) / MAX_BPS)
+        );
+        emit WantTokenGathered(removedLiquidityData.amountAWithdrawn + usdyToUsdcSwappedAmount);
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
