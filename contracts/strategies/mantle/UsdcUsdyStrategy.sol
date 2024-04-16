@@ -22,10 +22,7 @@ contract UsdcUsdyStrategy is BaseStrategy, MoeMerchantStrategyHelper {
     IERC20 public constant MOE_MERCHANT_USDC_USDY_POOL =
         IERC20(0xc1f43E45F86E7bfb92C3c309b0eF366F9Ba33Bfa);
 
-    uint256 public immutable TOPIC_AMOUNT_OUT_MIN =
-        uint256(type(ReservedTopics).max) + 1;
-    uint256 public immutable TOPIC_AMOUNT_IN = TOPIC_AMOUNT_OUT_MIN + 1;
-    uint256 public immutable TOPICS_AMOUNT = TOPIC_AMOUNT_IN + 1;
+    uint256 public immutable TOPICS_AMOUNT = uint256(type(ReservedTopics).max) + 1;
 
     constructor(address _vault) BaseStrategy(_vault) {}
 
@@ -47,38 +44,6 @@ contract UsdcUsdyStrategy is BaseStrategy, MoeMerchantStrategyHelper {
             bytes32(uint256(uint160(address(USDY))))
         );
         LOCUS_DATA_FEED.updateFeed(address(this));
-    }
-
-    function updateFeedRequested(
-        uint256 topicNumber
-    ) public override returns (bytes32 result) {
-        super.updateFeedRequested(topicNumber);
-        if (topicNumber == TOPIC_AMOUNT_OUT_MIN) {
-            address[] memory path = new address[](2);
-            path[0] = LOCUS_DATA_FEED.parseAddressFromFeed(
-                address(this),
-                uint256(ReservedTopics.TOKEN_A)
-            );
-            path[1] = LOCUS_DATA_FEED.parseAddressFromFeed(
-                address(this),
-                uint256(ReservedTopics.TOKEN_B)
-            );
-            uint256 amountIn = LOCUS_DATA_FEED.parseUint256FromFeed(
-                address(this),
-                TOPIC_AMOUNT_IN
-            );
-            if (amountIn == 0) {
-                return bytes32(0);
-            }
-            uint256 amountOut = MOE_ROUTER.getAmountsOut(amountIn, path)[0];
-            result = bytes32(
-                amountOut - ((amountOut * STANDARD_SLIPPAGE) / MAX_BPS)
-            );
-        } else if (topicNumber == TOPIC_AMOUNT_OUT_MIN) {
-            result = LOCUS_DATA_FEED.getValue(topicNumber);
-        } else {
-            revert UnknownTopicNumber(topicNumber);
-        }
     }
 
     function ethToWant(uint256) public view virtual override returns (uint256) {
@@ -221,7 +186,7 @@ contract UsdcUsdyStrategy is BaseStrategy, MoeMerchantStrategyHelper {
     }
 
     function _burnShares(uint256 _shares) internal {
-        
+
     }
 
     function liquidateAllPositions() internal override returns (uint256) {

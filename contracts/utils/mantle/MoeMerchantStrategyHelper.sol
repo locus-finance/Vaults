@@ -67,6 +67,8 @@ abstract contract MoeMerchantStrategyHelper is ILocusDataFeedUser {
             topicNumber == uint256(ReservedTopics.TOKEN_B)
         ) {
             result = LOCUS_DATA_FEED.getValue(topicNumber);
+        } else {
+            revert UnknownTopicNumber(topicNumber);
         }
     }
 
