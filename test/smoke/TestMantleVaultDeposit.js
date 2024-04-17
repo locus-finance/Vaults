@@ -24,7 +24,7 @@ const withImpersonatedSigner = async (signerAddress, action) => {
 }
 
 describe('TestMantleVaultDeposit', () => {
-  const xMantleVaultAddress = "0x4488B69067eaE5e201A7330C56198Aba5a595E3F";
+  const xMantleVaultAddress = "0xa297D24e73f68D8819F301201E27893B1fbD3Bf5";
   const userAddress = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe";
   const lendingPoolAddress = "0x00A55649E597d463fD212fBE48a3B40f0E227d06";
   const initStrategyAddress = "0xc9C9cf5EAd9e299620dA6b668ae2A48E16883EF4";
@@ -33,7 +33,7 @@ describe('TestMantleVaultDeposit', () => {
   const userUsdcAllowance = hre.ethers.BigNumber.from("5000000000");
   const strategist = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe";
   const usdcAddress = "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9";
-  const usdcAmountToDeposit = hre.ethers.utils.parseUnits("5", 6);
+  const usdcAmountToDeposit = hre.ethers.utils.parseUnits("4", 6);
 
   let xMantleInstance;
   let usdcInstance;
@@ -82,13 +82,13 @@ describe('TestMantleVaultDeposit', () => {
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await xMantleInstance.connect(userSigner)["deposit(uint256)"](usdcAmountToDeposit);
     });
-    console.log((await initStrategyInstance.estimatedTotalAssets()).toString());
+    console.log(`EST: ${(await initStrategyInstance.estimatedTotalAssets()).toString()}`);
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await initStrategyInstance.connect(userSigner).harvest();
     });
-    console.log((await initStrategyInstance.balanceOfShares()).toString());
-    console.log((await initStrategyInstance.estimatedTotalAssets()).toString());
-    console.log((await xMantleInstance.pricePerShare()).toString());
+    console.log(`Balance of shares: ${(await initStrategyInstance.balanceOfShares()).toString()}`);
+    console.log(`EST: ${(await initStrategyInstance.estimatedTotalAssets()).toString()}`);
+    console.log(`PPS: ${(await xMantleInstance.pricePerShare()).toString()}`);
   });
 });
 
