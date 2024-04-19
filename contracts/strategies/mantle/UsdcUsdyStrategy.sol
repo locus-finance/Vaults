@@ -7,11 +7,12 @@ import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+import "../../abstracts/BaseStrategyForSeparatedVault.sol";
 import "../../integrations/circuit/ICircuitVault.sol";
 import "../../utils/Utils.sol";
 import "../../abstracts/mantle/MoeMerchantStrategyHelper.sol";
 
-contract UsdcUsdyStrategy is BaseStrategy, MoeMerchantStrategyHelper {
+contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyHelper {
     using SafeERC20 for IERC20;
     using Math for uint256;
 
@@ -30,10 +31,7 @@ contract UsdcUsdyStrategy is BaseStrategy, MoeMerchantStrategyHelper {
 
     uint256 public immutable TOPICS_AMOUNT = uint256(type(ReservedTopics).max) + 1;
 
-    constructor(address _vault) BaseStrategy(_vault) {}
-
     function initialize(address _vault, address _strategist) external {
-        _initialize(_vault, _strategist, _strategist, _strategist);
         want.approve(address(MOE_ROUTER), type(uint256).max);
         USDY.approve(address(MOE_ROUTER), type(uint256).max);
         MOE_MERCHANT_USDC_USDY_POOL.approve(
@@ -50,10 +48,6 @@ contract UsdcUsdyStrategy is BaseStrategy, MoeMerchantStrategyHelper {
             bytes32(uint256(uint160(address(USDY))))
         );
         LOCUS_DATA_FEED.updateFeed(address(this));
-    }
-
-    function ethToWant(uint256) public view virtual override returns (uint256) {
-        return 0;
     }
 
     function name() external pure override returns (string memory) {
@@ -146,7 +140,7 @@ contract UsdcUsdyStrategy is BaseStrategy, MoeMerchantStrategyHelper {
         returns (uint256 _profit, uint256 _loss, uint256 _debtPayment)
     {
         uint256 _totalAssets = estimatedTotalAssets();
-        uint256 _totalDebt = vault.strategies(address(this)).totalDebt;
+        uint256 _totalDebt = vault.getStrategyParams(address(this)).totalDebt;
 
         if (_totalAssets >= _totalDebt) {
             _profit = _totalAssets - _totalDebt;

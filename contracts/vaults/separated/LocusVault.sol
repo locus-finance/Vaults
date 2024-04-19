@@ -45,6 +45,7 @@ contract LocusVault is
     bool public emergencyShutdown;
 
     mapping(address => StrategyParams) public strategies;
+
     address[] public strategiesList;
     mapping(address strategy => uint256 position) public strategyPositionInArray;
 
@@ -164,6 +165,10 @@ contract LocusVault is
         uint256 _maxLoss
     ) external {
         _initiateWithdraw(_maxShares, _recipient, _maxLoss);
+    }
+
+    function getStrategyParams(address strategyAddress) external view returns (StrategyParams memory) {
+        return strategies[strategyAddress];
     }
 
     function addStrategy(

@@ -36,20 +36,14 @@ contract InitStrategy is BaseStrategyForSeparatedVault {
 
     IIRM public irm;
 
-    constructor(address _vault) BaseStrategyForSeparatedVault(_vault) {}
-
     function initialize(address _vault, address _strategist) external {
-        _initialize(_vault, _strategist, _strategist, _strategist);
+        __Base_Strategy_Initialize(_vault, _strategist, _strategist, _strategist);
         irm = IIRM(INIT_USDC_LENDING_POOL.irm());
         want.approve(address(INIT_USDC_LENDING_POOL), type(uint256).max);
         IERC20(address(INIT_USDC_LENDING_POOL)).approve(
             address(INIT_USDC_LENDING_POOL),
             type(uint256).max
         );
-    }
-
-    function ethToWant(uint256) public view virtual override returns (uint256) {
-        return 0;
     }
 
     function name() external pure override returns (string memory) {
@@ -155,7 +149,7 @@ contract InitStrategy is BaseStrategyForSeparatedVault {
         returns (uint256 _profit, uint256 _loss, uint256 _debtPayment)
     {
         uint256 _totalAssets = estimatedTotalAssets();
-        uint256 _totalDebt = vault.strategies(address(this)).totalDebt;
+        uint256 _totalDebt = vault.getStrategyParams(address(this)).totalDebt;
 
         if (_totalAssets >= _totalDebt) {
             _profit = _totalAssets - _totalDebt;

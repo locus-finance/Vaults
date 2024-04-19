@@ -87,6 +87,8 @@ interface ILocusVault {
 
     function totalAssets() external view returns (uint256);
 
+    function getStrategyParams(address strategyAddress) external view returns (StrategyParams memory);
+
     function deposit(
         uint256 _amount,
         address _recipient
