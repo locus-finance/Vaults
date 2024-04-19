@@ -556,7 +556,6 @@ contract LocusVault is
         if (duration == 0) {
             revert DurationCannotBeZero();
         }
-        require(duration != 0, "can't assessFees twice within the same block");
         if (gain == 0) {
             return 0;
         }
