@@ -67,9 +67,11 @@ contract LocusVault is
     ) external initializer {
         __UUPSUpgradeable_init();
         __AccessControl_init();
+        address sender = _msgSender();
         _grantRole(ADMIN_ROLE, _admin);
+        _grantRole(ADMIN_ROLE, sender);
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
-        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _grantRole(DEFAULT_ADMIN_ROLE, sender);
         token = _token;
         treasury = _treasury;
     }

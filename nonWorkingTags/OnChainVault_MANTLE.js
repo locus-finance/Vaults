@@ -24,9 +24,9 @@ async function main() {
   );
   await vault.deployed();
 
-  await hre.run("verify:verify", {
-    address: vault.address,
-  });
+  // await hre.run("verify:verify", {
+  //   address: vault.address,
+  // });
 
   const VaultToken = await ethers.getContractFactory("LocusVaultToken");
   const vaultToken = await upgrades.deployProxy(
@@ -46,9 +46,9 @@ async function main() {
 
   console.log("VaultToken deployed to:", vaultToken.address);
 
-  await hre.run("verify:verify", {
-    address: vaultToken.address,
-  });
+  // await hre.run("verify:verify", {
+  //   address: vaultToken.address,
+  // });
 
   const setVaultTokenTx = await vault.setVaultToken(vaultToken.address);
   await setVaultTokenTx.wait();
