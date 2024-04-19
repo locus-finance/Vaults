@@ -113,18 +113,16 @@ abstract contract BaseStrategyForSeparatedVault {
      * @param _vault The address of the Vault responsible for this Strategy.
      * @param _strategist The address to assign as `strategist`.
      * The strategist is able to change the reward address
-     * @param _rewards  The address to use for pulling rewards.
      * @param _keeper The adddress of the _keeper. _keeper
      * can harvest and tend a strategy.
      */
     function __Base_Strategy_Initialize(
         address _vault,
         address _strategist,
-        address _rewards,
+        address,
         address _keeper
     ) internal {
         if (address(want) != address(0)) revert AlreadyInitialized();
-        _rewards;
         vault = ILocusVault(_vault);
         want = IERC20(vault.token());
         want.forceApprove(_vault, type(uint256).max);

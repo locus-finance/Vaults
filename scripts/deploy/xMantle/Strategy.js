@@ -2,9 +2,9 @@ const hre = require("hardhat");
 
 const { getEnv } = require("../../utils");
 
-const TARGET_STRATEGY = "InitStrategy";
+const TARGET_STRATEGY = "UsdcUsdyStrategy";
 const strategist = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe"
-const vaultAddress = "0xCe3F1A99E9b6954430d0956B27898C3457aeE65D";
+const vaultAddress = "0xAF30274F4366c5532Cd22B151780fBe3d2E1FeDa";
 
 const DEPLOY_SETTINGS = {
     vaultAddress: vaultAddress,
@@ -42,12 +42,11 @@ async function main() {
         [vault.address, strategist],
         {
             initializer: "initialize",
-            kind: "transparent",
-            constructorArgs: [vault.address],
-            unsafeAllow: ["constructor"],
+            kind: "transparent"
         }
     );
     await strategy.deployed();
+    console.log(`Strategy deployed: ${strategy.address}`);
 
     const adminAddr = await hre.upgrades.erc1967.getAdminAddress(
         strategy.address
@@ -88,8 +87,7 @@ async function main() {
     }
 
     await hre.run("verify:verify", {
-        address: strategy.address,
-        constructorArguments: [vault.address],
+        address: strategy.address
     });
 }
 

@@ -27,15 +27,13 @@ abstract contract MoeMerchantStrategyHelper is ILocusDataFeedUser {
 
     IMoeRouter public constant MOE_ROUTER =
         IMoeRouter(0xeaEE7EE68874218c3558b40063c42B82D3E7232a);
-    IMoeFactory public immutable MOE_FACTORY =
-        IMoeFactory(MOE_ROUTER.factory());
+    IMoeFactory public constant MOE_FACTORY =
+        IMoeFactory(0x5bEf015CA9424A7C07B68490616a4C1F094BEdEc);
 
-    /// UPDATE BEFORE THE DEPLOY!!!!
-    ILocusDataFeed public immutable LOCUS_DATA_FEED =
-        ILocusDataFeed(address(0));
-    /// UPDATE BEFORE THE DEPLOY!!!!
+    ILocusDataFeed public constant LOCUS_DATA_FEED = ILocusDataFeed(0x5662AaAc9fdc97910E648e54076Be71D60D4045f);
 
     uint256 public constant STANDARD_SLIPPAGE = 9000;
+
     uint256 public constant MAX_BPS = 10000;
 
     function updateFeedRequested(
@@ -141,4 +139,11 @@ abstract contract MoeMerchantStrategyHelper is ILocusDataFeedUser {
                 block.timestamp
             );
     }
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[45] private __gap;
 }

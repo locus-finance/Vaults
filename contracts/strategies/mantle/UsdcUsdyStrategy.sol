@@ -29,7 +29,7 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
     IERC20 public constant MOE_MERCHANT_USDC_USDY_POOL =
         IERC20(0xc1f43E45F86E7bfb92C3c309b0eF366F9Ba33Bfa);
 
-    uint256 public immutable TOPICS_AMOUNT = uint256(type(ReservedTopics).max) + 1;
+    uint256 public constant TOPICS_AMOUNT = uint256(type(ReservedTopics).max) + 1;
 
     function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(_vault, _strategist, _strategist, _strategist);
@@ -39,6 +39,9 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
             address(MOE_ROUTER),
             type(uint256).max
         );
+    }
+
+    function setUpLocusDataFeedReserveTokensTopics() external {
         LOCUS_DATA_FEED.setFeed(TOPICS_AMOUNT);
         LOCUS_DATA_FEED.setValue(
             uint256(ReservedTopics.TOKEN_A),

@@ -23,10 +23,7 @@ async function main() {
     }
   );
   await vault.deployed();
-
-  // await hre.run("verify:verify", {
-  //   address: vault.address,
-  // });
+  console.log("Vault deployed to:", vault.address);
 
   const VaultToken = await ethers.getContractFactory("LocusVaultToken");
   const vaultToken = await upgrades.deployProxy(
@@ -34,7 +31,7 @@ async function main() {
     [
       strategist,
       vault.address,
-      "Locus Mantle Vault",
+      "Mantle Index",
       "xMNT",
     ],
     {
@@ -46,13 +43,16 @@ async function main() {
 
   console.log("VaultToken deployed to:", vaultToken.address);
 
-  // await hre.run("verify:verify", {
-  //   address: vaultToken.address,
-  // });
-
   const setVaultTokenTx = await vault.setVaultToken(vaultToken.address);
   await setVaultTokenTx.wait();
-  console.log(`Vault token is set:\n${setVaultTokenTx}`);
+  console.log(`Vault token is set:\n${JSON.stringify(setVaultTokenTx)}`);
+
+  await hre.run("verify:verify", {
+    address: vaultToken.address,
+  });
+  await hre.run("verify:verify", {
+    address: vault.address,
+  });
 };
 
 main()

@@ -5,26 +5,7 @@
     "txHash": "0x3642c3c6e6d78e1e81ba6cf2671a49a48911305bdce5bdd8248eb10a10e37ec5"
   },
   "proxies": [
-    {
-      "address": "0xF8F045583580C4Ba954CD911a8b161FafD89A9EF",
-      "txHash": "0xafe205bd447276bff7b44885869423e026c712961245a16a27edab8fd15ac052",
-      "kind": "transparent"
-    },
-    {
-      "address": "0xBf8181f3b5E71fa0CbBE1e067f408a9a0558C60f",
-      "txHash": "0x039280fc940cb7d9bffd0183bfcd98c5a1fec8e042f1e55b1515de231efbceaf",
-      "kind": "transparent"
-    },
-    {
-      "address": "0xa7eb4efe088A3618C9BA21e1520E0c8460b42D37",
-      "txHash": "0x24e7c82d227870c72d596a31353a682c0a814f2e2a197a50f2cb1c4c32f5a86d",
-      "kind": "transparent"
-    },
-    {
-      "address": "0xB0a66dD3B92293E5DC946B47922C6Ca9De464649",
-      "txHash": "0xa396cdf593167e1a1a7e8cf32202a64d6daeaa96fa8130922dc036991c3b9eaa",
-      "kind": "transparent"
-    }
+    
   ],
   "impls": {
     "b7da5079b681630c27605447af6989f19cf5f269f2a4bb2a1c45ae86f326ecf6": {
