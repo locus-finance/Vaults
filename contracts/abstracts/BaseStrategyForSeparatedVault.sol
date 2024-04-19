@@ -51,7 +51,7 @@ error NotAllowedToken();
  *  `harvest()`, and `harvestTrigger()` for further details.
  */
 
-abstract contract BaseStrategyPendle {
+abstract contract BaseStrategyForSeparatedVault {
     using SafeERC20 for IERC20;
 
     /**
@@ -327,7 +327,7 @@ abstract contract BaseStrategyPendle {
     function migrate(
         address _newStrategy
     ) external onlyVault {
-        if (BaseStrategyPendle(_newStrategy).vault() != vault)
+        if (BaseStrategyForSeparatedVault(_newStrategy).vault() != vault)
             revert WrongNewStrategy();
         prepareMigration(_newStrategy);
         want.safeTransfer(_newStrategy, want.balanceOf(address(this)));

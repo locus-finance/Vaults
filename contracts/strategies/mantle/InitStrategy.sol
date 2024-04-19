@@ -2,17 +2,18 @@
 
 pragma solidity ^0.8.18;
 
-import {BaseStrategy} from "@yearn-protocol/contracts/BaseStrategy.sol";
 import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
+import "../../abstracts/BaseStrategyForSeparatedVault.sol";
 
 import "../../integrations/init/IInitCore.sol";
 import "../../integrations/init/IIRM.sol";
 import "../../integrations/init/ILendingPool.sol";
 import "../../utils/Utils.sol";
 
-contract InitStrategy is BaseStrategy {
+contract InitStrategy is BaseStrategyForSeparatedVault {
     using SafeERC20 for IERC20;
     using Math for uint256;
 
@@ -35,7 +36,7 @@ contract InitStrategy is BaseStrategy {
 
     IIRM public irm;
 
-    constructor(address _vault) BaseStrategy(_vault) {}
+    constructor(address _vault) BaseStrategyForSeparatedVault(_vault) {}
 
     function initialize(address _vault, address _strategist) external {
         _initialize(_vault, _strategist, _strategist, _strategist);
