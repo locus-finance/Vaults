@@ -9,28 +9,50 @@ async function main() {
   const treasury = "0xf4bEC3e032590347Fc36AD40152C7155f8361d39"
   const strategist = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe"
 
-  const Vault = await ethers.getContractFactory("OnChainVault");
+  const Vault = await ethers.getContractFactory("LocusVault");
   const vault = await upgrades.deployProxy(
     Vault,
     [
       mantleUSDC,
       strategist,
-      treasury,
-      "Mantle Vault",
-      "xMANTLE",
+      treasury
     ],
     {
       initializer: "initialize",
-      kind: "transparent",
+      kind: "uups",
     }
   );
   await vault.deployed();
 
-  console.log("Vault deployed to:", vault.address);
-
   await hre.run("verify:verify", {
     address: vault.address,
   });
+
+  const VaultToken = await ethers.getContractFactory("LocusVaultToken");
+  const vaultToken = await upgrades.deployProxy(
+    VaultToken,
+    [
+      strategist,
+      vault.address,
+      "Locus Mantle Vault",
+      "xMNT",
+    ],
+    {
+      initializer: "initialize",
+      kind: "uups",
+    }
+  );
+  await vaultToken.deployed();
+
+  console.log("VaultToken deployed to:", vaultToken.address);
+
+  await hre.run("verify:verify", {
+    address: vaultToken.address,
+  });
+
+  const setVaultTokenTx = await vault.setVaultToken(vaultToken.address);
+  await setVaultTokenTx.wait();
+  console.log(`Vault token is set:\n${setVaultTokenTx}`);
 };
 
 main()

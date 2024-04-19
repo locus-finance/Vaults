@@ -68,6 +68,7 @@ contract LocusVault is
         __AccessControl_init();
         _grantRole(ADMIN_ROLE, _admin);
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
+        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
         token = _token;
         treasury = _treasury;
     }

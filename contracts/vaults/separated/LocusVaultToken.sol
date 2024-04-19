@@ -10,7 +10,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 
 import {ILocusVault} from "../../interfaces/separatedVault/ILocusVault.sol";
 
-contract VaultToken is
+contract LocusVaultToken is
     Initializable,
     ERC20Upgradeable,
     UUPSUpgradeable,
@@ -32,6 +32,7 @@ contract VaultToken is
         _grantRole(ADMIN_ROLE, _admin);
         _grantRole(VAULT_ROLE, _vault);
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
+        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
         currentVault = ILocusVault(_vault);
     }
 
