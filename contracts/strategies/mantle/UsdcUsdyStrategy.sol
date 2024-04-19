@@ -32,6 +32,7 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
     uint256 public immutable TOPICS_AMOUNT = uint256(type(ReservedTopics).max) + 1;
 
     function initialize(address _vault, address _strategist) external {
+        __Base_Strategy_Initialize(_vault, _strategist, _strategist, _strategist);
         want.approve(address(MOE_ROUTER), type(uint256).max);
         USDY.approve(address(MOE_ROUTER), type(uint256).max);
         MOE_MERCHANT_USDC_USDY_POOL.approve(
