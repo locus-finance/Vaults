@@ -45,7 +45,7 @@ contract LocusVaultToken is
     }
 
     function decimals() public view virtual override returns (uint8) {
-        return 18;
+        return IERC20Metadata(address(currentVault.token())).decimals();
     }
 
     function dispatch(address[] memory to, uint256[] memory amount) external {

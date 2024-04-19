@@ -6,8 +6,8 @@ import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
-import "../interfaces/ILocusDataFeed.sol";
-import "../interfaces/ILocusDataFeedUser.sol";
+import "./interfaces/ILocusDataFeed.sol";
+import "./interfaces/ILocusDataFeedUser.sol";
 
 contract LocusDataFeed is ILocusDataFeed, AccessControl {
     using EnumerableSet for EnumerableSet.Bytes32Set;

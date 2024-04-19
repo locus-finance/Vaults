@@ -9,7 +9,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 import "../../integrations/circuit/ICircuitVault.sol";
 import "../../utils/Utils.sol";
-import "../../utils/mantle/MoeMerchantStrategyHelper.sol";
+import "../../abstracts/mantle/MoeMerchantStrategyHelper.sol";
 
 contract UsdcUsdyStrategy is BaseStrategy, MoeMerchantStrategyHelper {
     using SafeERC20 for IERC20;

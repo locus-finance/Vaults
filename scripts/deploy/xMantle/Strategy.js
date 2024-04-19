@@ -2,9 +2,9 @@ const hre = require("hardhat");
 
 const { getEnv } = require("../../utils");
 
-const TARGET_STRATEGY = "UsdcUsdyStrategy";
+const TARGET_STRATEGY = "InitStrategy";
 const strategist = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe"
-const vaultAddress = "0xa297D24e73f68D8819F301201E27893B1fbD3Bf5";
+const vaultAddress = "0xCe3F1A99E9b6954430d0956B27898C3457aeE65D";
 
 const DEPLOY_SETTINGS = {
     vaultAddress: vaultAddress,
@@ -30,7 +30,7 @@ async function main() {
 
     const { vaultAddress } = DEPLOY_SETTINGS;
 
-    const Vault = await hre.ethers.getContractFactory("OnChainVault");
+    const Vault = await hre.ethers.getContractFactory("LocusVault");
     const vault = Vault.attach(vaultAddress);
 
     const Strategy = await hre.ethers.getContractFactory(
