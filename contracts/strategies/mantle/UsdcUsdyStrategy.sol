@@ -77,6 +77,7 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
     function _wantToCircuitShares(
         uint256 amount
     ) internal view returns (uint256 result) {
+        if (amount == 0) return 0;
         address[] memory path = new address[](2);
         path[0] = address(want);
         path[1] = address(USDY);
@@ -100,6 +101,7 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
     function _circuitSharesToWant(
         uint256 amount
     ) internal view returns (uint256 result) {
+        if (amount == 0) return 0;
         uint256 liquidity = amount / CIRCUIT_VAULT.getPricePerFullShare();
         IMoePair pair = IMoePair(
             MOE_FACTORY.getPair(address(want), address(USDY))

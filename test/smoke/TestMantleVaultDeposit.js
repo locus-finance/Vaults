@@ -24,10 +24,11 @@ const withImpersonatedSigner = async (signerAddress, action) => {
 }
 
 describe('TestMantleVaultDeposit', () => {
-  const xMantleVaultAddress = "0xa297D24e73f68D8819F301201E27893B1fbD3Bf5";
+  const xMantleVaultDepositaryAddress = "0xAF30274F4366c5532Cd22B151780fBe3d2E1FeDa";
+  const xMantleVaultTokenAddress = "0x180345D30DD6523907D797de13d9CBFAf23cf29E";
   const userAddress = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe";
   const lendingPoolAddress = "0x00A55649E597d463fD212fBE48a3B40f0E227d06";
-  const initStrategyAddress = "0xc9C9cf5EAd9e299620dA6b668ae2A48E16883EF4";
+  const initStrategyAddress = "0xAfD43313144a989CC435971201119c58C0149727";
   const usdcWhale = "0x588846213A30fd36244e0ae0eBB2374516dA836C";
 
   const userUsdcAllowance = hre.ethers.BigNumber.from("5000000000");
@@ -36,6 +37,7 @@ describe('TestMantleVaultDeposit', () => {
   const usdcAmountToDeposit = hre.ethers.utils.parseUnits("4", 6);
 
   let xMantleInstance;
+  let xMantleTokenInstance;
   let usdcInstance;
   let lendingPoolEip20Instance;
   let lendingPoolInstance;
@@ -43,8 +45,12 @@ describe('TestMantleVaultDeposit', () => {
 
   beforeEach(async () => {
     xMantleInstance = await hre.ethers.getContractAt(
-      "OnChainVault",
-      xMantleVaultAddress
+      "LocusVault",
+      xMantleVaultDepositaryAddress
+    );
+    xMantleTokenInstance = await hre.ethers.getContractAt(
+      "LocusVaultToken",
+      xMantleVaultTokenAddress
     );
     usdcInstance = await hre.ethers.getContractAt(
       "IERC20",
@@ -70,9 +76,6 @@ describe('TestMantleVaultDeposit', () => {
 
   xit('should perform deposit', async () => {
     console.log(hre.ethers.utils.formatUnits(await usdcInstance.balanceOf(userAddress), 6));
-    await withImpersonatedSigner(strategist, async (strategistSigner) => {
-      await xMantleInstance.connect(strategistSigner).setDepositLimit(hre.ethers.constants.MaxUint256);
-    });
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await xMantleInstance.connect(userSigner)["deposit(uint256)"](usdcAmountToDeposit);
     });

@@ -1,4 +1,5 @@
 // // SPDX-License-Identifier: AGPL-3.0
+
 // pragma solidity ^0.8.18;
 
 // import {BaseStrategy} from "@yearn-protocol/contracts/BaseStrategy.sol";
@@ -6,11 +7,12 @@
 // import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 // import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+// import "../../abstracts/BaseStrategyForSeparatedVault.sol";
 // import "../../integrations/circuit/ICircuitVault.sol";
 // import "../../utils/Utils.sol";
-// import "../../utils/mantle/MoeMerchantStrategyHelper.sol";
+// import "../../abstracts/mantle/MoeMerchantStrategyHelper.sol";
 
-// contract LendWmntStrategy is BaseStrategy, MoeMerchantStrategyHelper {
+// contract LentWmntStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyHelper {
 //     using SafeERC20 for IERC20;
 //     using Math for uint256;
 
@@ -22,49 +24,43 @@
 
 //     ICircuitVault public constant CIRCUIT_VAULT =
 //         ICircuitVault(0xc425A0fC1e62bEDa428Ff628597dC8EA1C13d0e4);
-//     IERC20 public constant USDY =
-//         IERC20(0x5bE26527e817998A7206475496fDE1E68957c5A6);
-//     IERC20 public constant MOE_MERCHANT_USDC_USDY_POOL =
-//         IERC20(0xc1f43E45F86E7bfb92C3c309b0eF366F9Ba33Bfa);
 
-//     uint256 public immutable TOPICS_AMOUNT = uint256(type(ReservedTopics).max) + 1;
+//     IERC20 public constant LEND = IERC20(0x25356aeca4210eF7553140edb9b8026089E49396);
+//     IERC20 public constant WMNT = IERC20(0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8);
+//     IERC20 public constant MOE_MERCHANT_LEND_WMNT_POOL = IERC20(0x30ac02b4c99d140cde2a212ca807cbda35d4f6b5);
 
-//     constructor(address _vault) BaseStrategy(_vault) {}
+//     uint256 public constant TOPICS_AMOUNT = uint256(type(ReservedTopics).max) + 1;
 
 //     function initialize(address _vault, address _strategist) external {
-//         _initialize(_vault, _strategist, _strategist, _strategist);
+//         __Base_Strategy_Initialize(_vault, _strategist, _strategist, _strategist);
 //         want.approve(address(MOE_ROUTER), type(uint256).max);
-//         USDY.approve(address(MOE_ROUTER), type(uint256).max);
-//         MOE_MERCHANT_USDC_USDY_POOL.approve(
+//         LEND.approve(address(MOE_ROUTER), type(uint256).max);
+//         WMNT.approve(address(MOE_ROUTER), type(uint256).max);
+//         MOE_MERCHANT_LEND_WMNT_POOL.approve(
 //             address(MOE_ROUTER),
 //             type(uint256).max
 //         );
+//     }
+
+//     function setUpLocusDataFeedReserveTokensTopics() external {
 //         LOCUS_DATA_FEED.setFeed(TOPICS_AMOUNT);
-//         LOCUS_DATA_FEED.setValue(
-//             uint256(ReservedTopics.TOKEN_A),
-//             bytes32(uint256(uint160(address(want))))
-//         );
-//         LOCUS_DATA_FEED.setValue(
-//             uint256(ReservedTopics.TOKEN_B),
-//             bytes32(uint256(uint160(address(USDY))))
-//         );
+//         // LOCUS_DATA_FEED.setValue(
+//         //     uint256(ReservedTopics.TOKEN_A),
+//         //     bytes32(uint256(uint160(address(want))))
+//         // );
+//         // LOCUS_DATA_FEED.setValue(
+//         //     uint256(ReservedTopics.TOKEN_B),
+//         //     bytes32(uint256(uint160(address(USDY))))
+//         // );
 //         LOCUS_DATA_FEED.updateFeed(address(this));
 //     }
 
-//     function ethToWant(uint256) public view virtual override returns (uint256) {
-//         return 0;
-//     }
-
 //     function name() external pure override returns (string memory) {
-//         return "USDC-USDY Strategy";
+//         return "LEND-WMNT Strategy";
 //     }
 
 //     function balanceOfWant() public view returns (uint256) {
 //         return want.balanceOf(address(this));
-//     }
-
-//     function balanceOfUsdy() public view returns (uint256) {
-//         return USDY.balanceOf(address(this));
 //     }
 
 //     function balanceOfCircuitShares() public view returns (uint256) {
@@ -72,7 +68,7 @@
 //     }
 
 //     function balanceOfMoeLp() public view returns (uint256) {
-//         return MOE_MERCHANT_USDC_USDY_POOL.balanceOf(address(this));
+//         // return MOE_MERCHANT_USDC_USDY_POOL.balanceOf(address(this));
 //     }
 
 //     function _wantToCircuitShares(
@@ -145,7 +141,7 @@
 //         returns (uint256 _profit, uint256 _loss, uint256 _debtPayment)
 //     {
 //         uint256 _totalAssets = estimatedTotalAssets();
-//         uint256 _totalDebt = vault.strategies(address(this)).totalDebt;
+//         uint256 _totalDebt = vault.getStrategyParams(address(this)).totalDebt;
 
 //         if (_totalAssets >= _totalDebt) {
 //             _profit = _totalAssets - _totalDebt;
