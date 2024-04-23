@@ -16,11 +16,11 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
     using SafeERC20 for IERC20;
     using Math for uint256;
 
-    event MintedCircuitShares(uint256 indexed amount);
-    event MintedMoeLp(uint256 indexed amount);
-    event BurnedCircuitShares(uint256 indexed amount);
-    event BurnedMoeLp(uint256 indexed amount);
-    event WantTokenGathered(uint256 indexed amount);
+    event MintedCircuitShares(uint256 indexed oldBalance, uint256 indexed newBalance);
+    event MintedMoeLp(uint256 indexed oldBalance, uint256 indexed newBalance);
+    event BurnedCircuitShares(uint256 indexed oldBalance, uint256 indexed newBalance);
+    event BurnedMoeLp(uint256 indexed oldBalance, uint256 indexed newBalance);
+    event WantTokensGathered(uint256 indexed amount);
 
     ICircuitVault public constant CIRCUIT_VAULT =
         ICircuitVault(0xc425A0fC1e62bEDa428Ff628597dC8EA1C13d0e4);
@@ -37,6 +37,10 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
         USDY.approve(address(MOE_ROUTER), type(uint256).max);
         MOE_MERCHANT_USDC_USDY_POOL.approve(
             address(MOE_ROUTER),
+            type(uint256).max
+        );
+        MOE_MERCHANT_USDC_USDY_POOL.approve(
+            address(CIRCUIT_VAULT),
             type(uint256).max
         );
     }
@@ -193,26 +197,26 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
 
     function _mintShares(uint256 _amount) internal {
         if (_amount == 0) return;
+        uint256 oldLpBalance = balanceOfMoeLp();
         uint256 lpMinted = _moeMerchantAddLiquidity(address(want), address(USDY), _amount);
-        emit MintedMoeLp(lpMinted);
+        emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
         uint256 circuitShares = balanceOfCircuitShares();
         CIRCUIT_VAULT.deposit(lpMinted);
-        circuitShares = balanceOfCircuitShares() - circuitShares;
-        emit MintedCircuitShares(circuitShares);
+        emit MintedCircuitShares(circuitShares, balanceOfCircuitShares());
     }
 
     function _burnShares(uint256 _shares) internal {
         if (_shares == 0) return;
-        uint256 lpTokens = balanceOfMoeLp();
+        uint256 oldLpBalance = balanceOfMoeLp();
+        uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
         CIRCUIT_VAULT.withdraw(_shares);
-        lpTokens = balanceOfMoeLp() - lpTokens;
-        emit BurnedCircuitShares(_shares);
+        emit BurnedCircuitShares(oldCircuitSharesBalance, balanceOfCircuitShares());
         RemoveLiquidityData memory removedLiquidityData = _moeMerchantRemoveLiquidity(
             address(want),
             address(USDY),
-            lpTokens
+            balanceOfMoeLp() - oldLpBalance
         );
-        emit BurnedMoeLp(lpTokens);
+        emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
         uint256 reserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(address(this), uint256(ReservedTopics.RESERVE_A));
         uint256 reserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(address(this), uint256(ReservedTopics.RESERVE_B));
         uint256 amountUsdcOut = MOE_ROUTER.getAmountOut(removedLiquidityData.amountBWithdrawn, reserve1, reserve0);
@@ -220,9 +224,9 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
             address(USDY),
             address(want),
             removedLiquidityData.amountBWithdrawn,
-            amountUsdcOut - ((amountUsdcOut * STANDARD_SLIPPAGE) / MAX_BPS)
+            (amountUsdcOut * STANDARD_SLIPPAGE) / MAX_BPS
         );
-        emit WantTokenGathered(removedLiquidityData.amountAWithdrawn + usdyToUsdcSwappedAmount);
+        emit WantTokensGathered(removedLiquidityData.amountAWithdrawn + usdyToUsdcSwappedAmount);
     }
 
     function liquidateAllPositions() internal override returns (uint256) {

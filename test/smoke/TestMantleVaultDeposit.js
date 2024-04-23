@@ -29,6 +29,9 @@ describe('TestMantleVaultDeposit', () => {
   const userAddress = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe";
   const lendingPoolAddress = "0x00A55649E597d463fD212fBE48a3B40f0E227d06";
   const initStrategyAddress = "0xAfD43313144a989CC435971201119c58C0149727";
+  const usdcUsdyStrategyAddress = "0xa8B13Fb0f60891857cB665439D18D0C306517726";
+  const locusFeedAddress = "0x5662AaAc9fdc97910E648e54076Be71D60D4045f";
+  
   const usdcWhale = "0x588846213A30fd36244e0ae0eBB2374516dA836C";
 
   const userUsdcAllowance = hre.ethers.BigNumber.from("5000000000");
@@ -42,6 +45,8 @@ describe('TestMantleVaultDeposit', () => {
   let lendingPoolEip20Instance;
   let lendingPoolInstance;
   let initStrategyInstance;
+  let usdcUsdyStrategyInstance;
+  let locusFeedInstance;
 
   beforeEach(async () => {
     xMantleInstance = await hre.ethers.getContractAt(
@@ -68,6 +73,14 @@ describe('TestMantleVaultDeposit', () => {
       "InitStrategy",
       initStrategyAddress
     );
+    usdcUsdyStrategyInstance = await hre.ethers.getContractAt(
+      "UsdcUsdyStrategy",
+      usdcUsdyStrategyAddress
+    );
+    locusFeedInstance = await hre.ethers.getContractAt(
+      "LocusDataFeed",
+      locusFeedAddress
+    );
     await mintNativeTokens(userAddress, "0x10000000000000000000");
     await withImpersonatedSigner(usdcWhale, async (usdcWhaleSigner) => {
       await usdcInstance.connect(usdcWhaleSigner).transfer(userAddress, userUsdcAllowance);
@@ -85,13 +98,17 @@ describe('TestMantleVaultDeposit', () => {
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await xMantleInstance.connect(userSigner)["deposit(uint256)"](usdcAmountToDeposit);
     });
-    console.log(`EST: ${(await initStrategyInstance.estimatedTotalAssets()).toString()}`);
+    // console.log(`EST: ${(await initStrategyInstance.estimatedTotalAssets()).toString()}`);
+    // await withImpersonatedSigner(userAddress, async (userSigner) => {
+    //   await initStrategyInstance.connect(userSigner).harvest();
+    // });
     await withImpersonatedSigner(userAddress, async (userSigner) => {
-      await initStrategyInstance.connect(userSigner).harvest();
+      await locusFeedInstance.connect(userSigner).updateFeed(usdcUsdyStrategyAddress);
+      await usdcUsdyStrategyInstance.connect(userSigner).harvest();
     });
     console.log(`Balance of shares: ${(await initStrategyInstance.balanceOfShares()).toString()}`);
-    console.log(`EST: ${(await initStrategyInstance.estimatedTotalAssets()).toString()}`);
-    console.log(`PPS: ${(await xMantleInstance.pricePerShare()).toString()}`);
+    // console.log(`EST: ${(await initStrategyInstance.estimatedTotalAssets()).toString()}`);
+    // console.log(`PPS: ${(await xMantleInstance.pricePerShare()).toString()}`);
   });
 });
 

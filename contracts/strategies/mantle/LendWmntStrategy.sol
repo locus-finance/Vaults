@@ -23,7 +23,7 @@
 //     event WantTokenGathered(uint256 indexed amount);
 
 //     ICircuitVault public constant CIRCUIT_VAULT =
-//         ICircuitVault(0xc425A0fC1e62bEDa428Ff628597dC8EA1C13d0e4);
+//         ICircuitVault(0x6CeaC8F90B7cAA311E025480503Bb0020B66f22A);
 
 //     IERC20 public constant LEND = IERC20(0x25356aeca4210eF7553140edb9b8026089E49396);
 //     IERC20 public constant WMNT = IERC20(0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8);

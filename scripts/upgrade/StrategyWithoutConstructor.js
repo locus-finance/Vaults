@@ -31,8 +31,7 @@ async function main() {
   );
 
   await hre.run("verify:verify", {
-    address: upgraded.address,
-    constructorArguments: [vault],
+    address: upgraded.address
   });
 }
 

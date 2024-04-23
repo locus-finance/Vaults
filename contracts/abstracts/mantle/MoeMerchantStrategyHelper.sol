@@ -85,7 +85,7 @@ abstract contract MoeMerchantStrategyHelper is ILocusDataFeedUser {
             path,
             address(this),
             block.timestamp
-        )[0];
+        )[1];
     }
 
     function _moeMerchantAddLiquidity(
@@ -101,19 +101,19 @@ abstract contract MoeMerchantStrategyHelper is ILocusDataFeedUser {
             address(this),
             uint256(ReservedTopics.RESERVE_B)
         );
-        uint256 amountB = MOE_ROUTER.quote(amountA, reserve0, reserve1);
 
         uint256 tokensAToAdd = amountA / 2;
-        uint256 tokensBToAdd = amountB / 2;
-        _moeMerchantSwap(tokenA, tokenB, tokensAToAdd, tokensBToAdd);
+        uint256 tokensBToAdd = MOE_ROUTER.quote(tokensAToAdd, reserve0, reserve1);
+        uint256 tokensBToAddWithSlippage = (tokensBToAdd * STANDARD_SLIPPAGE) / MAX_BPS; 
+        uint256 swappedTokensB = _moeMerchantSwap(tokenA, tokenB, tokensAToAdd, tokensBToAddWithSlippage);
 
         (, , lpMinted) = MOE_ROUTER.addLiquidity(
             tokenA,
             tokenB,
             tokensAToAdd,
-            tokensBToAdd,
-            tokensAToAdd - ((tokensAToAdd * STANDARD_SLIPPAGE) / MAX_BPS),
-            tokensBToAdd - ((tokensBToAdd * STANDARD_SLIPPAGE) / MAX_BPS),
+            swappedTokensB,
+            (tokensAToAdd * STANDARD_SLIPPAGE) / MAX_BPS,
+            tokensBToAddWithSlippage,
             address(this),
             block.timestamp
         );
