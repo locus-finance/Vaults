@@ -94,21 +94,23 @@ describe('TestMantleVaultDeposit', () => {
     });
   });
 
-  it('should', async () => {
+  xit('should', async () => {
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await xMantleInstance.connect(userSigner)["deposit(uint256)"](usdcAmountToDeposit);
     });
-    // console.log(`EST: ${(await initStrategyInstance.estimatedTotalAssets()).toString()}`);
-    // await withImpersonatedSigner(userAddress, async (userSigner) => {
-    //   await initStrategyInstance.connect(userSigner).harvest();
-    // });
+    await withImpersonatedSigner(userAddress, async (userSigner) => {
+      await initStrategyInstance.connect(userSigner).harvest();
+    });
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await locusFeedInstance.connect(userSigner).updateFeed(usdcUsdyStrategyAddress);
       await usdcUsdyStrategyInstance.connect(userSigner).harvest();
     });
-    console.log(`Balance of shares: ${(await initStrategyInstance.balanceOfShares()).toString()}`);
-    // console.log(`EST: ${(await initStrategyInstance.estimatedTotalAssets()).toString()}`);
-    // console.log(`PPS: ${(await xMantleInstance.pricePerShare()).toString()}`);
+  });
+
+  it('should EST', async () => {
+    const cirVault = await hre.ethers.getContractAt("IERC20Metadata", "0xc425a0fc1e62beda428ff628597dc8ea1c13d0e4")
+    console.log((await cirVault.decimals()).toString());
+    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare()));
   });
 });
 

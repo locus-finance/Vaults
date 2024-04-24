@@ -30,6 +30,7 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
         IERC20(0xc1f43E45F86E7bfb92C3c309b0eF366F9Ba33Bfa);
 
     uint256 public constant TOPICS_AMOUNT = uint256(type(ReservedTopics).max) + 1;
+    uint256 public constant PRECISION = 1 ether;
 
     function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(_vault, _strategist, _strategist, _strategist);
@@ -106,13 +107,13 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
         uint256 amount
     ) internal view returns (uint256 result) {
         if (amount == 0) return 0;
-        uint256 liquidity = amount / CIRCUIT_VAULT.getPricePerFullShare();
+        uint256 liquidity = (amount * PRECISION) / CIRCUIT_VAULT.getPricePerFullShare();
         IMoePair pair = IMoePair(
             MOE_FACTORY.getPair(address(want), address(USDY))
         );
         uint256 lpTotalSupply = pair.totalSupply();
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
-        result = (liquidity * reserve0) / lpTotalSupply;
+        result = ((liquidity * reserve0) / PRECISION) / lpTotalSupply;
         uint256 usdyAmount = (liquidity * reserve1) / lpTotalSupply;
         address[] memory path = new address[](2);
         path[0] = address(USDY);
