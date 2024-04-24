@@ -79,9 +79,9 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
         return MOE_MERCHANT_USDC_USDY_POOL.balanceOf(address(this));
     }
 
-    function _wantToCircuitShares(
+    function wantToCircuitShares(
         uint256 amount
-    ) internal view returns (uint256 result) {
+    ) public view returns (uint256 result) {
         if (amount == 0) return 0;
         address[] memory path = new address[](2);
         path[0] = address(want);
@@ -93,7 +93,7 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
         );
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
         uint256 amountBToAdd = MOE_ROUTER.getAmountsOut(amountAToSwapToB, path)[
-            0
+            1
         ];
         uint256 lpTotalSupply = pair.totalSupply();
         uint256 liquidity = Math.min(
@@ -103,9 +103,9 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
         result = CIRCUIT_VAULT.getPricePerFullShare() * liquidity;
     }
 
-    function _circuitSharesToWant(
+    function circuitSharesToWant(
         uint256 amount
-    ) internal view returns (uint256 result) {
+    ) public view returns (uint256 result) {
         if (amount == 0) return 0;
         uint256 liquidity = (amount * PRECISION) / CIRCUIT_VAULT.getPricePerFullShare();
         IMoePair pair = IMoePair(
@@ -118,7 +118,7 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
         address[] memory path = new address[](2);
         path[0] = address(USDY);
         path[1] = address(want);
-        result += MOE_ROUTER.getAmountsOut(usdyAmount, path)[0];
+        result += MOE_ROUTER.getAmountsOut(usdyAmount, path)[1];
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {
@@ -126,7 +126,7 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
             return;
         }
         uint256 sharesToWithdraw = Math.min(
-            _wantToCircuitShares(_amountNeeded),
+            wantToCircuitShares(_amountNeeded),
             balanceOfCircuitShares()
         );
         _exitPosition(sharesToWithdraw);
@@ -140,7 +140,7 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
         returns (uint256 _wants)
     {
         _wants += want.balanceOf(address(this));
-        _wants += _circuitSharesToWant(balanceOfCircuitShares());
+        _wants += circuitSharesToWant(balanceOfCircuitShares());
     }
 
     function prepareReturn(

@@ -46,13 +46,13 @@ async function main() {
   const setVaultTokenTx = await vault.setVaultToken(vaultToken.address);
   await setVaultTokenTx.wait();
   console.log(`Vault token is set:\n${JSON.stringify(setVaultTokenTx)}`);
-
-  await hre.run("verify:verify", {
-    address: vaultToken.address,
-  });
-  await hre.run("verify:verify", {
-    address: vault.address,
-  });
+  
+  // await hre.run("verify:verify", {
+  //   address: vaultToken.address,
+  // });
+  // await hre.run("verify:verify", {
+  //   address: vault.address,
+  // });
 };
 
 main()

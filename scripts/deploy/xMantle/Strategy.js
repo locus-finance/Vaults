@@ -4,7 +4,7 @@ const { getEnv } = require("../../utils");
 
 const TARGET_STRATEGY = "UsdcUsdyStrategy";
 const strategist = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe"
-const vaultAddress = "0xAF30274F4366c5532Cd22B151780fBe3d2E1FeDa";
+const vaultAddress = "0x877559B8D37E5a05dB12F289214c51D05856fcA0";
 
 const DEPLOY_SETTINGS = {
     vaultAddress: vaultAddress,
@@ -86,9 +86,9 @@ async function main() {
         console.log(`Failed to add strategy to vault: ${e}`);
     }
 
-    await hre.run("verify:verify", {
-        address: strategy.address
-    });
+    // await hre.run("verify:verify", {
+    //     address: strategy.address
+    // });
 }
 
 main()

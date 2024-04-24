@@ -24,12 +24,12 @@ const withImpersonatedSigner = async (signerAddress, action) => {
 }
 
 describe('TestMantleVaultDeposit', () => {
-  const xMantleVaultDepositaryAddress = "0xAF30274F4366c5532Cd22B151780fBe3d2E1FeDa";
-  const xMantleVaultTokenAddress = "0x180345D30DD6523907D797de13d9CBFAf23cf29E";
+  const xMantleVaultDepositaryAddress = "0x877559B8D37E5a05dB12F289214c51D05856fcA0";
+  const xMantleVaultTokenAddress = "0xE6B9b205C290D077e56e4857beF082C2FFeF4C54";
   const userAddress = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe";
   const lendingPoolAddress = "0x00A55649E597d463fD212fBE48a3B40f0E227d06";
-  const initStrategyAddress = "0xAfD43313144a989CC435971201119c58C0149727";
-  const usdcUsdyStrategyAddress = "0xa8B13Fb0f60891857cB665439D18D0C306517726";
+  const initStrategyAddress = "0xB134814B4E95DbD76fbc12E1976C8f54CD7b8020";
+  const usdcUsdyStrategyAddress = "0xa28e09cC6fb46D49686DDe0aE48053600c94900f";
   const locusFeedAddress = "0x5662AaAc9fdc97910E648e54076Be71D60D4045f";
   
   const usdcWhale = "0x588846213A30fd36244e0ae0eBB2374516dA836C";
@@ -94,7 +94,7 @@ describe('TestMantleVaultDeposit', () => {
     });
   });
 
-  xit('should', async () => {
+  it('should', async () => {
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await xMantleInstance.connect(userSigner)["deposit(uint256)"](usdcAmountToDeposit);
     });
@@ -107,9 +107,12 @@ describe('TestMantleVaultDeposit', () => {
     });
   });
 
-  it('should EST', async () => {
+  xit('should EST', async () => {
     const cirVault = await hre.ethers.getContractAt("IERC20Metadata", "0xc425a0fc1e62beda428ff628597dc8ea1c13d0e4")
     console.log((await cirVault.decimals()).toString());
+    const cirBalance = await cirVault.balanceOf(usdcUsdyStrategyInstance.address);
+    console.log(cirBalance.toString());
+    console.log((await usdcUsdyStrategyInstance.circuitSharesToWant(cirBalance)).toString());
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare()));
   });
 });
