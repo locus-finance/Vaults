@@ -26,7 +26,10 @@ const withImpersonatedSigner = async (signerAddress, action) => {
 describe('TestMantleVaultDeposit', () => {
   const xMantleVaultDepositaryAddress = "0x877559B8D37E5a05dB12F289214c51D05856fcA0";
   const xMantleVaultTokenAddress = "0xE6B9b205C290D077e56e4857beF082C2FFeF4C54";
+  
   const userAddress = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe";
+  const strategist = userAddress;
+  
   const lendingPoolAddress = "0x00A55649E597d463fD212fBE48a3B40f0E227d06";
   const initStrategyAddress = "0xB134814B4E95DbD76fbc12E1976C8f54CD7b8020";
   const usdcUsdyStrategyAddress = "0xa28e09cC6fb46D49686DDe0aE48053600c94900f";
@@ -34,10 +37,9 @@ describe('TestMantleVaultDeposit', () => {
   
   const usdcWhale = "0x588846213A30fd36244e0ae0eBB2374516dA836C";
 
-  const userUsdcAllowance = hre.ethers.BigNumber.from("5000000000");
-  const strategist = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe";
+  const userUsdcAllowance = hre.ethers.utils.parseUnits("50000", 6);
   const usdcAddress = "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9";
-  const usdcAmountToDeposit = hre.ethers.utils.parseUnits("4", 6);
+  const usdcAmountToDeposit = hre.ethers.utils.parseUnits("10000", 6);
 
   let xMantleInstance;
   let xMantleTokenInstance;
@@ -95,7 +97,9 @@ describe('TestMantleVaultDeposit', () => {
   });
 
   it('should', async () => {
+    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
     await withImpersonatedSigner(userAddress, async (userSigner) => {
+      await usdcInstance.connect(userSigner).approve(xMantleInstance.address, usdcAmountToDeposit);
       await xMantleInstance.connect(userSigner)["deposit(uint256)"](usdcAmountToDeposit);
     });
     await withImpersonatedSigner(userAddress, async (userSigner) => {
@@ -105,6 +109,7 @@ describe('TestMantleVaultDeposit', () => {
       await locusFeedInstance.connect(userSigner).updateFeed(usdcUsdyStrategyAddress);
       await usdcUsdyStrategyInstance.connect(userSigner).harvest();
     });
+    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
   });
 
   xit('should EST', async () => {
