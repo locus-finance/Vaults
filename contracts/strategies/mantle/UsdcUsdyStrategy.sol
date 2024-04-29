@@ -100,21 +100,21 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
             (amountAToAdd * lpTotalSupply) / reserve0,
             (amountBToAdd * lpTotalSupply) / reserve1
         );
-        result = CIRCUIT_VAULT.getPricePerFullShare() * liquidity;
+        result = (liquidity * CIRCUIT_VAULT.totalSupply()) / CIRCUIT_VAULT.balance();
     }
 
     function circuitSharesToWant(
         uint256 amount
     ) public view returns (uint256 result) {
         if (amount == 0) return 0;
-        uint256 liquidity = (amount * PRECISION) / CIRCUIT_VAULT.getPricePerFullShare();
+        uint256 liquidity = (amount * CIRCUIT_VAULT.balance()) / CIRCUIT_VAULT.totalSupply();
         IMoePair pair = IMoePair(
             MOE_FACTORY.getPair(address(want), address(USDY))
         );
         uint256 lpTotalSupply = pair.totalSupply();
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
-        result = ((liquidity * reserve0) / PRECISION) / lpTotalSupply;
-        uint256 usdyAmount = ((liquidity * reserve1) / PRECISION) / lpTotalSupply;
+        result = (liquidity * reserve0) / lpTotalSupply;
+        uint256 usdyAmount = (liquidity * reserve1) / lpTotalSupply;
         address[] memory path = new address[](2);
         path[0] = address(USDY);
         path[1] = address(want);
