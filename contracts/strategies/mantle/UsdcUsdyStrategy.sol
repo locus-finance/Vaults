@@ -114,7 +114,7 @@ contract UsdcUsdyStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyH
         uint256 lpTotalSupply = pair.totalSupply();
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
         result = ((liquidity * reserve0) / PRECISION) / lpTotalSupply;
-        uint256 usdyAmount = (liquidity * reserve1) / lpTotalSupply;
+        uint256 usdyAmount = ((liquidity * reserve1) / PRECISION) / lpTotalSupply;
         address[] memory path = new address[](2);
         path[0] = address(USDY);
         path[1] = address(want);
