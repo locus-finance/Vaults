@@ -382,4 +382,6 @@ abstract contract BaseStrategyForSeparatedVault {
             IERC20(_token).balanceOf(address(this))
         );
     }
+
+    function advicePerformanceFee(uint256 performanceFeeFromVault) external virtual view returns(uint256 correctedPerformanceFee);
 }

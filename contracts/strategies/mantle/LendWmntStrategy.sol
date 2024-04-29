@@ -1,5 +1,3 @@
-// // SPDX-License-Identifier: AGPL-3.0
-
 // pragma solidity ^0.8.18;
 
 // import {BaseStrategy} from "@yearn-protocol/contracts/BaseStrategy.sol";
@@ -12,55 +10,81 @@
 // import "../../utils/Utils.sol";
 // import "../../abstracts/mantle/MoeMerchantStrategyHelper.sol";
 
-// contract LentWmntStrategy is BaseStrategyForSeparatedVault, MoeMerchantStrategyHelper {
+// contract LendWmntStrategy is
+//     BaseStrategyForSeparatedVault,
+//     MoeMerchantStrategyHelper
+// {
 //     using SafeERC20 for IERC20;
 //     using Math for uint256;
 
-//     event MintedCircuitShares(uint256 indexed amount);
-//     event MintedMoeLp(uint256 indexed amount);
-//     event BurnedCircuitShares(uint256 indexed amount);
-//     event BurnedMoeLp(uint256 indexed amount);
-//     event WantTokenGathered(uint256 indexed amount);
+//     event MintedCircuitShares(
+//         uint256 indexed oldBalance,
+//         uint256 indexed newBalance
+//     );
+//     event MintedMoeLp(uint256 indexed oldBalance, uint256 indexed newBalance);
+//     event BurnedCircuitShares(
+//         uint256 indexed oldBalance,
+//         uint256 indexed newBalance
+//     );
+//     event BurnedMoeLp(uint256 indexed oldBalance, uint256 indexed newBalance);
+//     event WantTokensGathered(uint256 indexed amount);
 
 //     ICircuitVault public constant CIRCUIT_VAULT =
 //         ICircuitVault(0x6CeaC8F90B7cAA311E025480503Bb0020B66f22A);
 
-//     IERC20 public constant LEND = IERC20(0x25356aeca4210eF7553140edb9b8026089E49396);
-//     IERC20 public constant WMNT = IERC20(0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8);
-//     IERC20 public constant MOE_MERCHANT_LEND_WMNT_POOL = IERC20(0x30ac02b4c99d140cde2a212ca807cbda35d4f6b5);
+//     IERC20 public constant LEND =
+//         IERC20(0x25356aeca4210eF7553140edb9b8026089E49396);
+//     IERC20 public constant WMNT =
+//         IERC20(0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8);
+//     IERC20 public constant MOE_MERCHANT_LEND_WMNT_POOL =
+//         IERC20(0x30ac02b4c99d140cde2a212ca807cbda35d4f6b5);
 
-//     uint256 public constant TOPICS_AMOUNT = uint256(type(ReservedTopics).max) + 1;
+//     uint256 public constant TOPICS_AMOUNT =
+//         uint256(type(ReservedTopics).max) + 1;
 
 //     function initialize(address _vault, address _strategist) external {
-//         __Base_Strategy_Initialize(_vault, _strategist, _strategist, _strategist);
+//         __Base_Strategy_Initialize(
+//             _vault,
+//             _strategist,
+//             _strategist,
+//             _strategist
+//         );
 //         want.approve(address(MOE_ROUTER), type(uint256).max);
-//         LEND.approve(address(MOE_ROUTER), type(uint256).max);
 //         WMNT.approve(address(MOE_ROUTER), type(uint256).max);
+//         LEND.approve(address(MOE_ROUTER), type(uint256).max);
 //         MOE_MERCHANT_LEND_WMNT_POOL.approve(
 //             address(MOE_ROUTER),
+//             type(uint256).max
+//         );
+//         MOE_MERCHANT_LEND_WMNT_POOL.approve(
+//             address(CIRCUIT_VAULT),
 //             type(uint256).max
 //         );
 //     }
 
 //     function setUpLocusDataFeedReserveTokensTopics() external {
 //         LOCUS_DATA_FEED.setFeed(TOPICS_AMOUNT);
-//         // LOCUS_DATA_FEED.setValue(
-//         //     uint256(ReservedTopics.TOKEN_A),
-//         //     bytes32(uint256(uint160(address(want))))
-//         // );
-//         // LOCUS_DATA_FEED.setValue(
-//         //     uint256(ReservedTopics.TOKEN_B),
-//         //     bytes32(uint256(uint160(address(USDY))))
-//         // );
+//         LOCUS_DATA_FEED.setValue(
+//             uint256(ReservedTopics.TOKEN_A),
+//             bytes32(uint256(uint160(address(want))))
+//         );
+//         LOCUS_DATA_FEED.setValue(
+//             uint256(ReservedTopics.TOKEN_B),
+//             bytes32(uint256(uint160(address(USDY))))
+//         );
 //         LOCUS_DATA_FEED.updateFeed(address(this));
 //     }
 
 //     function name() external pure override returns (string memory) {
-//         return "LEND-WMNT Strategy";
+//         return "USDC-USDY Strategy";
 //     }
 
 //     function balanceOfWant() public view returns (uint256) {
 //         return want.balanceOf(address(this));
+//     }
+
+//     function balanceOfUsdy() public view returns (uint256) {
+//         return USDY.balanceOf(address(this));
 //     }
 
 //     function balanceOfCircuitShares() public view returns (uint256) {
@@ -68,12 +92,13 @@
 //     }
 
 //     function balanceOfMoeLp() public view returns (uint256) {
-//         // return MOE_MERCHANT_USDC_USDY_POOL.balanceOf(address(this));
+//         return MOE_MERCHANT_USDC_USDY_POOL.balanceOf(address(this));
 //     }
 
-//     function _wantToCircuitShares(
+//     function wantToCircuitShares(
 //         uint256 amount
-//     ) internal view returns (uint256 result) {
+//     ) public view returns (uint256 result) {
+//         if (amount == 0) return 0;
 //         address[] memory path = new address[](2);
 //         path[0] = address(want);
 //         path[1] = address(USDY);
@@ -84,20 +109,24 @@
 //         );
 //         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
 //         uint256 amountBToAdd = MOE_ROUTER.getAmountsOut(amountAToSwapToB, path)[
-//             0
+//             1
 //         ];
 //         uint256 lpTotalSupply = pair.totalSupply();
 //         uint256 liquidity = Math.min(
 //             (amountAToAdd * lpTotalSupply) / reserve0,
 //             (amountBToAdd * lpTotalSupply) / reserve1
 //         );
-//         result = CIRCUIT_VAULT.getPricePerFullShare() * liquidity;
+//         result =
+//             (liquidity * CIRCUIT_VAULT.totalSupply()) /
+//             CIRCUIT_VAULT.balance();
 //     }
 
-//     function _circuitSharesToWant(
+//     function circuitSharesToWant(
 //         uint256 amount
-//     ) internal view returns (uint256 result) {
-//         uint256 liquidity = amount / CIRCUIT_VAULT.getPricePerFullShare();
+//     ) public view returns (uint256 result) {
+//         if (amount == 0) return 0;
+//         uint256 liquidity = (amount * CIRCUIT_VAULT.balance()) /
+//             CIRCUIT_VAULT.totalSupply();
 //         IMoePair pair = IMoePair(
 //             MOE_FACTORY.getPair(address(want), address(USDY))
 //         );
@@ -108,7 +137,7 @@
 //         address[] memory path = new address[](2);
 //         path[0] = address(USDY);
 //         path[1] = address(want);
-//         result += MOE_ROUTER.getAmountsOut(usdyAmount, path)[0];
+//         result += MOE_ROUTER.getAmountsOut(usdyAmount, path)[1];
 //     }
 
 //     function _withdrawSome(uint256 _amountNeeded) internal {
@@ -116,7 +145,7 @@
 //             return;
 //         }
 //         uint256 sharesToWithdraw = Math.min(
-//             _wantToCircuitShares(_amountNeeded),
+//             wantToCircuitShares(_amountNeeded),
 //             balanceOfCircuitShares()
 //         );
 //         _exitPosition(sharesToWithdraw);
@@ -130,7 +159,7 @@
 //         returns (uint256 _wants)
 //     {
 //         _wants += want.balanceOf(address(this));
-//         _wants += _circuitSharesToWant(balanceOfCircuitShares());
+//         _wants += circuitSharesToWant(balanceOfCircuitShares());
 //     }
 
 //     function prepareReturn(
@@ -188,36 +217,56 @@
 
 //     function _mintShares(uint256 _amount) internal {
 //         if (_amount == 0) return;
-//         uint256 lpMinted = _moeMerchantAddLiquidity(address(want), address(USDY), _amount);
-//         emit MintedMoeLp(lpMinted);
+//         uint256 oldLpBalance = balanceOfMoeLp();
+//         uint256 lpMinted = _moeMerchantAddLiquidity(
+//             address(want),
+//             address(USDY),
+//             _amount
+//         );
+//         emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
 //         uint256 circuitShares = balanceOfCircuitShares();
 //         CIRCUIT_VAULT.deposit(lpMinted);
-//         circuitShares = balanceOfCircuitShares() - circuitShares;
-//         emit MintedCircuitShares(circuitShares);
+//         emit MintedCircuitShares(circuitShares, balanceOfCircuitShares());
 //     }
 
 //     function _burnShares(uint256 _shares) internal {
 //         if (_shares == 0) return;
-//         uint256 lpTokens = balanceOfMoeLp();
+//         uint256 oldLpBalance = balanceOfMoeLp();
+//         uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
 //         CIRCUIT_VAULT.withdraw(_shares);
-//         lpTokens = balanceOfMoeLp() - lpTokens;
-//         emit BurnedCircuitShares(_shares);
-//         RemoveLiquidityData memory removedLiquidityData = _moeMerchantRemoveLiquidity(
-//             address(want),
-//             address(USDY),
-//             lpTokens
+//         emit BurnedCircuitShares(
+//             oldCircuitSharesBalance,
+//             balanceOfCircuitShares()
 //         );
-//         emit BurnedMoeLp(lpTokens);
-//         uint256 reserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(address(this), uint256(ReservedTopics.RESERVE_A));
-//         uint256 reserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(address(this), uint256(ReservedTopics.RESERVE_B));
-//         uint256 amountUsdcOut = MOE_ROUTER.getAmountOut(removedLiquidityData.amountBWithdrawn, reserve1, reserve0);
+//         RemoveLiquidityData
+//             memory removedLiquidityData = _moeMerchantRemoveLiquidity(
+//                 address(want),
+//                 address(USDY),
+//                 balanceOfMoeLp() - oldLpBalance
+//             );
+//         emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
+//         uint256 reserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
+//             address(this),
+//             uint256(ReservedTopics.RESERVE_A)
+//         );
+//         uint256 reserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
+//             address(this),
+//             uint256(ReservedTopics.RESERVE_B)
+//         );
+//         uint256 amountUsdcOut = MOE_ROUTER.getAmountOut(
+//             removedLiquidityData.amountBWithdrawn,
+//             reserve1,
+//             reserve0
+//         );
 //         uint256 usdyToUsdcSwappedAmount = _moeMerchantSwap(
 //             address(USDY),
 //             address(want),
 //             removedLiquidityData.amountBWithdrawn,
-//             amountUsdcOut - ((amountUsdcOut * STANDARD_SLIPPAGE) / MAX_BPS)
+//             (amountUsdcOut * STANDARD_SLIPPAGE) / MAX_BPS
 //         );
-//         emit WantTokenGathered(removedLiquidityData.amountAWithdrawn + usdyToUsdcSwappedAmount);
+//         emit WantTokensGathered(
+//             removedLiquidityData.amountAWithdrawn + usdyToUsdcSwappedAmount
+//         );
 //     }
 
 //     function liquidateAllPositions() internal override returns (uint256) {

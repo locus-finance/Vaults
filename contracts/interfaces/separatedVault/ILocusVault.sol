@@ -4,18 +4,7 @@ pragma solidity 0.8.23;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import {ILocusVaultToken} from "./ILocusVaultToken.sol";
-
-struct StrategyParams {
-    uint256 performanceFee;
-    uint256 activation;
-    uint256 debtRatio;
-    uint256 minDebtPerHarvest;
-    uint256 maxDebtPerHarvest;
-    uint256 lastReport;
-    uint256 totalDebt;
-    uint256 totalGain;
-    uint256 totalLoss;
-}
+import {StrategyParams} from "../../abstracts/BaseStrategyForSeparatedVault.sol";
 
 interface ILocusVault {
     error OnlyAuthorized(address); //0x1748142d
@@ -72,6 +61,8 @@ interface ILocusVault {
         uint256 indexed value,
         uint256 timestamp
     );
+
+    event NewPerformanceFeeCalculated(uint256 indexed newPerformanceFee);
 
     function initialize(
         IERC20 _token,

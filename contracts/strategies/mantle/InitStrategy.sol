@@ -37,7 +37,12 @@ contract InitStrategy is BaseStrategyForSeparatedVault {
     IIRM public irm;
 
     function initialize(address _vault, address _strategist) external {
-        __Base_Strategy_Initialize(_vault, _strategist, _strategist, _strategist);
+        __Base_Strategy_Initialize(
+            _vault,
+            _strategist,
+            _strategist,
+            _strategist
+        );
         irm = IIRM(INIT_USDC_LENDING_POOL.irm());
         want.approve(address(INIT_USDC_LENDING_POOL), type(uint256).max);
         IERC20(address(INIT_USDC_LENDING_POOL)).approve(
@@ -196,7 +201,10 @@ contract InitStrategy is BaseStrategyForSeparatedVault {
 
     function _mintShares(uint256 _amount) internal {
         want.safeTransfer(address(INIT_USDC_LENDING_POOL), _amount);
-        uint256 sharesMinted = INIT_CORE.mintTo(address(INIT_USDC_LENDING_POOL), address(this));
+        uint256 sharesMinted = INIT_CORE.mintTo(
+            address(INIT_USDC_LENDING_POOL),
+            address(this)
+        );
         emit MintedOrBurnedShares(sharesMinted, true);
     }
 
@@ -252,4 +260,16 @@ contract InitStrategy is BaseStrategyForSeparatedVault {
     {}
 
     receive() external payable {}
+    
+    function advicePerformanceFee(
+        uint256 performanceFeeFromVault
+    )
+        external
+        pure
+        virtual
+        override
+        returns (uint256 correctedPerformanceFee)
+    {
+        return performanceFeeFromVault;
+    }
 }

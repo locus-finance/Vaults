@@ -13,7 +13,7 @@ async function main() {
 
   console.log(
     "Implementation address: " +
-      (await hre.upgrades.erc1967.getImplementationAddress(TARGET_ADDRESS))
+    (await hre.upgrades.erc1967.getImplementationAddress(TARGET_ADDRESS))
   );
   const adminAddr = await hre.upgrades.erc1967.getAdminAddress(TARGET_ADDRESS);
   console.log("Admin address: " + adminAddr);
@@ -26,11 +26,12 @@ async function main() {
   console.log("Successfully upgraded implementation of", upgraded.address);
   console.log(
     "New implementation address: " +
-      (await hre.upgrades.erc1967.getImplementationAddress(TARGET_ADDRESS))
+    (await hre.upgrades.erc1967.getImplementationAddress(TARGET_ADDRESS))
   );
 
   await hre.run("verify:verify", {
-    address: upgraded.address  });
+    address: upgraded.address
+  });
 }
 
 main()

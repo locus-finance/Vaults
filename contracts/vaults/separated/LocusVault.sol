@@ -10,9 +10,9 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
-import {IBaseStrategy} from "../../interfaces/IBaseStrategy.sol";
+import {StrategyParams, BaseStrategyForSeparatedVault} from "../../abstracts/BaseStrategyForSeparatedVault.sol";
 import {ILocusVaultToken} from "../../interfaces/separatedVault/ILocusVaultToken.sol";
-import {StrategyParams, ILocusVault} from "../../interfaces/separatedVault/ILocusVault.sol";
+import {ILocusVault} from "../../interfaces/separatedVault/ILocusVault.sol";
 
 contract LocusVault is
     Initializable,
@@ -48,6 +48,9 @@ contract LocusVault is
 
     address[] public strategiesList;
     mapping(address strategy => uint256 position) public strategyPositionInArray;
+    uint256 public lastPricePerShare;
+    uint256 public constant PRECISION = 1 ether;
+    
 
     function totalSupply() public view returns (uint256) {
         return vaultToken.totalSupply();
@@ -105,14 +108,14 @@ contract LocusVault is
     //!Tests are not working with this implementation of PPS
     function totalAssets() public view returns (uint256 _assets) {
         for (uint256 i = 0; i < strategiesList.length; i++) {
-            _assets += IBaseStrategy(strategiesList[i])
+            _assets += BaseStrategyForSeparatedVault(strategiesList[i])
                 .estimatedTotalAssets();
         }
         _assets += totalIdle();
         // _assets += totalIdle() + totalDebt;
     }
 
-    function setPerformanceFee(uint256 fee) external onlyRole(ADMIN_ROLE) {
+    function setInitialPerformanceFee(uint256 fee) external onlyRole(ADMIN_ROLE) {
         if (fee > MAX_BPS / 2) revert UnacceptableFee();
         performanceFee = fee;
     }
@@ -249,7 +252,7 @@ contract LocusVault is
                     continue;
                 }
                 uint256 balanceBefore = token.balanceOf(address(this));
-                uint256 loss = IBaseStrategy(strategiesList[i]).withdraw(
+                uint256 loss = BaseStrategyForSeparatedVault(strategiesList[i]).withdraw(
                     amountNeeded
                 );
                 uint256 withdrawn = token.balanceOf(address(this)) -
@@ -286,7 +289,7 @@ contract LocusVault is
         return value;
     }
 
-    function pricePerShare() external view returns (uint256) {
+    function pricePerShare() public view returns (uint256) {
         return _shareValue(10 ** decimals());
     }
 
@@ -339,7 +342,7 @@ contract LocusVault is
         });
         strategies[_oldStrategy].totalDebt = 0;
 
-        IBaseStrategy(_oldStrategy).migrate(_newStrategy);
+        BaseStrategyForSeparatedVault(_oldStrategy).migrate(_newStrategy);
         strategiesList[strategyPositionInArray[_oldStrategy]] = _newStrategy;
         strategyPositionInArray[_newStrategy] = strategyPositionInArray[
             _oldStrategy
@@ -423,7 +426,7 @@ contract LocusVault is
             params.debtRatio
         );
         if (strategies[_msgSender()].debtRatio == 0 || emergencyShutdown) {
-            return IBaseStrategy(_msgSender()).estimatedTotalAssets();
+            return BaseStrategyForSeparatedVault(_msgSender()).estimatedTotalAssets();
         } else {
             return debt;
         }
@@ -552,6 +555,30 @@ contract LocusVault is
         }
     }
 
+    function getPercentageDiffOfPps() public view returns (uint256 percentageDifference) {
+        uint256 _lastPricePerShare = lastPricePerShare; 
+        uint256 currentPps = pricePerShare();
+        if (_lastPricePerShare >= currentPps) return 0;
+        uint256 absDifference = Math.max(currentPps, _lastPricePerShare) - Math.min(currentPps, _lastPricePerShare);
+        percentageDifference = ((absDifference * PRECISION) / ((currentPps + _lastPricePerShare) / 2)) / PRECISION;
+    }
+
+    function _calculatePerformanceFee() internal returns (uint256) {
+        if (lastPricePerShare == 0) {
+            lastPricePerShare = pricePerShare();
+            return performanceFee;
+        }
+        uint256 ppsPercentageDiff = getPercentageDiffOfPps();
+        uint256 feeStep = 1000;
+        if (ppsPercentageDiff > 10) {
+            uint256 calculatedPerformanceFee = feeStep * (ppsPercentageDiff / 10);
+            emit NewPerformanceFeeCalculated(calculatedPerformanceFee);
+            return calculatedPerformanceFee;
+        } else {
+            return 0;
+        }
+    }
+
     function _assessFees(
         address strategy,
         uint256 gain
@@ -572,7 +599,7 @@ contract LocusVault is
             managementFee) /
             MAX_BPS /
             SECS_PER_YEAR;
-        uint256 _performanceFee = (gain * performanceFee) / MAX_BPS;
+        uint256 _performanceFee = (gain * _calculatePerformanceFee()) / MAX_BPS;
         uint256 totalFee = _managementFee + _performanceFee;
         if (totalFee > gain) {
             totalFee = gain;
@@ -585,7 +612,7 @@ contract LocusVault is
         return totalFee;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE){}
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE) {}
 
     receive() external payable {}
 }
