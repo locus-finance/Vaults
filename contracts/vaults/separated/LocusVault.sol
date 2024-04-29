@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.19;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -20,7 +20,7 @@ contract LocusVault is
     UUPSUpgradeable,
     AccessControlUpgradeable
 {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Metadata;
     using SafeERC20 for ILocusVaultToken;
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
@@ -31,7 +31,7 @@ contract LocusVault is
     uint256 public constant DEGRADATION_COEFFICIENT = 10 ** 18;
     uint256 public constant LOCKED_PROFIT_DEGRADATION = (DEGRADATION_COEFFICIENT * 46) / 10 ** 6;
 
-    IERC20 public override token;
+    IERC20Metadata public override token;
     ILocusVaultToken public vaultToken;
     
     uint256 public lockedProfit;
@@ -41,6 +41,7 @@ contract LocusVault is
     uint256 public totalDebtRatio;
     uint256 public totalDebt;
     uint256 public managementFee;
+    /// @dev Following `performanceFee` is used only for an initial value of performance fee.
     uint256 public performanceFee;
     bool public emergencyShutdown;
 
@@ -49,8 +50,6 @@ contract LocusVault is
     address[] public strategiesList;
     mapping(address strategy => uint256 position) public strategyPositionInArray;
     uint256 public lastPricePerShare;
-    uint256 public constant PRECISION = 1 ether;
-    
 
     function totalSupply() public view returns (uint256) {
         return vaultToken.totalSupply();
@@ -64,7 +63,7 @@ contract LocusVault is
     }
 
     function initialize(
-        IERC20 _token,
+        IERC20Metadata _token,
         address _admin,
         address _treasury
     ) external initializer {
@@ -555,12 +554,16 @@ contract LocusVault is
         }
     }
 
-    function getPercentageDiffOfPps() public view returns (uint256 percentageDifference) {
+    function previewPerformanceFee() public view returns (uint256) {
         uint256 _lastPricePerShare = lastPricePerShare; 
         uint256 currentPps = pricePerShare();
         if (_lastPricePerShare >= currentPps) return 0;
-        uint256 absDifference = Math.max(currentPps, _lastPricePerShare) - Math.min(currentPps, _lastPricePerShare);
-        percentageDifference = ((absDifference * PRECISION) / ((currentPps + _lastPricePerShare) / 2)) / PRECISION;
+        uint256 localPrecision = 10 ** token.decimals();
+        uint256 diff = currentPps - _lastPricePerShare;
+        uint256 nominator = diff * performanceFee;
+        uint256 denominator = MAX_BPS * localPrecision; 
+        if (nominator < denominator) return 1;
+        return nominator * MAX_BPS / denominator;
     }
 
     function _calculatePerformanceFee() internal returns (uint256) {
@@ -568,15 +571,7 @@ contract LocusVault is
             lastPricePerShare = pricePerShare();
             return performanceFee;
         }
-        uint256 ppsPercentageDiff = getPercentageDiffOfPps();
-        uint256 feeStep = 1000;
-        if (ppsPercentageDiff > 10) {
-            uint256 calculatedPerformanceFee = feeStep * (ppsPercentageDiff / 10);
-            emit NewPerformanceFeeCalculated(calculatedPerformanceFee);
-            return calculatedPerformanceFee;
-        } else {
-            return 0;
-        }
+        return previewPerformanceFee();   
     }
 
     function _assessFees(

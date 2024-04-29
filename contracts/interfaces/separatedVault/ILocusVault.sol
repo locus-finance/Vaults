@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {ILocusVaultToken} from "./ILocusVaultToken.sol";
 import {StrategyParams} from "../../abstracts/BaseStrategyForSeparatedVault.sol";
@@ -30,6 +30,7 @@ interface ILocusVault {
     error CannotBurnMoreThanActualBalance();
     error OnlyAuthorizedOrStrategy();
     error DurationCannotBeZero();
+    error DecimalsAreTooSmall(uint256 decimals);
 
     event StrategyWithdrawnSome(
         address indexed strategy,
@@ -65,12 +66,12 @@ interface ILocusVault {
     event NewPerformanceFeeCalculated(uint256 indexed newPerformanceFee);
 
     function initialize(
-        IERC20 _token,
+        IERC20Metadata _token,
         address _admin,
         address treasury
     ) external;
 
-    function token() external view returns (IERC20);
+    function token() external view returns (IERC20Metadata);
 
     function vaultToken() external view returns (ILocusVaultToken);
 
