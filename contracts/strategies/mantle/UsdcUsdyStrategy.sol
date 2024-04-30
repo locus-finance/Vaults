@@ -311,16 +311,4 @@ contract UsdcUsdyStrategy is
     {}
 
     receive() external payable {}
-
-    function advicePerformanceFee(
-        uint256 performanceFeeFromVault
-    )
-        external
-        view
-        virtual
-        override
-        returns (uint256 correctedPerformanceFee)
-    {
-        
-    }
 }

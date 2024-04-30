@@ -260,16 +260,4 @@ contract InitStrategy is BaseStrategyForSeparatedVault {
     {}
 
     receive() external payable {}
-    
-    function advicePerformanceFee(
-        uint256 performanceFeeFromVault
-    )
-        external
-        pure
-        virtual
-        override
-        returns (uint256 correctedPerformanceFee)
-    {
-        return performanceFeeFromVault;
-    }
 }
