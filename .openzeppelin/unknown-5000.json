@@ -1537,7 +1537,7 @@
             "label": "token",
             "offset": 0,
             "slot": "251",
-            "type": "t_contract(IERC20Metadata)4353",
+            "type": "t_contract(IERC20Metadata)3638",
             "contract": "LocusVault",
             "src": "contracts\\vaults\\separated\\LocusVault.sol:34"
           },
@@ -1545,7 +1545,7 @@
             "label": "vaultToken",
             "offset": 0,
             "slot": "252",
-            "type": "t_contract(ILocusVaultToken)9389",
+            "type": "t_contract(ILocusVaultToken)6028",
             "contract": "LocusVault",
             "src": "contracts\\vaults\\separated\\LocusVault.sol:35"
           },
@@ -1625,7 +1625,7 @@
             "label": "strategies",
             "offset": 0,
             "slot": "262",
-            "type": "t_mapping(t_address,t_struct(StrategyParams)6625_storage)",
+            "type": "t_mapping(t_address,t_struct(StrategyParams)5297_storage)",
             "contract": "LocusVault",
             "src": "contracts\\vaults\\separated\\LocusVault.sol:48"
           },
@@ -1679,11 +1679,11 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IERC20Metadata)4353": {
+          "t_contract(IERC20Metadata)3638": {
             "label": "contract IERC20Metadata",
             "numberOfBytes": "20"
           },
-          "t_contract(ILocusVaultToken)9389": {
+          "t_contract(ILocusVaultToken)6028": {
             "label": "contract ILocusVaultToken",
             "numberOfBytes": "20"
           },
@@ -1691,7 +1691,7 @@
             "label": "mapping(address => bool)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_address,t_struct(StrategyParams)6625_storage)": {
+          "t_mapping(t_address,t_struct(StrategyParams)5297_storage)": {
             "label": "mapping(address => struct StrategyParams)",
             "numberOfBytes": "32"
           },
@@ -1721,7 +1721,337 @@
             ],
             "numberOfBytes": "64"
           },
-          "t_struct(StrategyParams)6625_storage": {
+          "t_struct(StrategyParams)5297_storage": {
+            "label": "struct StrategyParams",
+            "members": [
+              {
+                "label": "performanceFee",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "activation",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "debtRatio",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "minDebtPerHarvest",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "maxDebtPerHarvest",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "lastReport",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "totalDebt",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "totalGain",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "totalLoss",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "8"
+              }
+            ],
+            "numberOfBytes": "288"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "77d8d57df97069351cc741d7e1c1369064b6f64f04472c20b66627da176dfad9": {
+      "address": "0x67c10c82E23A53e0895916B259db1153D5E820a7",
+      "txHash": "0xaa15ce8d167c23f7c2fd14e1ae6b30150fc5631569340125963fbc3d4b225b93",
+      "layout": {
+        "solcVersion": "0.8.23",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:169"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:111"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\introspection\\ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:62"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:260"
+          },
+          {
+            "label": "token",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_contract(IERC20Metadata)3638",
+            "contract": "LocusVault",
+            "src": "contracts\\vaults\\separated\\LocusVault.sol:34"
+          },
+          {
+            "label": "vaultToken",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_contract(ILocusVaultToken)6163",
+            "contract": "LocusVault",
+            "src": "contracts\\vaults\\separated\\LocusVault.sol:35"
+          },
+          {
+            "label": "lockedProfit",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_uint256",
+            "contract": "LocusVault",
+            "src": "contracts\\vaults\\separated\\LocusVault.sol:37"
+          },
+          {
+            "label": "lastReport",
+            "offset": 0,
+            "slot": "254",
+            "type": "t_uint256",
+            "contract": "LocusVault",
+            "src": "contracts\\vaults\\separated\\LocusVault.sol:38"
+          },
+          {
+            "label": "treasury",
+            "offset": 0,
+            "slot": "255",
+            "type": "t_address",
+            "contract": "LocusVault",
+            "src": "contracts\\vaults\\separated\\LocusVault.sol:39"
+          },
+          {
+            "label": "depositLimit",
+            "offset": 0,
+            "slot": "256",
+            "type": "t_uint256",
+            "contract": "LocusVault",
+            "src": "contracts\\vaults\\separated\\LocusVault.sol:40"
+          },
+          {
+            "label": "totalDebtRatio",
+            "offset": 0,
+            "slot": "257",
+            "type": "t_uint256",
+            "contract": "LocusVault",
+            "src": "contracts\\vaults\\separated\\LocusVault.sol:41"
+          },
+          {
+            "label": "totalDebt",
+            "offset": 0,
+            "slot": "258",
+            "type": "t_uint256",
+            "contract": "LocusVault",
+            "src": "contracts\\vaults\\separated\\LocusVault.sol:42"
+          },
+          {
+            "label": "managementFee",
+            "offset": 0,
+            "slot": "259",
+            "type": "t_uint256",
+            "contract": "LocusVault",
+            "src": "contracts\\vaults\\separated\\LocusVault.sol:43"
+          },
+          {
+            "label": "performanceFee",
+            "offset": 0,
+            "slot": "260",
+            "type": "t_uint256",
+            "contract": "LocusVault",
+            "src": "contracts\\vaults\\separated\\LocusVault.sol:45"
+          },
+          {
+            "label": "emergencyShutdown",
+            "offset": 0,
+            "slot": "261",
+            "type": "t_bool",
+            "contract": "LocusVault",
+            "src": "contracts\\vaults\\separated\\LocusVault.sol:46"
+          },
+          {
+            "label": "strategies",
+            "offset": 0,
+            "slot": "262",
+            "type": "t_mapping(t_address,t_struct(StrategyParams)5297_storage)",
+            "contract": "LocusVault",
+            "src": "contracts\\vaults\\separated\\LocusVault.sol:48"
+          },
+          {
+            "label": "strategiesList",
+            "offset": 0,
+            "slot": "263",
+            "type": "t_array(t_address)dyn_storage",
+            "contract": "LocusVault",
+            "src": "contracts\\vaults\\separated\\LocusVault.sol:50"
+          },
+          {
+            "label": "strategyPositionInArray",
+            "offset": 0,
+            "slot": "264",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "LocusVault",
+            "src": "contracts\\vaults\\separated\\LocusVault.sol:51"
+          },
+          {
+            "label": "lastPricePerShare",
+            "offset": 0,
+            "slot": "265",
+            "type": "t_uint256",
+            "contract": "LocusVault",
+            "src": "contracts\\vaults\\separated\\LocusVault.sol:52"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC20Metadata)3638": {
+            "label": "contract IERC20Metadata",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ILocusVaultToken)6163": {
+            "label": "contract ILocusVaultToken",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_struct(StrategyParams)5297_storage)": {
+            "label": "mapping(address => struct StrategyParams)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(StrategyParams)5297_storage": {
             "label": "struct StrategyParams",
             "members": [
               {

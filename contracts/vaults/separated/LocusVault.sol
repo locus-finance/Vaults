@@ -571,7 +571,9 @@ contract LocusVault is
             lastPricePerShare = pricePerShare();
             return performanceFee;
         }
-        return previewPerformanceFee();   
+        uint256 newPerformanceFee = previewPerformanceFee();
+        emit NewPerformanceFeeCalculated(newPerformanceFee);
+        return newPerformanceFee;   
     }
 
     function _assessFees(

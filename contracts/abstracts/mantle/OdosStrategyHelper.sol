@@ -18,5 +18,10 @@ abstract contract OdosStrategyHelper is ILocusDataFeedUser {
         if (msg.sender != address(LOCUS_DATA_FEED)) {
             revert OnlyLocusDataFeed();
         }
+
+    }
+
+    function _odosSwap(address tokenIn, address tokenOut, uint256 amountIn) internal {
+        
     }
 }
