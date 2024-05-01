@@ -278,7 +278,7 @@ abstract contract BaseStrategyForSeparatedVault {
         debtOutstanding = vault.report(profit, loss, debtPayment);
         // Check if free returns are left, and re-invest them
         adjustPosition(debtOutstanding);
-
+        vault.updateLastPricePerShare();
         emit Harvested(profit, loss, debtPayment, debtOutstanding);
     }
 

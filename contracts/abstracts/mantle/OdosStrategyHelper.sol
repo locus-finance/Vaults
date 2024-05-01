@@ -17,7 +17,11 @@ abstract contract OdosStrategyHelper is ILocusDataFeedUser {
         address amountIn;
     }
 
+    address public constant ODOS_ROUTER = 0xD9F4e85489aDCD0bAF0Cd63b4231c6af58c26745;
     ILocusDataFeed public constant LOCUS_DATA_FEED = ILocusDataFeed(0x5662AaAc9fdc97910E648e54076Be71D60D4045f);
+    
+    uint256 public constant ODOS_TOPICS_AMOUNT = 10;
+    uint256 public constant TOPIC_A = uint256(type(MoeMerchantStrategyHelper.ReservedTopics).max) + 1;
 
     function updateFeedRequested(
         uint256 topicNumber

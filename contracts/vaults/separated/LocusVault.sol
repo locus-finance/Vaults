@@ -566,6 +566,14 @@ contract LocusVault is
         return nominator * MAX_BPS / denominator;
     }
 
+    function updateLastPricePerShare() external override {
+        address sender = _msgSender();
+        if (!hasRole(ADMIN_ROLE, sender) && sender != strategiesList[strategyPositionInArray[sender]]) {
+            revert OnlyAuthorizedOrStrategy();
+        }
+        lastPricePerShare = pricePerShare();
+    }
+
     function _calculatePerformanceFee() internal returns (uint256) {
         if (lastPricePerShare == 0) {
             lastPricePerShare = pricePerShare();

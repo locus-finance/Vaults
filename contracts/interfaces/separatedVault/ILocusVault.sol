@@ -30,7 +30,6 @@ interface ILocusVault {
     error CannotBurnMoreThanActualBalance();
     error OnlyAuthorizedOrStrategy();
     error DurationCannotBeZero();
-    error DecimalsAreTooSmall(uint256 decimals);
 
     event StrategyWithdrawnSome(
         address indexed strategy,
@@ -116,4 +115,6 @@ interface ILocusVault {
         uint256 _loss,
         uint256 _debtPayment
     ) external returns (uint256);
+
+    function updateLastPricePerShare() external;
 }
