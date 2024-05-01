@@ -4,7 +4,6 @@ pragma solidity ^0.8.18;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "./MoeMerchantStrategyHelper.sol";
 import "../../interfaces/ILocusDataFeed.sol";
 import "../../interfaces/ILocusDataFeedUser.sol";
 
@@ -18,17 +17,21 @@ abstract contract OdosStrategyHelper is ILocusDataFeedUser {
     }
 
     address public constant ODOS_ROUTER = 0xD9F4e85489aDCD0bAF0Cd63b4231c6af58c26745;
-    ILocusDataFeed public constant LOCUS_DATA_FEED = ILocusDataFeed(0x5662AaAc9fdc97910E648e54076Be71D60D4045f);
+    ILocusDataFeed private constant LOCUS_DATA_FEED = ILocusDataFeed(0x5662AaAc9fdc97910E648e54076Be71D60D4045f);
     
-    uint256 public constant ODOS_TOPICS_AMOUNT = 10;
-    uint256 public constant TOPIC_A = uint256(type(MoeMerchantStrategyHelper.ReservedTopics).max) + 1;
+    /// @dev ODOS_TOPICS_AMOUNT = uint256(type(MoeMerchantStrategyHelper.ReservedTopics).max) + 1
+    uint256 public constant ODOS_TOPICS_AMOUNT = 5;
 
     function updateFeedRequested(
         uint256 topicNumber
-    ) public virtual override returns (bytes32 result) {
+    ) public virtual override returns (bytes32) {
         if (msg.sender != address(LOCUS_DATA_FEED)) {
             revert OnlyLocusDataFeed();
         }
+        return _updateOdosTopic(topicNumber);
+    }
+
+    function _updateOdosTopic(uint256 topicNumber) internal view returns (bytes32) {
 
     }
 

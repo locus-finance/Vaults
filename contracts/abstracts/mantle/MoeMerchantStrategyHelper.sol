@@ -30,7 +30,7 @@ abstract contract MoeMerchantStrategyHelper is ILocusDataFeedUser {
     IMoeFactory public constant MOE_FACTORY =
         IMoeFactory(0x5bEf015CA9424A7C07B68490616a4C1F094BEdEc);
 
-    ILocusDataFeed public constant LOCUS_DATA_FEED = ILocusDataFeed(0x5662AaAc9fdc97910E648e54076Be71D60D4045f);
+    ILocusDataFeed private constant LOCUS_DATA_FEED = ILocusDataFeed(0x5662AaAc9fdc97910E648e54076Be71D60D4045f);
 
     uint256 public constant STANDARD_SLIPPAGE = 9000;
 
@@ -38,36 +38,11 @@ abstract contract MoeMerchantStrategyHelper is ILocusDataFeedUser {
 
     function updateFeedRequested(
         uint256 topicNumber
-    ) public virtual override returns (bytes32 result) {
+    ) public virtual override returns (bytes32) {
         if (msg.sender != address(LOCUS_DATA_FEED)) {
             revert OnlyLocusDataFeed();
         }
-        IMoePair pair = IMoePair(
-            MOE_FACTORY.getPair(
-                LOCUS_DATA_FEED.parseAddressFromFeed(
-                    address(this),
-                    uint256(ReservedTopics.TOKEN_A)
-                ),
-                LOCUS_DATA_FEED.parseAddressFromFeed(
-                    address(this),
-                    uint256(ReservedTopics.TOKEN_B)
-                )
-            )
-        );
-        if (topicNumber == uint256(ReservedTopics.RESERVE_A)) {
-            (uint112 reserve0, , ) = pair.getReserves();
-            result = bytes32(uint256(reserve0));
-        } else if (topicNumber == uint256(ReservedTopics.RESERVE_B)) {
-            (, uint112 reserve1, ) = pair.getReserves();
-            result = bytes32(uint256(reserve1));
-        } else if (
-            topicNumber == uint256(ReservedTopics.TOKEN_A) ||
-            topicNumber == uint256(ReservedTopics.TOKEN_B)
-        ) {
-            result = LOCUS_DATA_FEED.getValue(topicNumber);
-        } else {
-            revert UnknownTopicNumber(topicNumber);
-        }
+        return _updateMoeTopic(topicNumber);
     }
 
     function _moeMerchantSwap(
@@ -138,6 +113,33 @@ abstract contract MoeMerchantStrategyHelper is ILocusDataFeedUser {
                 address(this),
                 block.timestamp
             );
+    }
+
+    function _updateMoeTopic(uint256 topicNumber) internal view returns (bytes32 result) {
+        IMoePair pair = IMoePair(
+            MOE_FACTORY.getPair(
+                LOCUS_DATA_FEED.parseAddressFromFeed(
+                    address(this),
+                    uint256(ReservedTopics.TOKEN_A)
+                ),
+                LOCUS_DATA_FEED.parseAddressFromFeed(
+                    address(this),
+                    uint256(ReservedTopics.TOKEN_B)
+                )
+            )
+        );
+        if (topicNumber == uint256(ReservedTopics.RESERVE_A)) {
+            (uint112 reserve0, , ) = pair.getReserves();
+            result = bytes32(uint256(reserve0));
+        } else if (topicNumber == uint256(ReservedTopics.RESERVE_B)) {
+            (, uint112 reserve1, ) = pair.getReserves();
+            result = bytes32(uint256(reserve1));
+        } else if (
+            topicNumber == uint256(ReservedTopics.TOKEN_A) ||
+            topicNumber == uint256(ReservedTopics.TOKEN_B)
+        ) {
+            result = LOCUS_DATA_FEED.getValue(topicNumber);
+        }
     }
 
     /**
