@@ -31,6 +31,9 @@ contract UsdcUsdyStrategy is
     event BurnedMoeLp(uint256 indexed oldBalance, uint256 indexed newBalance);
     event WantTokensGathered(uint256 indexed amount);
 
+    ILocusDataFeed public constant LOCUS_DATA_FEED =
+        ILocusDataFeed(0x5662AaAc9fdc97910E648e54076Be71D60D4045f);
+
     ICircuitVault public constant CIRCUIT_VAULT =
         ICircuitVault(0xc425A0fC1e62bEDa428Ff628597dC8EA1C13d0e4);
     IERC20 public constant USDY =

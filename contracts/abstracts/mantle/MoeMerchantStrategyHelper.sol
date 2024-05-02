@@ -29,12 +29,11 @@ abstract contract MoeMerchantStrategyHelper is ILocusDataFeedUser {
         IMoeRouter(0xeaEE7EE68874218c3558b40063c42B82D3E7232a);
     IMoeFactory public constant MOE_FACTORY =
         IMoeFactory(0x5bEf015CA9424A7C07B68490616a4C1F094BEdEc);
+    
+    uint256 public constant STANDARD_SLIPPAGE = 9000;
+    uint256 public constant MAX_BPS = 10000;
 
     ILocusDataFeed private constant LOCUS_DATA_FEED = ILocusDataFeed(0x5662AaAc9fdc97910E648e54076Be71D60D4045f);
-
-    uint256 public constant STANDARD_SLIPPAGE = 9000;
-
-    uint256 public constant MAX_BPS = 10000;
 
     function updateFeedRequested(
         uint256 topicNumber

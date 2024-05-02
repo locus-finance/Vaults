@@ -11,12 +11,10 @@ import "../../abstracts/BaseStrategyForSeparatedVault.sol";
 import "../../integrations/circuit/ICircuitVault.sol";
 import "../../utils/Utils.sol";
 import "../../abstracts/mantle/MoeMerchantStrategyHelper.sol";
-import "../../abstracts/mantle/OdosStrategyHelper.sol";
 
 contract LendWmntStrategy is
     BaseStrategyForSeparatedVault,
-    MoeMerchantStrategyHelper,
-    OdosStrategyHelper
+    MoeMerchantStrategyHelper
 {
     using SafeERC20 for IERC20;
     using Math for uint256;
@@ -46,8 +44,7 @@ contract LendWmntStrategy is
     IERC20 public constant MOE_MERCHANT_LEND_WMNT_POOL =
         IERC20(0x30ac02b4c99D140CDE2a212ca807CBdA35D4f6b5);
 
-    uint256 public constant TOPICS_AMOUNT =
-        uint256(type(ReservedTopics).max) + ODOS_TOPICS_AMOUNT;
+    uint256 public constant TOPICS_AMOUNT = uint256(type(ReservedTopics).max) + 1;
 
     function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(
@@ -67,24 +64,6 @@ contract LendWmntStrategy is
             address(CIRCUIT_VAULT),
             type(uint256).max
         );
-    }
-
-    function updateFeedRequested(
-        uint256 topicNumber
-    )
-        public
-        virtual
-        override(MoeMerchantStrategyHelper, OdosStrategyHelper)
-        returns (bytes32 result)
-    {
-        if (msg.sender != address(LOCUS_DATA_FEED)) {
-            revert OnlyLocusDataFeed();
-        }
-        result = _updateMoeTopic(topicNumber);
-        if (result == bytes32(0)) {
-            result = _updateOdosTopic(topicNumber);
-            if (result == bytes32(0)) revert UnknownTopicNumber(topicNumber);
-        }
     }
 
     function setUpLocusDataFeedTopics() external {
@@ -127,7 +106,7 @@ contract LendWmntStrategy is
     function wantToCircuitShares(
         uint256 amount
     ) public view returns (uint256 result) {
-        // if (amount == 0) return 0;
+        if (amount == 0) return 0;
         // address[] memory path = new address[](2);
         // path[0] = address(want);
         // path[1] = address(USDY);
@@ -153,7 +132,7 @@ contract LendWmntStrategy is
     function circuitSharesToWant(
         uint256 amount
     ) public view returns (uint256 result) {
-        // if (amount == 0) return 0;
+        if (amount == 0) return 0;
         // uint256 liquidity = (amount * CIRCUIT_VAULT.balance()) /
         //     CIRCUIT_VAULT.totalSupply();
         // IMoePair pair = IMoePair(
