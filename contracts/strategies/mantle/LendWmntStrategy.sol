@@ -11,13 +11,25 @@ import "../../abstracts/BaseStrategyForSeparatedVault.sol";
 import "../../integrations/circuit/ICircuitVault.sol";
 import "../../utils/Utils.sol";
 import "../../abstracts/mantle/MoeMerchantStrategyHelper.sol";
+import "../../abstracts/mantle/AgniStrategyHelper.sol";
+import "../../interfaces/ILocusDataFeed.sol";
+import "../../interfaces/ILocusDataFeedUser.sol";
 
 contract LendWmntStrategy is
     BaseStrategyForSeparatedVault,
-    MoeMerchantStrategyHelper
+    MoeMerchantStrategyHelper,
+    AgniStrategyHelper,
+    ILocusDataFeedUser
 {
     using SafeERC20 for IERC20;
     using Math for uint256;
+
+    enum ReservedTopics {
+        RESERVE_IN_LEND_WMNT_OF_LEND,
+        RESERVE_IN_LEND_WMNT_OF_WMNT,
+        RESERVE_IN_USDC_LEND_OF_USDC,
+        RESERVE_IN_USDC_LEND_OF_LEND
+    }
 
     event MintedCircuitShares(
         uint256 indexed oldBalance,
@@ -31,8 +43,11 @@ contract LendWmntStrategy is
     event BurnedMoeLp(uint256 indexed oldBalance, uint256 indexed newBalance);
     event WantTokensGathered(uint256 indexed amount);
 
+    uint256 private constant STANDARD_SLIPPAGE = 9000;
+    uint256 private constant MAX_BPS = 10000;
     ILocusDataFeed public constant LOCUS_DATA_FEED =
         ILocusDataFeed(0x5662AaAc9fdc97910E648e54076Be71D60D4045f);
+    uint256 public constant TOPICS_AMOUNT = uint256(type(ReservedTopics).max) + 1;
 
     ICircuitVault public constant CIRCUIT_VAULT =
         ICircuitVault(0x6CeaC8F90B7cAA311E025480503Bb0020B66f22A);
@@ -44,8 +59,6 @@ contract LendWmntStrategy is
     IERC20 public constant MOE_MERCHANT_LEND_WMNT_POOL =
         IERC20(0x30ac02b4c99D140CDE2a212ca807CBdA35D4f6b5);
 
-    uint256 public constant TOPICS_AMOUNT = uint256(type(ReservedTopics).max) + 1;
-
     function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(
             _vault,
@@ -56,6 +69,9 @@ contract LendWmntStrategy is
         want.approve(address(MOE_ROUTER), type(uint256).max);
         WMNT.approve(address(MOE_ROUTER), type(uint256).max);
         LEND.approve(address(MOE_ROUTER), type(uint256).max);
+        want.approve(address(AGNI_SWAP_ROUTER), type(uint256).max);
+        WMNT.approve(address(AGNI_SWAP_ROUTER), type(uint256).max);
+        LEND.approve(address(AGNI_SWAP_ROUTER), type(uint256).max);
         MOE_MERCHANT_LEND_WMNT_POOL.approve(
             address(MOE_ROUTER),
             type(uint256).max
@@ -68,15 +84,31 @@ contract LendWmntStrategy is
 
     function setUpLocusDataFeedTopics() external {
         LOCUS_DATA_FEED.setFeed(TOPICS_AMOUNT);
-        LOCUS_DATA_FEED.setValue(
-            uint256(ReservedTopics.TOKEN_A),
-            bytes32(uint256(uint160(address(LEND))))
-        );
-        LOCUS_DATA_FEED.setValue(
-            uint256(ReservedTopics.TOKEN_B),
-            bytes32(uint256(uint160(address(WMNT))))
-        );
         LOCUS_DATA_FEED.updateFeed(address(this));
+    }
+
+    function updateFeedRequested(
+        uint256 topicNumber
+    ) public view override returns (bytes32 result) {
+        if (msg.sender != address(LOCUS_DATA_FEED)) {
+            revert OnlyLocusDataFeed();
+        }
+        IMoePair lendWmntPair = IMoePair(MOE_FACTORY.getPair(address(LEND), address(WMNT)));
+        IMoePair usdcLendPair = IMoePair(MOE_FACTORY.getPair(address(want), address(LEND)));
+        (uint112 lendWmntReserve0, uint256 lendWmntReserve1,) = lendWmntPair.getReserves();
+        (uint112 usdcLendReserve0, uint256 usdcLendReserve1,) = usdcLendPair.getReserves();
+        
+        if (topicNumber == uint256(ReservedTopics.RESERVE_IN_LEND_WMNT_OF_LEND)) {
+            result = bytes32(uint256(lendWmntReserve0));
+        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_LEND_WMNT_OF_WMNT)) {
+            result = bytes32(uint256(lendWmntReserve1));
+        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_USDC_LEND_OF_USDC)) {
+            result = bytes32(uint256(usdcLendReserve0));
+        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_USDC_LEND_OF_LEND)) {
+            result = bytes32(uint256(usdcLendReserve1));
+        } else {
+            revert UnknownTopicNumber(topicNumber);
+        }
     }
 
     function name() external pure override returns (string memory) {
@@ -225,12 +257,48 @@ contract LendWmntStrategy is
 
     function _mintShares(uint256 _amount) internal {
         if (_amount == 0) return;
-        // uint256 oldLpBalance = balanceOfMoeLp();
-        // uint256 lpMinted = _moeMerchantAddLiquidity(
-        //     address(want),
-        //     address(USDY),
-        //     _amount
-        // );
+        uint256 usdcForLendSwapAmount = _amount / 2;
+        uint256 usdcForWmntSwapAmount = _amount - usdcForLendSwapAmount;
+
+        uint256 wmntAmount = _agniSwap(address(want), address(WMNT), usdcForWmntSwapAmount);
+
+        uint256 usdcLendReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_IN_USDC_LEND_OF_USDC)
+        );
+        uint256 usdcLendReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_IN_USDC_LEND_OF_LEND)
+        );
+        uint256 amountUsdcOut = MOE_ROUTER.getAmountOut(
+            usdcForLendSwapAmount,
+            usdcLendReserve0,
+            usdcLendReserve1
+        );
+        uint256 lendAmount = _moeMerchantSwap(
+            address(want),
+            address(LEND),
+            usdcForLendSwapAmount,
+            (amountUsdcOut * STANDARD_SLIPPAGE) / MAX_BPS
+        );
+
+         uint256 lendWmntReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_IN_LEND_WMNT_OF_LEND)
+        );
+        uint256 lendWmntReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_IN_LEND_WMNT_OF_WMNT)
+        );
+        
+        (uint256 lpMinted, uint256 lendLeft, uint256 wmntLeft) = _moeMerchantAddLiquidity(
+            address(LEND),
+            address(WMNT),
+            lendAmount,
+            wmntAmount,
+            lendWmntReserve0,
+            lendWmntReserve1
+        );
         // emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
         // uint256 circuitShares = balanceOfCircuitShares();
         // CIRCUIT_VAULT.deposit(lpMinted);

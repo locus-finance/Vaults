@@ -11,13 +11,21 @@ import "../../abstracts/BaseStrategyForSeparatedVault.sol";
 import "../../integrations/circuit/ICircuitVault.sol";
 import "../../utils/Utils.sol";
 import "../../abstracts/mantle/MoeMerchantStrategyHelper.sol";
+import "../../interfaces/ILocusDataFeed.sol";
+import "../../interfaces/ILocusDataFeedUser.sol";
 
 contract UsdcUsdyStrategy is
     BaseStrategyForSeparatedVault,
-    MoeMerchantStrategyHelper
+    MoeMerchantStrategyHelper,
+    ILocusDataFeedUser
 {
     using SafeERC20 for IERC20;
     using Math for uint256;
+
+    enum ReservedTopics {
+        RESERVE_USDC,
+        RESERVE_USDY
+    }
 
     event MintedCircuitShares(
         uint256 indexed oldBalance,
@@ -31,8 +39,12 @@ contract UsdcUsdyStrategy is
     event BurnedMoeLp(uint256 indexed oldBalance, uint256 indexed newBalance);
     event WantTokensGathered(uint256 indexed amount);
 
+    uint256 private constant STANDARD_SLIPPAGE = 9000;
+    uint256 private constant MAX_BPS = 10000;
     ILocusDataFeed public constant LOCUS_DATA_FEED =
         ILocusDataFeed(0x5662AaAc9fdc97910E648e54076Be71D60D4045f);
+    uint256 public constant TOPICS_AMOUNT =
+        uint256(type(ReservedTopics).max) + 1;
 
     ICircuitVault public constant CIRCUIT_VAULT =
         ICircuitVault(0xc425A0fC1e62bEDa428Ff628597dC8EA1C13d0e4);
@@ -41,8 +53,6 @@ contract UsdcUsdyStrategy is
     IERC20 public constant MOE_MERCHANT_USDC_USDY_POOL =
         IERC20(0xc1f43E45F86E7bfb92C3c309b0eF366F9Ba33Bfa);
 
-    uint256 public constant TOPICS_AMOUNT =
-        uint256(type(ReservedTopics).max) + 1;
     uint256 public constant PRECISION = 1 ether;
 
     function initialize(address _vault, address _strategist) external {
@@ -66,15 +76,27 @@ contract UsdcUsdyStrategy is
 
     function setUpLocusDataFeedReserveTokensTopics() external {
         LOCUS_DATA_FEED.setFeed(TOPICS_AMOUNT);
-        LOCUS_DATA_FEED.setValue(
-            uint256(ReservedTopics.TOKEN_A),
-            bytes32(uint256(uint160(address(want))))
-        );
-        LOCUS_DATA_FEED.setValue(
-            uint256(ReservedTopics.TOKEN_B),
-            bytes32(uint256(uint160(address(USDY))))
-        );
         LOCUS_DATA_FEED.updateFeed(address(this));
+    }
+
+    function updateFeedRequested(
+        uint256 topicNumber
+    ) public view override returns (bytes32 result) {
+        if (msg.sender != address(LOCUS_DATA_FEED)) {
+            revert OnlyLocusDataFeed();
+        }
+        IMoePair pair = IMoePair(
+            MOE_FACTORY.getPair(address(want), address(USDY))
+        );
+        if (topicNumber == uint256(ReservedTopics.RESERVE_USDC)) {
+            (uint112 reserve0, , ) = pair.getReserves();
+            result = bytes32(uint256(reserve0));
+        } else if (topicNumber == uint256(ReservedTopics.RESERVE_USDY)) {
+            (, uint112 reserve1, ) = pair.getReserves();
+            result = bytes32(uint256(reserve1));
+        } else {
+            revert UnknownTopicNumber(topicNumber);
+        }
     }
 
     function name() external pure override returns (string memory) {
@@ -220,10 +242,20 @@ contract UsdcUsdyStrategy is
     function _mintShares(uint256 _amount) internal {
         if (_amount == 0) return;
         uint256 oldLpBalance = balanceOfMoeLp();
-        uint256 lpMinted = _moeMerchantAddLiquidity(
+        uint256 reserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_USDC)
+        );
+        uint256 reserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_USDY)
+        );
+        uint256 lpMinted = _moeMerchantAddLiquiditySingle(
             address(want),
             address(USDY),
-            _amount
+            _amount,
+            reserve0,
+            reserve1
         );
         emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
         uint256 circuitShares = balanceOfCircuitShares();
@@ -247,19 +279,21 @@ contract UsdcUsdyStrategy is
                 balanceOfMoeLp() - oldLpBalance
             );
         emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
+
         uint256 reserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
             address(this),
-            uint256(ReservedTopics.RESERVE_A)
+            uint256(ReservedTopics.RESERVE_USDC)
         );
         uint256 reserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
             address(this),
-            uint256(ReservedTopics.RESERVE_B)
+            uint256(ReservedTopics.RESERVE_USDY)
         );
         uint256 amountUsdcOut = MOE_ROUTER.getAmountOut(
             removedLiquidityData.amountBWithdrawn,
             reserve1,
             reserve0
         );
+
         uint256 usdyToUsdcSwappedAmount = _moeMerchantSwap(
             address(USDY),
             address(want),

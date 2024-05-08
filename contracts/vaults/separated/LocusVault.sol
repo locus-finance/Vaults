@@ -244,7 +244,6 @@ contract LocusVault is
                 uint256 amountNeeded = value - vaultBalance;
                 amountNeeded = Math.min(
                     amountNeeded,
-                    // IBaseStrategy(strategiesList[i]).estimatedTotalAssets()
                     strategies[strategiesList[i]].totalDebt
                 );
                 if (amountNeeded == 0) {

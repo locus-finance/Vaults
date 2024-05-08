@@ -89,7 +89,7 @@ describe('TestMantleVaultDeposit', () => {
     });
   });
 
-  xit('should perform deposit', async () => {
+  it('should perform deposit', async () => {
     console.log(hre.ethers.utils.formatUnits(await usdcInstance.balanceOf(userAddress), 6));
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await xMantleInstance.connect(userSigner)["deposit(uint256)"](usdcAmountToDeposit);
@@ -112,7 +112,7 @@ describe('TestMantleVaultDeposit', () => {
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
   });
 
-  xit('should EST', async () => {
+  it('should EST', async () => {
     const cirVault = await hre.ethers.getContractAt("IERC20Metadata", "0xc425a0fc1e62beda428ff628597dc8ea1c13d0e4")
     console.log((await cirVault.decimals()).toString());
     const cirBalance = await cirVault.balanceOf(usdcUsdyStrategyInstance.address);
