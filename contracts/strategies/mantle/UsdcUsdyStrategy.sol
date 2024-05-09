@@ -345,7 +345,13 @@ contract UsdcUsdyStrategy is
         pure
         override
         returns (address[] memory protected)
-    {}
+    {
+        protected = new address[](3);
+        protected[0] = address(CIRCUIT_VAULT);
+        protected[1] = address(USDY);
+        protected[2] = address(MOE_MERCHANT_USDC_USDY_POOL);
+        return protected;
+    }
 
     receive() external payable {}
 }

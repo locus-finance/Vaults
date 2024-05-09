@@ -410,7 +410,14 @@ contract LendWmntStrategy is
         pure
         override
         returns (address[] memory protected)
-    {}
+    {
+        protected = new address[](4);
+        protected[0] = address(CIRCUIT_VAULT);
+        protected[1] = address(LEND);
+        protected[2] = address(WMNT);
+        protected[3] = address(MOE_MERCHANT_LEND_WMNT_POOL);
+        return protected;
+    }
 
     receive() external payable {}
 }

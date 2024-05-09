@@ -257,7 +257,11 @@ contract InitStrategy is BaseStrategyForSeparatedVault {
         pure
         override
         returns (address[] memory protected)
-    {}
+    {
+        protected = new address[](1);
+        protected[0] = address(INIT_USDC_LENDING_POOL);
+        return protected;
+    }
 
     receive() external payable {}
 }
