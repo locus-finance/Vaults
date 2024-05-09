@@ -59,6 +59,9 @@ contract LendWmntStrategy is
     IERC20 public constant MOE_MERCHANT_LEND_WMNT_POOL =
         IERC20(0x30ac02b4c99D140CDE2a212ca807CBdA35D4f6b5);
 
+    uint256 public lendTokensToAddToMoeLiquidity;
+    uint256 public wmntTokensToAddToMoeLiquidity;
+
     function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(
             _vault,
@@ -139,45 +142,56 @@ contract LendWmntStrategy is
         uint256 amount
     ) public view returns (uint256 result) {
         if (amount == 0) return 0;
-        // address[] memory path = new address[](2);
-        // path[0] = address(want);
-        // path[1] = address(USDY);
-        // uint256 amountAToAdd = amount / 2;
-        // uint256 amountAToSwapToB = amount - amountAToAdd;
-        // IMoePair pair = IMoePair(
-        //     MOE_FACTORY.getPair(address(want), address(USDY))
-        // );
-        // (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
-        // uint256 amountBToAdd = MOE_ROUTER.getAmountsOut(amountAToSwapToB, path)[
-        //     1
-        // ];
-        // uint256 lpTotalSupply = pair.totalSupply();
-        // uint256 liquidity = Math.min(
-        //     (amountAToAdd * lpTotalSupply) / reserve0,
-        //     (amountBToAdd * lpTotalSupply) / reserve1
-        // );
-        // result =
-        //     (liquidity * CIRCUIT_VAULT.totalSupply()) /
-        //     CIRCUIT_VAULT.balance();
+        uint256 usdcForLendSwapAmount = amount / 2;
+        uint256 usdcForWmntSwapAmount = amount - usdcForLendSwapAmount;
+
+        uint256 wmntAmount = _agniQuote(address(want), address(WMNT), usdcForWmntSwapAmount);
+
+        address[] memory path = new address[](2);
+        path[0] = address(want);
+        path[1] = address(LEND);
+        IMoePair pair = IMoePair(
+            MOE_FACTORY.getPair(address(want), address(LEND))
+        );
+        (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
+        uint256 lendAmount = MOE_ROUTER.getAmountsOut(usdcForLendSwapAmount, path)[
+            1
+        ];
+
+        path[0] = address(LEND);
+        path[1] = address(WMNT);
+        pair = IMoePair(
+            MOE_FACTORY.getPair(address(LEND), address(WMNT))
+        );
+        (reserve0, reserve1, ) = pair.getReserves();
+        uint256 lpTotalSupply = pair.totalSupply();
+        uint256 liquidity = Math.min(
+            (wmntAmount * lpTotalSupply) / reserve0,
+            (lendAmount * lpTotalSupply) / reserve1
+        );
+        result =
+            (liquidity * CIRCUIT_VAULT.totalSupply()) /
+            CIRCUIT_VAULT.balance();
     }
 
     function circuitSharesToWant(
         uint256 amount
     ) public view returns (uint256 result) {
         if (amount == 0) return 0;
-        // uint256 liquidity = (amount * CIRCUIT_VAULT.balance()) /
-        //     CIRCUIT_VAULT.totalSupply();
-        // IMoePair pair = IMoePair(
-        //     MOE_FACTORY.getPair(address(want), address(USDY))
-        // );
-        // uint256 lpTotalSupply = pair.totalSupply();
-        // (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
-        // result = (liquidity * reserve0) / lpTotalSupply;
-        // uint256 usdyAmount = (liquidity * reserve1) / lpTotalSupply;
-        // address[] memory path = new address[](2);
-        // path[0] = address(USDY);
-        // path[1] = address(want);
-        // result += MOE_ROUTER.getAmountsOut(usdyAmount, path)[1];
+        uint256 liquidity = (amount * CIRCUIT_VAULT.balance()) /
+            CIRCUIT_VAULT.totalSupply();
+        IMoePair pair = IMoePair(
+            MOE_FACTORY.getPair(address(LEND), address(WMNT))
+        );
+        uint256 lpTotalSupply = pair.totalSupply();
+        (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
+        uint256 lendAmount = (liquidity * reserve0) / lpTotalSupply;
+        uint256 wmntAmount = (liquidity * reserve1) / lpTotalSupply; 
+        result = _agniQuote(address(WMNT), address(want), wmntAmount);
+        address[] memory path = new address[](2);
+        path[0] = address(LEND);
+        path[1] = address(want);
+        result += MOE_ROUTER.getAmountsOut(lendAmount, path)[1];
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {
@@ -257,6 +271,8 @@ contract LendWmntStrategy is
 
     function _mintShares(uint256 _amount) internal {
         if (_amount == 0) return;
+        uint256 oldLpBalance = balanceOfMoeLp();
+        
         uint256 usdcForLendSwapAmount = _amount / 2;
         uint256 usdcForWmntSwapAmount = _amount - usdcForLendSwapAmount;
 
@@ -294,55 +310,64 @@ contract LendWmntStrategy is
         (uint256 lpMinted, uint256 lendLeft, uint256 wmntLeft) = _moeMerchantAddLiquidity(
             address(LEND),
             address(WMNT),
-            lendAmount,
-            wmntAmount,
+            lendAmount + lendTokensToAddToMoeLiquidity,
+            wmntAmount + wmntTokensToAddToMoeLiquidity,
             lendWmntReserve0,
             lendWmntReserve1
         );
-        // emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
-        // uint256 circuitShares = balanceOfCircuitShares();
-        // CIRCUIT_VAULT.deposit(lpMinted);
-        // emit MintedCircuitShares(circuitShares, balanceOfCircuitShares());
+        lendTokensToAddToMoeLiquidity = 0;
+        wmntTokensToAddToMoeLiquidity = 0;
+        if (lendLeft > 0) {
+            lendTokensToAddToMoeLiquidity = lendLeft;
+        }
+        if (wmntLeft > 0) {
+            wmntTokensToAddToMoeLiquidity = wmntLeft;
+        }
+        emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
+        uint256 circuitShares = balanceOfCircuitShares();
+        CIRCUIT_VAULT.deposit(lpMinted);
+        emit MintedCircuitShares(circuitShares, balanceOfCircuitShares());
     }
 
     function _burnShares(uint256 _shares) internal {
         if (_shares == 0) return;
-        // uint256 oldLpBalance = balanceOfMoeLp();
-        // uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
-        // CIRCUIT_VAULT.withdraw(_shares);
-        // emit BurnedCircuitShares(
-        //     oldCircuitSharesBalance,
-        //     balanceOfCircuitShares()
-        // );
-        // RemoveLiquidityData
-        //     memory removedLiquidityData = _moeMerchantRemoveLiquidity(
-        //         address(want),
-        //         address(USDY),
-        //         balanceOfMoeLp() - oldLpBalance
-        //     );
-        // emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
-        // uint256 reserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
-        //     address(this),
-        //     uint256(ReservedTopics.RESERVE_A)
-        // );
-        // uint256 reserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
-        //     address(this),
-        //     uint256(ReservedTopics.RESERVE_B)
-        // );
-        // uint256 amountUsdcOut = MOE_ROUTER.getAmountOut(
-        //     removedLiquidityData.amountBWithdrawn,
-        //     reserve1,
-        //     reserve0
-        // );
-        // uint256 usdyToUsdcSwappedAmount = _moeMerchantSwap(
-        //     address(USDY),
-        //     address(want),
-        //     removedLiquidityData.amountBWithdrawn,
-        //     (amountUsdcOut * STANDARD_SLIPPAGE) / MAX_BPS
-        // );
-        // emit WantTokensGathered(
-        //     removedLiquidityData.amountAWithdrawn + usdyToUsdcSwappedAmount
-        // );
+        uint256 oldLpBalance = balanceOfMoeLp();
+        uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
+        CIRCUIT_VAULT.withdraw(_shares);
+        emit BurnedCircuitShares(
+            oldCircuitSharesBalance,
+            balanceOfCircuitShares()
+        );
+        RemoveLiquidityData
+            memory removedLiquidityData = _moeMerchantRemoveLiquidity(
+                address(LEND),
+                address(WMNT),
+                balanceOfMoeLp() - oldLpBalance
+            );
+        emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
+        uint256 usdcLendReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_IN_USDC_LEND_OF_USDC)
+        );
+        uint256 usdcLendReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_IN_USDC_LEND_OF_LEND)
+        );
+        uint256 amountUsdcOut = MOE_ROUTER.getAmountOut(
+            removedLiquidityData.amountAWithdrawn,
+            usdcLendReserve1,
+            usdcLendReserve0
+        );
+        uint256 swappedFromLendUsdcAmount = _moeMerchantSwap(
+            address(LEND),
+            address(want),
+            removedLiquidityData.amountAWithdrawn,
+            (amountUsdcOut * STANDARD_SLIPPAGE) / MAX_BPS
+        );
+        uint256 swappedFromWmntUsdcAmount = _agniSwap(address(WMNT), address(want), removedLiquidityData.amountBWithdrawn);
+        emit WantTokensGathered(
+            swappedFromLendUsdcAmount + swappedFromWmntUsdcAmount
+        );
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
