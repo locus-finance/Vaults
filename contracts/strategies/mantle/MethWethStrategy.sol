@@ -25,12 +25,10 @@ contract MethWethStrategy is
     using Math for uint256;
 
     enum ReservedTopics {
-        RESERVE_IN_MOE_WMNT_OF_MOE,
-        RESERVE_IN_MOE_WMNT_OF_WMNT,
-        RESERVE_IN_USDC_USDT_OF_USDC,
-        RESERVE_IN_USDC_USDT_OF_USDT,
-        RESERVE_IN_USDT_MOE_OF_USDT,
-        RESERVE_IN_USDT_MOE_OF_MOE
+        RESERVE_IN_METH_WETH_OF_METH,
+        RESERVE_IN_METH_WETH_OF_WETH,
+        RESERVE_IN_USDC_METH_OF_USDC,
+        RESERVE_IN_USDC_METH_OF_METH
     }
 
     event MintedCircuitShares(
@@ -52,20 +50,17 @@ contract MethWethStrategy is
     uint256 public constant TOPICS_AMOUNT = uint256(type(ReservedTopics).max) + 1;
 
     ICircuitVault public constant CIRCUIT_VAULT =
-        ICircuitVault(0xa3647389cf2bF9279ab239d3710bB8a2eFE0BC8B);
+        ICircuitVault(0x16FA0C5f3eA649259C02c075dbA1C31fc66ea4E0);
 
-    IERC20 public constant USDT =
-        IERC20(0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE);
-    IERC20 public constant MOE =
-        IERC20(0x4515A45337F461A11Ff0FE8aBF3c606AE5dC00c9);
-    IERC20 public constant WMNT =
-        IERC20(0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8);
+    IERC20 public constant WETH =
+        IERC20(0xdEAddEaDdeadDEadDEADDEAddEADDEAddead1111);
+    IERC20 public constant METH =
+        IERC20(0xcDA86A272531e8640cD7F1a92c01839911B90bb0);
+    IERC20 public constant MOE_MERCHANT_METH_WETH_POOL =
+        IERC20(0x86e3a987187feD135D6d9C114f1857D8144F01e1);
 
-    IERC20 public constant MOE_MERCHANT_MOE_WMNT_POOL =
-        IERC20(0x763868612858358f62b05691dB82Ad35a9b3E110);
-
-    uint256 public moeTokensToAddToMoeLiquidity;
-    uint256 public wmntTokensToAddToMoeLiquidity;
+    uint256 public methTokensToAddToMoeLiquidity;
+    uint256 public wethTokensToAddToMoeLiquidity;
 
     function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(
@@ -75,16 +70,18 @@ contract MethWethStrategy is
             _strategist
         );
         _agniStrategyHelperInitialize();
+        
         want.approve(address(MOE_ROUTER), type(uint256).max);
-        USDT.approve(address(MOE_ROUTER), type(uint256).max);
-        MOE.approve(address(MOE_ROUTER), type(uint256).max);
         want.approve(address(AGNI_SWAP_ROUTER), type(uint256).max);
-        WMNT.approve(address(AGNI_SWAP_ROUTER), type(uint256).max);
-        MOE_MERCHANT_MOE_WMNT_POOL.approve(
+
+        METH.approve(address(MOE_ROUTER), type(uint256).max);
+        WETH.approve(address(AGNI_SWAP_ROUTER), type(uint256).max);
+        
+        MOE_MERCHANT_METH_WETH_POOL.approve(
             address(MOE_ROUTER),
             type(uint256).max
         );
-        MOE_MERCHANT_MOE_WMNT_POOL.approve(
+        MOE_MERCHANT_METH_WETH_POOL.approve(
             address(CIRCUIT_VAULT),
             type(uint256).max
         );
@@ -101,26 +98,20 @@ contract MethWethStrategy is
         if (msg.sender != address(LOCUS_DATA_FEED)) {
             revert OnlyLocusDataFeed();
         }
-        IMoePair moeWmntPair = IMoePair(MOE_FACTORY.getPair(address(MOE), address(WMNT)));
-        IMoePair usdcUsdtPair = IMoePair(MOE_FACTORY.getPair(address(want), address(USDT)));
-        IMoePair usdtMoePair = IMoePair(MOE_FACTORY.getPair(address(USDT), address(MOE)));
+        IMoePair methWethPair = IMoePair(MOE_FACTORY.getPair(address(METH), address(WETH)));
+        IMoePair usdcMethPair = IMoePair(MOE_FACTORY.getPair(address(want), address(METH)));
         
-        (uint112 moeWmntReserve0, uint256 moeWmntReserve1,) = moeWmntPair.getReserves();
-        (uint112 usdcUsdtReserve0, uint256 usdcUsdtReserve1,) = usdcUsdtPair.getReserves();
-        (uint112 usdtMoeReserve0, uint256 usdtMoeReserve1,) = usdtMoePair.getReserves();
+        (uint112 methWethReserve0, uint256 methWethReserve1,) = methWethPair.getReserves();
+        (uint112 usdcMethReserve0, uint256 usdcMethReserve1,) = usdcMethPair.getReserves();
         
-        if (topicNumber == uint256(ReservedTopics.RESERVE_IN_MOE_WMNT_OF_MOE)) {
-            result = bytes32(uint256(moeWmntReserve0));
-        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_MOE_WMNT_OF_WMNT)) {
-            result = bytes32(uint256(moeWmntReserve1));
-        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_USDC_USDT_OF_USDC)) {
-            result = bytes32(uint256(usdcUsdtReserve0));
-        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_USDC_USDT_OF_USDT)) {
-            result = bytes32(uint256(usdcUsdtReserve1));
-        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_USDT_MOE_OF_USDT)) {
-            result = bytes32(uint256(usdtMoeReserve0));
-        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_USDT_MOE_OF_MOE)) {
-            result = bytes32(uint256(usdtMoeReserve1));
+        if (topicNumber == uint256(ReservedTopics.RESERVE_IN_METH_WETH_OF_METH)) {
+            result = bytes32(uint256(methWethReserve0));
+        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_METH_WETH_OF_WETH)) {
+            result = bytes32(uint256(methWethReserve1));
+        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_USDC_METH_OF_USDC)) {
+            result = bytes32(uint256(usdcMethReserve0));
+        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_USDC_METH_OF_METH)) {
+            result = bytes32(uint256(usdcMethReserve1));
         } else {
             revert UnknownTopicNumber(topicNumber);
         }
@@ -134,16 +125,12 @@ contract MethWethStrategy is
         return want.balanceOf(address(this));
     }
 
-    function balanceOfWmnt() public view returns (uint256) {
-        return WMNT.balanceOf(address(this));
+    function balanceOfWeth() public view returns (uint256) {
+        return WETH.balanceOf(address(this));
     }
 
-    function balanceOfUsdt() public view returns (uint256) {
-        return USDT.balanceOf(address(this));
-    }
-
-    function balanceOfMoe() public view returns (uint256) {
-        return MOE.balanceOf(address(this));
+    function balanceOfMeth() public view returns (uint256) {
+        return METH.balanceOf(address(this));
     }
 
     function balanceOfCircuitShares() public view returns (uint256) {
@@ -151,44 +138,37 @@ contract MethWethStrategy is
     }
 
     function balanceOfMoeLp() public view returns (uint256) {
-        return MOE_MERCHANT_MOE_WMNT_POOL.balanceOf(address(this));
+        return MOE_MERCHANT_METH_WETH_POOL.balanceOf(address(this));
     }
 
     function wantToCircuitShares(
         uint256 amount
     ) public view returns (uint256 result) {
         if (amount == 0) return 0;
-        uint256 usdcForUsdtSwapAmount = amount / 2;
-        uint256 usdcForWmntSwapAmount = amount - usdcForUsdtSwapAmount;
+        uint256 usdcForMethSwapAmount = amount / 2;
+        uint256 usdcForWethSwapAmount = amount - usdcForMethSwapAmount;
 
-        uint256 wmntAmount = _agniQuote(address(want), address(WMNT), usdcForWmntSwapAmount);
+        uint256 wethAmount = _agniQuote(address(want), address(WETH), usdcForWethSwapAmount);
 
         address[] memory path = new address[](2);
-        path[0] = address(want);
-        path[1] = address(USDT);
+        path[0] = address(want);    
+        path[1] = address(METH);
         IMoePair pair = IMoePair(
-            MOE_FACTORY.getPair(address(want), address(USDT))
+            MOE_FACTORY.getPair(address(want), address(METH))
         );
-        uint256 usdtAmount = MOE_ROUTER.getAmountsOut(usdcForUsdtSwapAmount, path)[
-            1
-        ];
-
-        path[0] = address(USDT);
-        path[1] = address(MOE);
-        uint256 moeAmount = MOE_ROUTER.getAmountsOut(usdtAmount, path)[
+        uint256 methAmount = MOE_ROUTER.getAmountsOut(usdcForMethSwapAmount, path)[
             1
         ];
 
         pair = IMoePair(
-            MOE_FACTORY.getPair(address(MOE), address(WMNT))
+            MOE_FACTORY.getPair(address(METH), address(WETH))
         );
-
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
         uint256 lpTotalSupply = pair.totalSupply();
         
         uint256 liquidity = Math.min(
-            (wmntAmount * lpTotalSupply) / reserve0,
-            (moeAmount * lpTotalSupply) / reserve1
+            (wethAmount * lpTotalSupply) / reserve0,
+            (methAmount * lpTotalSupply) / reserve1
         );
 
         result =
@@ -202,27 +182,18 @@ contract MethWethStrategy is
         if (amount == 0) return 0;
         uint256 liquidity = (amount * CIRCUIT_VAULT.balance()) /
             CIRCUIT_VAULT.totalSupply();
-
         IMoePair pair = IMoePair(
-            MOE_FACTORY.getPair(address(MOE), address(WMNT))
+            MOE_FACTORY.getPair(address(METH), address(WETH))
         );
         uint256 lpTotalSupply = pair.totalSupply();
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
-
-        uint256 moeAmount = (liquidity * reserve0) / lpTotalSupply;
-        uint256 wmntAmount = (liquidity * reserve1) / lpTotalSupply; 
-        
-        result = _agniQuote(address(WMNT), address(want), wmntAmount);
-        
+        uint256 methAmount = (liquidity * reserve0) / lpTotalSupply;
+        uint256 wethAmount = (liquidity * reserve1) / lpTotalSupply; 
+        result = _agniQuote(address(WETH), address(want), wethAmount);
         address[] memory path = new address[](2);
-
-        path[0] = address(MOE);
-        path[1] = address(USDT);
-        uint256 usdtAmount = MOE_ROUTER.getAmountsOut(moeAmount, path)[1];
-        path[0] = address(USDT);
+        path[0] = address(METH);
         path[1] = address(want);
-
-        result += MOE_ROUTER.getAmountsOut(usdtAmount, path)[1];
+        result += MOE_ROUTER.getAmountsOut(methAmount, path)[1];
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {
@@ -304,74 +275,54 @@ contract MethWethStrategy is
         if (_amount == 0) return;
         uint256 oldLpBalance = balanceOfMoeLp();
         
-        uint256 usdcForUsdtSwapAmount = _amount / 2;
-        uint256 usdcForWmntSwapAmount = _amount - usdcForUsdtSwapAmount;
+        uint256 usdcForWethSwapAmount = _amount / 2;
+        uint256 usdcForMethSwapAmount = _amount - usdcForWethSwapAmount;
 
-        uint256 wmntAmount = _agniSwap(address(want), address(WMNT), usdcForWmntSwapAmount);
+        uint256 wethAmount = _agniSwap(address(want), address(WETH), usdcForWethSwapAmount);
 
-        uint256 usdcUsdtReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
+        uint256 usdcMethReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
             address(this),
-            uint256(ReservedTopics.RESERVE_IN_USDC_USDT_OF_USDC)
+            uint256(ReservedTopics.RESERVE_IN_USDC_METH_OF_USDC)
         );
-        uint256 usdcUsdtReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
+        uint256 usdcMethReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
             address(this),
-            uint256(ReservedTopics.RESERVE_IN_USDC_USDT_OF_USDT)
+            uint256(ReservedTopics.RESERVE_IN_USDC_METH_OF_METH)
         );
-        uint256 amountUsdtOut = MOE_ROUTER.getAmountOut(
-            usdcForUsdtSwapAmount,
-            usdcUsdtReserve0,
-            usdcUsdtReserve1
+        uint256 amountMethOut = MOE_ROUTER.getAmountOut(
+            usdcForMethSwapAmount,
+            usdcMethReserve0,
+            usdcMethReserve1
         );
-        uint256 usdtAmount = _moeMerchantSwap(
+        uint256 methAmount = _moeMerchantSwap(
             address(want),
-            address(USDT),
-            usdcForUsdtSwapAmount,
-            (amountUsdtOut * STANDARD_SLIPPAGE) / MAX_BPS
+            address(METH),
+            usdcForMethSwapAmount,
+            (amountMethOut * STANDARD_SLIPPAGE) / MAX_BPS
         );
 
-        uint256 usdtMoeReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
+        uint256 methWethReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
             address(this),
-            uint256(ReservedTopics.RESERVE_IN_USDT_MOE_OF_USDT)
+            uint256(ReservedTopics.RESERVE_IN_METH_WETH_OF_METH)
         );
-        uint256 usdtMoeReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
+        uint256 methWethReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
             address(this),
-            uint256(ReservedTopics.RESERVE_IN_USDT_MOE_OF_MOE)
+            uint256(ReservedTopics.RESERVE_IN_METH_WETH_OF_WETH)
         );
-        uint256 amountMoeOut = MOE_ROUTER.getAmountOut(
-            usdtAmount,
-            usdtMoeReserve0,
-            usdtMoeReserve1
+        (uint256 lpMinted, uint256 methLeft, uint256 wethLeft) = _moeMerchantAddLiquidity(
+            address(METH),
+            address(WETH),
+            wethAmount + wethTokensToAddToMoeLiquidity,
+            methAmount + methTokensToAddToMoeLiquidity,
+            methWethReserve0,
+            methWethReserve1
         );
-        uint256 moeAmount = _moeMerchantSwap(
-            address(USDT),
-            address(MOE),
-            usdtAmount,
-            (amountMoeOut * STANDARD_SLIPPAGE) / MAX_BPS
-        );
-
-         uint256 moeWmntReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
-            address(this),
-            uint256(ReservedTopics.RESERVE_IN_MOE_WMNT_OF_MOE)
-        );
-        uint256 moeWmntReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
-            address(this),
-            uint256(ReservedTopics.RESERVE_IN_MOE_WMNT_OF_WMNT)
-        );
-        (uint256 lpMinted, uint256 moeLeft, uint256 wmntLeft) = _moeMerchantAddLiquidity(
-            address(MOE),
-            address(WMNT),
-            moeAmount + moeTokensToAddToMoeLiquidity,
-            wmntAmount + wmntTokensToAddToMoeLiquidity,
-            moeWmntReserve0,
-            moeWmntReserve1
-        );
-        moeTokensToAddToMoeLiquidity = 0;
-        wmntTokensToAddToMoeLiquidity = 0;
-        if (moeLeft > 0) {
-            moeTokensToAddToMoeLiquidity = moeLeft;
+        methTokensToAddToMoeLiquidity = 0;
+        wethTokensToAddToMoeLiquidity = 0;
+        if (wethLeft > 0) {
+            wethTokensToAddToMoeLiquidity = wethLeft;
         }
-        if (wmntLeft > 0) {
-            wmntTokensToAddToMoeLiquidity = wmntLeft;
+        if (methLeft > 0) {
+            methTokensToAddToMoeLiquidity = methLeft;
         }
         emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
         uint256 circuitShares = balanceOfCircuitShares();
@@ -390,55 +341,35 @@ contract MethWethStrategy is
         );
         RemoveLiquidityData
             memory removedLiquidityData = _moeMerchantRemoveLiquidity(
-                address(MOE),
-                address(WMNT),
+                address(METH),
+                address(WETH),
                 balanceOfMoeLp() - oldLpBalance
             );
         emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
 
-        uint256 swappedFromWmntUsdcAmount = _agniSwap(address(WMNT), address(want), removedLiquidityData.amountBWithdrawn);
+        uint256 swappedFromWethUsdcAmount = _agniSwap(address(WETH), address(want), removedLiquidityData.amountBWithdrawn);
 
-        uint256 usdtMoeReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
+        uint256 usdcMethReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
             address(this),
-            uint256(ReservedTopics.RESERVE_IN_USDT_MOE_OF_USDT)
+            uint256(ReservedTopics.RESERVE_IN_USDC_METH_OF_USDC)
         );
-        uint256 usdtMoeReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
+        uint256 usdcMethReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
             address(this),
-            uint256(ReservedTopics.RESERVE_IN_USDT_MOE_OF_MOE)
-        );
-        uint256 amountUsdtOut = MOE_ROUTER.getAmountOut(
-            removedLiquidityData.amountAWithdrawn,
-            usdtMoeReserve1,
-            usdtMoeReserve0
-        );
-        uint256 swappedFromMoeUsdtAmount = _moeMerchantSwap(
-            address(MOE),
-            address(USDT),
-            removedLiquidityData.amountAWithdrawn,
-            (amountUsdtOut * STANDARD_SLIPPAGE) / MAX_BPS
-        );
-
-        uint256 usdcUsdtReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
-            address(this),
-            uint256(ReservedTopics.RESERVE_IN_USDC_USDT_OF_USDC)
-        );
-        uint256 usdcUsdtReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
-            address(this),
-            uint256(ReservedTopics.RESERVE_IN_USDC_USDT_OF_USDT)
+            uint256(ReservedTopics.RESERVE_IN_USDC_METH_OF_METH)
         );
         uint256 amountUsdcOut = MOE_ROUTER.getAmountOut(
-            swappedFromMoeUsdtAmount,
-            usdcUsdtReserve1,
-            usdcUsdtReserve0
+            removedLiquidityData.amountAWithdrawn,
+            usdcMethReserve1,
+            usdcMethReserve0
         );
-        uint256 swappedFromUsdtUsdcAmount = _moeMerchantSwap(
-            address(USDT),
+        uint256 swappedFromMethUsdcAmount = _moeMerchantSwap(
+            address(METH),
             address(want),
-            swappedFromMoeUsdtAmount,
+            removedLiquidityData.amountAWithdrawn,
             (amountUsdcOut * STANDARD_SLIPPAGE) / MAX_BPS
         );
         emit WantTokensGathered(
-            swappedFromWmntUsdcAmount + swappedFromUsdtUsdcAmount
+            swappedFromWethUsdcAmount + swappedFromMethUsdcAmount
         );
     }
 
@@ -483,12 +414,11 @@ contract MethWethStrategy is
         override
         returns (address[] memory protected)
     {
-        protected = new address[](5);
+        protected = new address[](4);
         protected[0] = address(CIRCUIT_VAULT);
-        protected[1] = address(MOE);
-        protected[2] = address(USDT);
-        protected[3] = address(WMNT);
-        protected[4] = address(MOE_MERCHANT_MOE_WMNT_POOL);
+        protected[1] = address(WETH);
+        protected[2] = address(METH);
+        protected[4] = address(MOE_MERCHANT_METH_WETH_POOL);
         return protected;
     }
 
