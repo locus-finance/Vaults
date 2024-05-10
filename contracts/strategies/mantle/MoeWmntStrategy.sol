@@ -304,101 +304,142 @@ contract MoeWmntStrategy is
         if (_amount == 0) return;
         uint256 oldLpBalance = balanceOfMoeLp();
         
-        // uint256 usdcForLendSwapAmount = _amount / 2;
-        // uint256 usdcForWmntSwapAmount = _amount - usdcForLendSwapAmount;
+        uint256 usdcForUsdtSwapAmount = _amount / 2;
+        uint256 usdcForWmntSwapAmount = _amount - usdcForUsdtSwapAmount;
 
-        // uint256 wmntAmount = _agniSwap(address(want), address(WMNT), usdcForWmntSwapAmount);
+        uint256 wmntAmount = _agniSwap(address(want), address(WMNT), usdcForWmntSwapAmount);
 
-        // uint256 usdtMoeReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
-        //     address(this),
-        //     uint256(ReservedTopics.RESERVE_IN_USDC_LEND_OF_USDC)
-        // );
-        // uint256 usdtMoeReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
-        //     address(this),
-        //     uint256(ReservedTopics.RESERVE_IN_USDC_LEND_OF_LEND)
-        // );
-        // uint256 amountUsdcOut = MOE_ROUTER.getAmountOut(
-        //     usdcForLendSwapAmount,
-        //     usdtMoeReserve0,
-        //     usdtMoeReserve1
-        // );
-        // uint256 lendAmount = _moeMerchantSwap(
-        //     address(want),
-        //     address(LEND),
-        //     usdcForLendSwapAmount,
-        //     (amountUsdcOut * STANDARD_SLIPPAGE) / MAX_BPS
-        // );
+        uint256 usdcUsdtReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_IN_USDC_USDT_OF_USDC)
+        );
+        uint256 usdcUsdtReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_IN_USDC_USDT_OF_USDT)
+        );
+        uint256 amountUsdtOut = MOE_ROUTER.getAmountOut(
+            usdcForUsdtSwapAmount,
+            usdcUsdtReserve0,
+            usdcUsdtReserve1
+        );
+        uint256 usdtAmount = _moeMerchantSwap(
+            address(want),
+            address(USDT),
+            usdcForUsdtSwapAmount,
+            (amountUsdtOut * STANDARD_SLIPPAGE) / MAX_BPS
+        );
 
-        //  uint256 usdcUsdtReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
-        //     address(this),
-        //     uint256(ReservedTopics.RESERVE_IN_LEND_WMNT_OF_LEND)
-        // );
-        // uint256 usdcUsdtReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
-        //     address(this),
-        //     uint256(ReservedTopics.RESERVE_IN_LEND_WMNT_OF_WMNT)
-        // );
-        
-        // (uint256 lpMinted, uint256 lendLeft, uint256 wmntLeft) = _moeMerchantAddLiquidity(
-        //     address(LEND),
-        //     address(WMNT),
-        //     lendAmount + lendTokensToAddToMoeLiquidity,
-        //     wmntAmount + wmntTokensToAddToMoeLiquidity,
-        //     usdcUsdtReserve0,
-        //     usdcUsdtReserve1
-        // );
-        // lendTokensToAddToMoeLiquidity = 0;
-        // wmntTokensToAddToMoeLiquidity = 0;
-        // if (lendLeft > 0) {
-        //     lendTokensToAddToMoeLiquidity = lendLeft;
-        // }
-        // if (wmntLeft > 0) {
-        //     wmntTokensToAddToMoeLiquidity = wmntLeft;
-        // }
-        // emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
-        // uint256 circuitShares = balanceOfCircuitShares();
-        // CIRCUIT_VAULT.deposit(lpMinted);
-        // emit MintedCircuitShares(circuitShares, balanceOfCircuitShares());
+        uint256 usdtMoeReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_IN_USDT_MOE_OF_USDT)
+        );
+        uint256 usdtMoeReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_IN_USDT_MOE_OF_MOE)
+        );
+        uint256 amountMoeOut = MOE_ROUTER.getAmountOut(
+            usdtAmount,
+            usdtMoeReserve0,
+            usdtMoeReserve1
+        );
+        uint256 moeAmount = _moeMerchantSwap(
+            address(USDT),
+            address(MOE),
+            usdtAmount,
+            (amountMoeOut * STANDARD_SLIPPAGE) / MAX_BPS
+        );
+
+         uint256 moeWmntReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_IN_MOE_WMNT_OF_MOE)
+        );
+        uint256 moeWmntReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_IN_MOE_WMNT_OF_WMNT)
+        );
+        (uint256 lpMinted, uint256 moeLeft, uint256 wmntLeft) = _moeMerchantAddLiquidity(
+            address(MOE),
+            address(WMNT),
+            moeAmount + moeTokensToAddToMoeLiquidity,
+            wmntAmount + wmntTokensToAddToMoeLiquidity,
+            moeWmntReserve0,
+            moeWmntReserve1
+        );
+        moeTokensToAddToMoeLiquidity = 0;
+        wmntTokensToAddToMoeLiquidity = 0;
+        if (moeLeft > 0) {
+            moeTokensToAddToMoeLiquidity = moeLeft;
+        }
+        if (wmntLeft > 0) {
+            wmntTokensToAddToMoeLiquidity = wmntLeft;
+        }
+        emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
+        uint256 circuitShares = balanceOfCircuitShares();
+        CIRCUIT_VAULT.deposit(lpMinted);
+        emit MintedCircuitShares(circuitShares, balanceOfCircuitShares());
     }
 
     function _burnShares(uint256 _shares) internal {
         if (_shares == 0) return;
-        // uint256 oldLpBalance = balanceOfMoeLp();
-        // uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
-        // CIRCUIT_VAULT.withdraw(_shares);
-        // emit BurnedCircuitShares(
-        //     oldCircuitSharesBalance,
-        //     balanceOfCircuitShares()
-        // );
-        // RemoveLiquidityData
-        //     memory removedLiquidityData = _moeMerchantRemoveLiquidity(
-        //         address(LEND),
-        //         address(WMNT),
-        //         balanceOfMoeLp() - oldLpBalance
-        //     );
-        // emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
-        // uint256 usdtMoeReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
-        //     address(this),
-        //     uint256(ReservedTopics.RESERVE_IN_USDC_LEND_OF_USDC)
-        // );
-        // uint256 usdtMoeReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
-        //     address(this),
-        //     uint256(ReservedTopics.RESERVE_IN_USDC_LEND_OF_LEND)
-        // );
-        // uint256 amountUsdcOut = MOE_ROUTER.getAmountOut(
-        //     removedLiquidityData.amountAWithdrawn,
-        //     usdtMoeReserve1,
-        //     usdtMoeReserve0
-        // );
-        // uint256 swappedFromLendUsdcAmount = _moeMerchantSwap(
-        //     address(LEND),
-        //     address(want),
-        //     removedLiquidityData.amountAWithdrawn,
-        //     (amountUsdcOut * STANDARD_SLIPPAGE) / MAX_BPS
-        // );
-        // uint256 swappedFromWmntUsdcAmount = _agniSwap(address(WMNT), address(want), removedLiquidityData.amountBWithdrawn);
-        // emit WantTokensGathered(
-        //     swappedFromLendUsdcAmount + swappedFromWmntUsdcAmount
-        // );
+        uint256 oldLpBalance = balanceOfMoeLp();
+        uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
+        CIRCUIT_VAULT.withdraw(_shares);
+        emit BurnedCircuitShares(
+            oldCircuitSharesBalance,
+            balanceOfCircuitShares()
+        );
+        RemoveLiquidityData
+            memory removedLiquidityData = _moeMerchantRemoveLiquidity(
+                address(MOE),
+                address(WMNT),
+                balanceOfMoeLp() - oldLpBalance
+            );
+        emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
+
+        uint256 swappedFromWmntUsdcAmount = _agniSwap(address(WMNT), address(want), removedLiquidityData.amountBWithdrawn);
+
+        uint256 usdtMoeReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_IN_USDT_MOE_OF_USDT)
+        );
+        uint256 usdtMoeReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_IN_USDT_MOE_OF_MOE)
+        );
+        uint256 amountUsdtOut = MOE_ROUTER.getAmountOut(
+            removedLiquidityData.amountAWithdrawn,
+            usdtMoeReserve1,
+            usdtMoeReserve0
+        );
+        uint256 swappedFromMoeUsdtAmount = _moeMerchantSwap(
+            address(MOE),
+            address(USDT),
+            removedLiquidityData.amountAWithdrawn,
+            (amountUsdtOut * STANDARD_SLIPPAGE) / MAX_BPS
+        );
+
+        uint256 usdcUsdtReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_IN_USDC_USDT_OF_USDC)
+        );
+        uint256 usdcUsdtReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
+            address(this),
+            uint256(ReservedTopics.RESERVE_IN_USDC_USDT_OF_USDT)
+        );
+        uint256 amountUsdcOut = MOE_ROUTER.getAmountOut(
+            swappedFromMoeUsdtAmount,
+            usdcUsdtReserve1,
+            usdcUsdtReserve0
+        );
+        uint256 swappedFromUsdtUsdcAmount = _moeMerchantSwap(
+            address(USDT),
+            address(want),
+            swappedFromMoeUsdtAmount,
+            (amountUsdcOut * STANDARD_SLIPPAGE) / MAX_BPS
+        );
+        emit WantTokensGathered(
+            swappedFromWmntUsdcAmount + swappedFromUsdtUsdcAmount
+        );
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
