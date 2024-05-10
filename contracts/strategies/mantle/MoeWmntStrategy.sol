@@ -62,7 +62,7 @@ contract MoeWmntStrategy is
         IERC20(0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8);
 
     IERC20 public constant MOE_MERCHANT_MOE_WMNT_POOL =
-        IERC20(0x763868612858358f62b05691db82ad35a9b3e110);
+        IERC20(0x763868612858358f62b05691dB82Ad35a9b3E110);
 
     uint256 public moeTokensToAddToMoeLiquidity;
     uint256 public wmntTokensToAddToMoeLiquidity;
@@ -442,11 +442,12 @@ contract MoeWmntStrategy is
         override
         returns (address[] memory protected)
     {
-        protected = new address[](4);
+        protected = new address[](5);
         protected[0] = address(CIRCUIT_VAULT);
-        protected[1] = address(LEND);
-        protected[2] = address(WMNT);
-        protected[3] = address(MOE_MERCHANT_LEND_WMNT_POOL);
+        protected[1] = address(MOE);
+        protected[2] = address(USDT);
+        protected[3] = address(WMNT);
+        protected[4] = address(MOE_MERCHANT_MOE_WMNT_POOL);
         return protected;
     }
 
