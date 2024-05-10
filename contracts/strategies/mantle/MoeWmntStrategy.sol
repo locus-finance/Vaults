@@ -127,7 +127,7 @@ contract MoeWmntStrategy is
     }
 
     function name() external pure override returns (string memory) {
-        return "LEND-WMNT Strategy";
+        return "MOE-WMNT Strategy";
     }
 
     function balanceOfWant() public view returns (uint256) {

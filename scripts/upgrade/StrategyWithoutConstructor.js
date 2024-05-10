@@ -8,8 +8,6 @@ const TARGET_ADDRESS = getEnv("TARGET_ADDRESS");
 
 async function main() {
   const TargetContract = await hre.ethers.getContractFactory(TARGET_STRATEGY);
-  const strategy = TargetContract.attach(TARGET_ADDRESS);
-  const vault = await strategy.vault();
   console.log("Preparing upgrade...");
 
   console.log(
