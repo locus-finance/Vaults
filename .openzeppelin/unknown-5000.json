@@ -24,6 +24,11 @@
       "address": "0xa28e09cC6fb46D49686DDe0aE48053600c94900f",
       "txHash": "0x76d1b77a5f1b8178a6c954751801d30f5fd5c1d0e98fd0ea637337bf73bfb56d",
       "kind": "transparent"
+    },
+    {
+      "address": "0x74CDA6bd0bed5A9027E4f62b733Ed34F495F5C2d",
+      "txHash": "0xba88812583f70e0e4b1d0edbe89e94ae6e051825cad687eaebbc802366879868",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -2940,6 +2945,137 @@
           "t_uint8": {
             "label": "uint8",
             "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "70223277f23ae25501d58d2517b153e4e6cc448cb7d5bc939c3292e6d9b13d4d": {
+      "address": "0x79b050D5123Eba53c880e35F99Bac0154Ca844e2",
+      "txHash": "0xca5fb9f4201879e4531ab2d8be8ff03035b6be1373084c24628327006ebb0bc7",
+      "layout": {
+        "solcVersion": "0.8.23",
+        "storage": [
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(ILocusVault)6424",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:78"
+          },
+          {
+            "label": "strategist",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:79"
+          },
+          {
+            "label": "keeper",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:80"
+          },
+          {
+            "label": "want",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IERC20)664",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:81"
+          },
+          {
+            "label": "emergencyExit",
+            "offset": 20,
+            "slot": "3",
+            "type": "t_bool",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:94"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "MoeMerchantStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantStrategyHelper.sol:159"
+          },
+          {
+            "label": "agniSwapFactory",
+            "offset": 0,
+            "slot": "49",
+            "type": "t_contract(IAgniFactory)5332",
+            "contract": "AgniStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\AgniStrategyHelper.sol:17"
+          },
+          {
+            "label": "agniFee",
+            "offset": 20,
+            "slot": "49",
+            "type": "t_uint24",
+            "contract": "AgniStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\AgniStrategyHelper.sol:18"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "50",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "AgniStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\AgniStrategyHelper.sol:73"
+          },
+          {
+            "label": "lendTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "95",
+            "type": "t_uint256",
+            "contract": "LendWmntStrategy",
+            "src": "contracts\\strategies\\mantle\\LendWmntStrategy.sol:62"
+          },
+          {
+            "label": "wmntTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "96",
+            "type": "t_uint256",
+            "contract": "LendWmntStrategy",
+            "src": "contracts\\strategies\\mantle\\LendWmntStrategy.sol:63"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IAgniFactory)5332": {
+            "label": "contract IAgniFactory",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IERC20)664": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ILocusVault)6424": {
+            "label": "contract ILocusVault",
+            "numberOfBytes": "20"
+          },
+          "t_uint24": {
+            "label": "uint24",
+            "numberOfBytes": "3"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
           }
         }
       }

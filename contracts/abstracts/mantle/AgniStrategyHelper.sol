@@ -12,12 +12,15 @@ abstract contract AgniStrategyHelper {
 
     IAgniSwapRouter public constant AGNI_SWAP_ROUTER =
         IAgniSwapRouter(0x319B69888b0d11cEC22caA5034e25FfFBDc88421);
-
-    IAgniFactory public immutable AGNI_SWAP_FACTORY =
-        IAgniFactory(AGNI_SWAP_ROUTER.factory());
-
-    uint24 public agniFee = 100;
     uint32 public constant AGNI_TWAP_RANGE_SECS = 1800;
+
+    IAgniFactory public agniSwapFactory;
+    uint24 public agniFee;
+
+    function _agniStrategyHelperInitialize() internal {
+        agniSwapFactory = IAgniFactory(AGNI_SWAP_ROUTER.factory());
+        agniFee = 100;
+    }
 
     function _setAgniFee(uint24 newAgniFee) internal {
         agniFee = newAgniFee;
@@ -50,7 +53,7 @@ abstract contract AgniStrategyHelper {
         uint256 amountIn
     ) internal view returns (uint256) {
         (int24 meanTick, ) = OracleLibrary.consult(
-            AGNI_SWAP_FACTORY.getPool(tokenIn, tokenOut, agniFee),
+            agniSwapFactory.getPool(tokenIn, tokenOut, agniFee),
             AGNI_TWAP_RANGE_SECS
         );
         return

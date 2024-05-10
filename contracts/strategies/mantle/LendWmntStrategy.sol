@@ -69,6 +69,7 @@ contract LendWmntStrategy is
             _strategist,
             _strategist
         );
+        _agniStrategyHelperInitialize();
         want.approve(address(MOE_ROUTER), type(uint256).max);
         WMNT.approve(address(MOE_ROUTER), type(uint256).max);
         LEND.approve(address(MOE_ROUTER), type(uint256).max);

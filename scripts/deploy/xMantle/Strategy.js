@@ -2,19 +2,24 @@ const hre = require("hardhat");
 
 const { getEnv } = require("../../utils");
 
-const TARGET_STRATEGY = "UsdcUsdyStrategy";
+const TARGET_STRATEGY = "LendWmntStrategy";
 const strategist = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe"
 const vaultAddress = "0x877559B8D37E5a05dB12F289214c51D05856fcA0";
 
 const DEPLOY_SETTINGS = {
     vaultAddress: vaultAddress,
     InitStrategy: {
-        ratio: "5000",
+        ratio: "2500",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
     },
     UsdcUsdyStrategy: {
-        ratio: "5000",
+        ratio: "2500",
+        minDebtHarvestUsdc: "0",
+        maxDebtHarvestUsdc: "1000000000000",
+    },
+    LendWmntStrategy: {
+        ratio: "2500",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
     }
