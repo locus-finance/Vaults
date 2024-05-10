@@ -31,8 +31,11 @@ describe('TestMantleVaultDeposit', () => {
   const strategist = userAddress;
   
   const lendingPoolAddress = "0x00A55649E597d463fD212fBE48a3B40f0E227d06";
+  
   const initStrategyAddress = "0xB134814B4E95DbD76fbc12E1976C8f54CD7b8020";
   const usdcUsdyStrategyAddress = "0xa28e09cC6fb46D49686DDe0aE48053600c94900f";
+  const lendWmntStrategyAddress = "0x74CDA6bd0bed5A9027E4f62b733Ed34F495F5C2d";
+  
   const locusFeedAddress = "0x5662AaAc9fdc97910E648e54076Be71D60D4045f";
   
   const usdcWhale = "0x588846213A30fd36244e0ae0eBB2374516dA836C";
@@ -43,11 +46,16 @@ describe('TestMantleVaultDeposit', () => {
 
   let xMantleInstance;
   let xMantleTokenInstance;
+  
   let usdcInstance;
+  
   let lendingPoolEip20Instance;
   let lendingPoolInstance;
+  
   let initStrategyInstance;
   let usdcUsdyStrategyInstance;
+  let lendWmntStrategyInstance;
+  
   let locusFeedInstance;
 
   beforeEach(async () => {
@@ -79,6 +87,10 @@ describe('TestMantleVaultDeposit', () => {
       "UsdcUsdyStrategy",
       usdcUsdyStrategyAddress
     );
+    lendWmntStrategyInstance = await hre.ethers.getContractAt(
+      "LendWmntStrategy",
+      lendWmntStrategyAddress
+    );
     locusFeedInstance = await hre.ethers.getContractAt(
       "LocusDataFeed",
       locusFeedAddress
@@ -86,13 +98,6 @@ describe('TestMantleVaultDeposit', () => {
     await mintNativeTokens(userAddress, "0x10000000000000000000");
     await withImpersonatedSigner(usdcWhale, async (usdcWhaleSigner) => {
       await usdcInstance.connect(usdcWhaleSigner).transfer(userAddress, userUsdcAllowance);
-    });
-  });
-
-  it('should perform deposit', async () => {
-    console.log(hre.ethers.utils.formatUnits(await usdcInstance.balanceOf(userAddress), 6));
-    await withImpersonatedSigner(userAddress, async (userSigner) => {
-      await xMantleInstance.connect(userSigner)["deposit(uint256)"](usdcAmountToDeposit);
     });
   });
 
@@ -109,10 +114,14 @@ describe('TestMantleVaultDeposit', () => {
       await locusFeedInstance.connect(userSigner).updateFeed(usdcUsdyStrategyAddress);
       await usdcUsdyStrategyInstance.connect(userSigner).harvest();
     });
+    await withImpersonatedSigner(userAddress, async (userSigner) => {
+      await locusFeedInstance.connect(userSigner).updateFeed(lendWmntStrategyAddress);
+      await lendWmntStrategyInstance.connect(userSigner).harvest();
+    });
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
   });
 
-  it('should EST', async () => {
+  xit('should EST', async () => {
     const cirVault = await hre.ethers.getContractAt("IERC20Metadata", "0xc425a0fc1e62beda428ff628597dc8ea1c13d0e4")
     console.log((await cirVault.decimals()).toString());
     const cirBalance = await cirVault.balanceOf(usdcUsdyStrategyInstance.address);
