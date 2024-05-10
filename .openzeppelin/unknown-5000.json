@@ -34,6 +34,11 @@
       "address": "0x7ABC741CdE029f03Ec218A937bca7E0fddbd3B7D",
       "txHash": "0x815a022c0acc3422e34aaa18c68011bdf7959da607f97ba4ef295f8ac02c5353",
       "kind": "transparent"
+    },
+    {
+      "address": "0x08BF02E0F733c2abe704b428E638EA6792631ee8",
+      "txHash": "0xb45f243dedd7f35739cda2fe400cf56e2a960ab6736121bc20f8dba1d54dfeee",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -3309,6 +3314,137 @@
             "type": "t_uint256",
             "contract": "MoeWmntStrategy",
             "src": "contracts\\strategies\\mantle\\MoeWmntStrategy.sol:68"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IAgniFactory)5332": {
+            "label": "contract IAgniFactory",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IERC20)664": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ILocusVault)6424": {
+            "label": "contract ILocusVault",
+            "numberOfBytes": "20"
+          },
+          "t_uint24": {
+            "label": "uint24",
+            "numberOfBytes": "3"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "4139967282f3f09b2a10fecf5a13b07a0ad7799c6464fe933b4a47bf1fb8eafb": {
+      "address": "0x1c70D843F571fD4AE692c75e611d33db6D87398c",
+      "txHash": "0xa30c4782b489fa4cfff7eb74d59cb9caa417f5e642428162006561c6645f5ff0",
+      "layout": {
+        "solcVersion": "0.8.23",
+        "storage": [
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(ILocusVault)6424",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:78"
+          },
+          {
+            "label": "strategist",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:79"
+          },
+          {
+            "label": "keeper",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:80"
+          },
+          {
+            "label": "want",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IERC20)664",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:81"
+          },
+          {
+            "label": "emergencyExit",
+            "offset": 20,
+            "slot": "3",
+            "type": "t_bool",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:94"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "MoeMerchantStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantStrategyHelper.sol:159"
+          },
+          {
+            "label": "agniSwapFactory",
+            "offset": 0,
+            "slot": "49",
+            "type": "t_contract(IAgniFactory)5332",
+            "contract": "AgniStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\AgniStrategyHelper.sol:17"
+          },
+          {
+            "label": "agniFee",
+            "offset": 20,
+            "slot": "49",
+            "type": "t_uint24",
+            "contract": "AgniStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\AgniStrategyHelper.sol:18"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "50",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "AgniStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\AgniStrategyHelper.sol:73"
+          },
+          {
+            "label": "methTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "95",
+            "type": "t_uint256",
+            "contract": "MethWethStrategy",
+            "src": "contracts\\strategies\\mantle\\MethWethStrategy.sol:62"
+          },
+          {
+            "label": "wethTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "96",
+            "type": "t_uint256",
+            "contract": "MethWethStrategy",
+            "src": "contracts\\strategies\\mantle\\MethWethStrategy.sol:63"
           }
         ],
         "types": {
