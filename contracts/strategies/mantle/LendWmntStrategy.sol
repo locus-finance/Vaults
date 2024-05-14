@@ -46,7 +46,8 @@ contract LendWmntStrategy is
     uint256 private constant MAX_BPS = 10000;
     ILocusDataFeed public constant LOCUS_DATA_FEED =
         ILocusDataFeed(0x5662AaAc9fdc97910E648e54076Be71D60D4045f);
-    uint256 public constant TOPICS_AMOUNT = uint256(type(ReservedTopics).max) + 1;
+    uint256 public constant TOPICS_AMOUNT =
+        uint256(type(ReservedTopics).max) + 1;
 
     ICircuitVault public constant CIRCUIT_VAULT =
         ICircuitVault(0x6CeaC8F90B7cAA311E025480503Bb0020B66f22A);
@@ -96,18 +97,32 @@ contract LendWmntStrategy is
         if (msg.sender != address(LOCUS_DATA_FEED)) {
             revert OnlyLocusDataFeed();
         }
-        IMoePair lendWmntPair = IMoePair(MOE_FACTORY.getPair(address(LEND), address(WMNT)));
-        IMoePair usdcLendPair = IMoePair(MOE_FACTORY.getPair(address(want), address(LEND)));
-        (uint112 lendWmntReserve0, uint256 lendWmntReserve1,) = lendWmntPair.getReserves();
-        (uint112 usdcLendReserve0, uint256 usdcLendReserve1,) = usdcLendPair.getReserves();
-        
-        if (topicNumber == uint256(ReservedTopics.RESERVE_IN_LEND_WMNT_OF_LEND)) {
+        IMoePair lendWmntPair = IMoePair(
+            MOE_FACTORY.getPair(address(LEND), address(WMNT))
+        );
+        IMoePair usdcLendPair = IMoePair(
+            MOE_FACTORY.getPair(address(want), address(LEND))
+        );
+        (uint112 lendWmntReserve0, uint256 lendWmntReserve1, ) = lendWmntPair
+            .getReserves();
+        (uint112 usdcLendReserve0, uint256 usdcLendReserve1, ) = usdcLendPair
+            .getReserves();
+
+        if (
+            topicNumber == uint256(ReservedTopics.RESERVE_IN_LEND_WMNT_OF_LEND)
+        ) {
             result = bytes32(uint256(lendWmntReserve0));
-        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_LEND_WMNT_OF_WMNT)) {
+        } else if (
+            topicNumber == uint256(ReservedTopics.RESERVE_IN_LEND_WMNT_OF_WMNT)
+        ) {
             result = bytes32(uint256(lendWmntReserve1));
-        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_USDC_LEND_OF_USDC)) {
+        } else if (
+            topicNumber == uint256(ReservedTopics.RESERVE_IN_USDC_LEND_OF_USDC)
+        ) {
             result = bytes32(uint256(usdcLendReserve0));
-        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_USDC_LEND_OF_LEND)) {
+        } else if (
+            topicNumber == uint256(ReservedTopics.RESERVE_IN_USDC_LEND_OF_LEND)
+        ) {
             result = bytes32(uint256(usdcLendReserve1));
         } else {
             revert UnknownTopicNumber(topicNumber);
@@ -145,7 +160,11 @@ contract LendWmntStrategy is
         uint256 usdcForLendSwapAmount = amount / 2;
         uint256 usdcForWmntSwapAmount = amount - usdcForLendSwapAmount;
 
-        uint256 wmntAmount = _agniQuote(address(want), address(WMNT), usdcForWmntSwapAmount);
+        uint256 wmntAmount = _agniQuote(
+            address(want),
+            address(WMNT),
+            usdcForWmntSwapAmount
+        );
 
         address[] memory path = new address[](2);
         path[0] = address(want);
@@ -154,15 +173,14 @@ contract LendWmntStrategy is
             MOE_FACTORY.getPair(address(want), address(LEND))
         );
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
-        uint256 lendAmount = MOE_ROUTER.getAmountsOut(usdcForLendSwapAmount, path)[
-            1
-        ];
+        uint256 lendAmount = MOE_ROUTER.getAmountsOut(
+            usdcForLendSwapAmount,
+            path
+        )[1];
 
         path[0] = address(LEND);
         path[1] = address(WMNT);
-        pair = IMoePair(
-            MOE_FACTORY.getPair(address(LEND), address(WMNT))
-        );
+        pair = IMoePair(MOE_FACTORY.getPair(address(LEND), address(WMNT)));
         (reserve0, reserve1, ) = pair.getReserves();
         uint256 lpTotalSupply = pair.totalSupply();
         uint256 liquidity = Math.min(
@@ -186,7 +204,7 @@ contract LendWmntStrategy is
         uint256 lpTotalSupply = pair.totalSupply();
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
         uint256 lendAmount = (liquidity * reserve0) / lpTotalSupply;
-        uint256 wmntAmount = (liquidity * reserve1) / lpTotalSupply; 
+        uint256 wmntAmount = (liquidity * reserve1) / lpTotalSupply;
         result = _agniQuote(address(WMNT), address(want), wmntAmount);
         address[] memory path = new address[](2);
         path[0] = address(LEND);
@@ -272,11 +290,16 @@ contract LendWmntStrategy is
     function _mintShares(uint256 _amount) internal {
         if (_amount == 0) return;
         uint256 oldLpBalance = balanceOfMoeLp();
-        
+
         uint256 usdcForLendSwapAmount = _amount / 2;
         uint256 usdcForWmntSwapAmount = _amount - usdcForLendSwapAmount;
 
-        uint256 wmntAmount = _agniSwap(address(want), address(WMNT), usdcForWmntSwapAmount);
+        uint256 wmntAmount = _agniSwap(
+            address(want),
+            address(WMNT),
+            usdcForWmntSwapAmount,
+            STANDARD_SLIPPAGE
+        );
 
         uint256 usdcLendReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
             address(this),
@@ -298,7 +321,7 @@ contract LendWmntStrategy is
             (amountUsdcOut * STANDARD_SLIPPAGE) / MAX_BPS
         );
 
-         uint256 lendWmntReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
+        uint256 lendWmntReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
             address(this),
             uint256(ReservedTopics.RESERVE_IN_LEND_WMNT_OF_LEND)
         );
@@ -306,15 +329,20 @@ contract LendWmntStrategy is
             address(this),
             uint256(ReservedTopics.RESERVE_IN_LEND_WMNT_OF_WMNT)
         );
-        
-        (uint256 lpMinted, uint256 lendLeft, uint256 wmntLeft) = _moeMerchantAddLiquidity(
-            address(LEND),
-            address(WMNT),
-            lendAmount + lendTokensToAddToMoeLiquidity,
-            wmntAmount + wmntTokensToAddToMoeLiquidity,
-            lendWmntReserve0,
-            lendWmntReserve1
-        );
+
+        (
+            uint256 lpMinted,
+            uint256 lendLeft,
+            uint256 wmntLeft
+        ) = _moeMerchantAddLiquidity(
+                address(LEND),
+                address(WMNT),
+                lendAmount + lendTokensToAddToMoeLiquidity,
+                wmntAmount + wmntTokensToAddToMoeLiquidity,
+                lendWmntReserve0,
+                lendWmntReserve1,
+                STANDARD_SLIPPAGE
+            );
         lendTokensToAddToMoeLiquidity = 0;
         wmntTokensToAddToMoeLiquidity = 0;
         if (lendLeft > 0) {
@@ -364,7 +392,12 @@ contract LendWmntStrategy is
             removedLiquidityData.amountAWithdrawn,
             (amountUsdcOut * STANDARD_SLIPPAGE) / MAX_BPS
         );
-        uint256 swappedFromWmntUsdcAmount = _agniSwap(address(WMNT), address(want), removedLiquidityData.amountBWithdrawn);
+        uint256 swappedFromWmntUsdcAmount = _agniSwap(
+            address(WMNT),
+            address(want),
+            removedLiquidityData.amountBWithdrawn,
+            STANDARD_SLIPPAGE
+        );
         emit WantTokensGathered(
             swappedFromLendUsdcAmount + swappedFromWmntUsdcAmount
         );

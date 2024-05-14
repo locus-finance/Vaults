@@ -18,7 +18,6 @@ abstract contract MoeMerchantStrategyHelper {
     IMoeFactory public constant MOE_FACTORY =
         IMoeFactory(0x5bEf015CA9424A7C07B68490616a4C1F094BEdEc);
 
-    uint256 private constant STANDARD_SLIPPAGE = 9000;
     uint256 private constant MAX_BPS = 10000;
 
     function _moeMerchantSwap(
@@ -44,7 +43,8 @@ abstract contract MoeMerchantStrategyHelper {
         address tokenB,
         uint256 amountA,
         uint256 reserve0,
-        uint256 reserve1
+        uint256 reserve1,
+        uint256 slippageBps
     ) internal returns (uint256 lpMinted) {
         uint256 tokensAToAdd = amountA / 2;
         uint256 tokensBToAdd = MOE_ROUTER.quote(
@@ -52,7 +52,7 @@ abstract contract MoeMerchantStrategyHelper {
             reserve0,
             reserve1
         );
-        uint256 tokensBToAddWithSlippage = (tokensBToAdd * STANDARD_SLIPPAGE) /
+        uint256 tokensBToAddWithSlippage = (tokensBToAdd * slippageBps) /
             MAX_BPS;
         uint256 swappedTokensB = _moeMerchantSwap(
             tokenA,
@@ -66,7 +66,7 @@ abstract contract MoeMerchantStrategyHelper {
             tokenB,
             tokensAToAdd,
             swappedTokensB,
-            (tokensAToAdd * STANDARD_SLIPPAGE) / MAX_BPS,
+            (tokensAToAdd * slippageBps) / MAX_BPS,
             tokensBToAddWithSlippage,
             address(this),
             block.timestamp
@@ -79,7 +79,8 @@ abstract contract MoeMerchantStrategyHelper {
         uint256 amountA, // any amount (even violating the ratio in the reserves)
         uint256 amountB, // any amount (even violating the ratio in the reserves)
         uint256 reserve0,
-        uint256 reserve1
+        uint256 reserve1,
+        uint256 slippageBps
     )
         internal
         returns (uint256 lpMinted, uint256 tokensALeft, uint256 tokensBLeft)
@@ -91,8 +92,8 @@ abstract contract MoeMerchantStrategyHelper {
                 tokenB,
                 amountA,
                 expectedAmountB,
-                (amountA * STANDARD_SLIPPAGE) / MAX_BPS,
-                (expectedAmountB * STANDARD_SLIPPAGE) / MAX_BPS,
+                (amountA * slippageBps) / MAX_BPS,
+                (expectedAmountB * slippageBps) / MAX_BPS,
                 address(this),
                 block.timestamp
             );
@@ -107,8 +108,8 @@ abstract contract MoeMerchantStrategyHelper {
                     tokenB,
                     expectedAmountA,
                     amountB,
-                    (expectedAmountA * STANDARD_SLIPPAGE) / MAX_BPS,
-                    (amountB * STANDARD_SLIPPAGE) / MAX_BPS,
+                    (expectedAmountA * slippageBps) / MAX_BPS,
+                    (amountB * slippageBps) / MAX_BPS,
                     address(this),
                     block.timestamp
                 );
@@ -122,8 +123,8 @@ abstract contract MoeMerchantStrategyHelper {
                 tokenB,
                 amountA,
                 amountB,
-                (amountA * STANDARD_SLIPPAGE) / MAX_BPS,
-                (amountB * STANDARD_SLIPPAGE) / MAX_BPS,
+                (amountA * slippageBps) / MAX_BPS,
+                (amountB * slippageBps) / MAX_BPS,
                 address(this),
                 block.timestamp
             );

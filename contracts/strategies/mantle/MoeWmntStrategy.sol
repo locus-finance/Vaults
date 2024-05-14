@@ -48,7 +48,8 @@ contract MoeWmntStrategy is
     uint256 private constant MAX_BPS = 10000;
     ILocusDataFeed public constant LOCUS_DATA_FEED =
         ILocusDataFeed(0x5662AaAc9fdc97910E648e54076Be71D60D4045f);
-    uint256 public constant TOPICS_AMOUNT = uint256(type(ReservedTopics).max) + 1;
+    uint256 public constant TOPICS_AMOUNT =
+        uint256(type(ReservedTopics).max) + 1;
 
     ICircuitVault public constant CIRCUIT_VAULT =
         ICircuitVault(0xa3647389cf2bF9279ab239d3710bB8a2eFE0BC8B);
@@ -100,25 +101,44 @@ contract MoeWmntStrategy is
         if (msg.sender != address(LOCUS_DATA_FEED)) {
             revert OnlyLocusDataFeed();
         }
-        IMoePair moeWmntPair = IMoePair(MOE_FACTORY.getPair(address(MOE), address(WMNT)));
-        IMoePair usdcUsdtPair = IMoePair(MOE_FACTORY.getPair(address(want), address(USDT)));
-        IMoePair usdtMoePair = IMoePair(MOE_FACTORY.getPair(address(USDT), address(MOE)));
-        
-        (uint112 moeWmntReserve0, uint256 moeWmntReserve1,) = moeWmntPair.getReserves();
-        (uint112 usdcUsdtReserve0, uint256 usdcUsdtReserve1,) = usdcUsdtPair.getReserves();
-        (uint112 usdtMoeReserve0, uint256 usdtMoeReserve1,) = usdtMoePair.getReserves();
-        
+        IMoePair moeWmntPair = IMoePair(
+            MOE_FACTORY.getPair(address(MOE), address(WMNT))
+        );
+        IMoePair usdcUsdtPair = IMoePair(
+            MOE_FACTORY.getPair(address(want), address(USDT))
+        );
+        IMoePair usdtMoePair = IMoePair(
+            MOE_FACTORY.getPair(address(USDT), address(MOE))
+        );
+
+        (uint112 moeWmntReserve0, uint256 moeWmntReserve1, ) = moeWmntPair
+            .getReserves();
+        (uint112 usdcUsdtReserve0, uint256 usdcUsdtReserve1, ) = usdcUsdtPair
+            .getReserves();
+        (uint112 usdtMoeReserve0, uint256 usdtMoeReserve1, ) = usdtMoePair
+            .getReserves();
+
         if (topicNumber == uint256(ReservedTopics.RESERVE_IN_MOE_WMNT_OF_MOE)) {
             result = bytes32(uint256(moeWmntReserve0));
-        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_MOE_WMNT_OF_WMNT)) {
+        } else if (
+            topicNumber == uint256(ReservedTopics.RESERVE_IN_MOE_WMNT_OF_WMNT)
+        ) {
             result = bytes32(uint256(moeWmntReserve1));
-        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_USDC_USDT_OF_USDC)) {
+        } else if (
+            topicNumber == uint256(ReservedTopics.RESERVE_IN_USDC_USDT_OF_USDC)
+        ) {
             result = bytes32(uint256(usdcUsdtReserve0));
-        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_USDC_USDT_OF_USDT)) {
+        } else if (
+            topicNumber == uint256(ReservedTopics.RESERVE_IN_USDC_USDT_OF_USDT)
+        ) {
             result = bytes32(uint256(usdcUsdtReserve1));
-        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_USDT_MOE_OF_USDT)) {
+        } else if (
+            topicNumber == uint256(ReservedTopics.RESERVE_IN_USDT_MOE_OF_USDT)
+        ) {
             result = bytes32(uint256(usdtMoeReserve0));
-        } else if (topicNumber == uint256(ReservedTopics.RESERVE_IN_USDT_MOE_OF_MOE)) {
+        } else if (
+            topicNumber == uint256(ReservedTopics.RESERVE_IN_USDT_MOE_OF_MOE)
+        ) {
             result = bytes32(uint256(usdtMoeReserve1));
         } else {
             revert UnknownTopicNumber(topicNumber);
@@ -160,7 +180,11 @@ contract MoeWmntStrategy is
         uint256 usdcForUsdtSwapAmount = amount / 2;
         uint256 usdcForWmntSwapAmount = amount - usdcForUsdtSwapAmount;
 
-        uint256 wmntAmount = _agniQuote(address(want), address(WMNT), usdcForWmntSwapAmount);
+        uint256 wmntAmount = _agniQuote(
+            address(want),
+            address(WMNT),
+            usdcForWmntSwapAmount
+        );
 
         address[] memory path = new address[](2);
         path[0] = address(want);
@@ -168,23 +192,20 @@ contract MoeWmntStrategy is
         IMoePair pair = IMoePair(
             MOE_FACTORY.getPair(address(want), address(USDT))
         );
-        uint256 usdtAmount = MOE_ROUTER.getAmountsOut(usdcForUsdtSwapAmount, path)[
-            1
-        ];
+        uint256 usdtAmount = MOE_ROUTER.getAmountsOut(
+            usdcForUsdtSwapAmount,
+            path
+        )[1];
 
         path[0] = address(USDT);
         path[1] = address(MOE);
-        uint256 moeAmount = MOE_ROUTER.getAmountsOut(usdtAmount, path)[
-            1
-        ];
+        uint256 moeAmount = MOE_ROUTER.getAmountsOut(usdtAmount, path)[1];
 
-        pair = IMoePair(
-            MOE_FACTORY.getPair(address(MOE), address(WMNT))
-        );
+        pair = IMoePair(MOE_FACTORY.getPair(address(MOE), address(WMNT)));
 
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
         uint256 lpTotalSupply = pair.totalSupply();
-        
+
         uint256 liquidity = Math.min(
             (wmntAmount * lpTotalSupply) / reserve0,
             (moeAmount * lpTotalSupply) / reserve1
@@ -209,10 +230,10 @@ contract MoeWmntStrategy is
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
 
         uint256 moeAmount = (liquidity * reserve0) / lpTotalSupply;
-        uint256 wmntAmount = (liquidity * reserve1) / lpTotalSupply; 
-        
+        uint256 wmntAmount = (liquidity * reserve1) / lpTotalSupply;
+
         result = _agniQuote(address(WMNT), address(want), wmntAmount);
-        
+
         address[] memory path = new address[](2);
 
         path[0] = address(MOE);
@@ -302,11 +323,16 @@ contract MoeWmntStrategy is
     function _mintShares(uint256 _amount) internal {
         if (_amount == 0) return;
         uint256 oldLpBalance = balanceOfMoeLp();
-        
+
         uint256 usdcForUsdtSwapAmount = _amount / 2;
         uint256 usdcForWmntSwapAmount = _amount - usdcForUsdtSwapAmount;
 
-        uint256 wmntAmount = _agniSwap(address(want), address(WMNT), usdcForWmntSwapAmount);
+        uint256 wmntAmount = _agniSwap(
+            address(want),
+            address(WMNT),
+            usdcForWmntSwapAmount,
+            STANDARD_SLIPPAGE
+        );
 
         uint256 usdcUsdtReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
             address(this),
@@ -348,7 +374,7 @@ contract MoeWmntStrategy is
             (amountMoeOut * STANDARD_SLIPPAGE) / MAX_BPS
         );
 
-         uint256 moeWmntReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
+        uint256 moeWmntReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
             address(this),
             uint256(ReservedTopics.RESERVE_IN_MOE_WMNT_OF_MOE)
         );
@@ -356,14 +382,19 @@ contract MoeWmntStrategy is
             address(this),
             uint256(ReservedTopics.RESERVE_IN_MOE_WMNT_OF_WMNT)
         );
-        (uint256 lpMinted, uint256 moeLeft, uint256 wmntLeft) = _moeMerchantAddLiquidity(
-            address(MOE),
-            address(WMNT),
-            moeAmount + moeTokensToAddToMoeLiquidity,
-            wmntAmount + wmntTokensToAddToMoeLiquidity,
-            moeWmntReserve0,
-            moeWmntReserve1
-        );
+        (
+            uint256 lpMinted,
+            uint256 moeLeft,
+            uint256 wmntLeft
+        ) = _moeMerchantAddLiquidity(
+                address(MOE),
+                address(WMNT),
+                moeAmount + moeTokensToAddToMoeLiquidity,
+                wmntAmount + wmntTokensToAddToMoeLiquidity,
+                moeWmntReserve0,
+                moeWmntReserve1,
+                STANDARD_SLIPPAGE
+            );
         moeTokensToAddToMoeLiquidity = 0;
         wmntTokensToAddToMoeLiquidity = 0;
         if (moeLeft > 0) {
@@ -395,7 +426,12 @@ contract MoeWmntStrategy is
             );
         emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
 
-        uint256 swappedFromWmntUsdcAmount = _agniSwap(address(WMNT), address(want), removedLiquidityData.amountBWithdrawn);
+        uint256 swappedFromWmntUsdcAmount = _agniSwap(
+            address(WMNT),
+            address(want),
+            removedLiquidityData.amountBWithdrawn,
+            STANDARD_SLIPPAGE
+        );
 
         uint256 usdtMoeReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
             address(this),

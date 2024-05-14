@@ -254,7 +254,8 @@ contract UsdcUsdyStrategy is
             address(USDY),
             _amount,
             reserve0,
-            reserve1
+            reserve1,
+            STANDARD_SLIPPAGE
         );
         emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
         uint256 circuitShares = balanceOfCircuitShares();

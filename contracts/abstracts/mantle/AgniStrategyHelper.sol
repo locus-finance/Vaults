@@ -7,7 +7,6 @@ import "../../integrations/agni/IAgniSwapRouter.sol";
 import "../../integrations/agni/IAgniFactory.sol";
 
 abstract contract AgniStrategyHelper {
-    uint256 private constant STANDARD_SLIPPAGE = 9000;
     uint256 private constant MAX_BPS = 10000;
 
     IAgniSwapRouter public constant AGNI_SWAP_ROUTER =
@@ -29,10 +28,11 @@ abstract contract AgniStrategyHelper {
     function _agniSwap(
         address tokenIn,
         address tokenOut,
-        uint256 amountIn
+        uint256 amountIn,
+        uint256 slippageBps
     ) internal returns (uint256) {
         uint256 amountOutMinimum = (_agniQuote(tokenIn, tokenOut, amountIn) *
-            STANDARD_SLIPPAGE) / MAX_BPS;
+            slippageBps) / MAX_BPS;
         IAgniSwapRouter.ExactInputSingleParams memory params = IAgniSwapRouter
             .ExactInputSingleParams({
                 tokenIn: tokenIn,
