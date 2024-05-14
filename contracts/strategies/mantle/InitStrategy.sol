@@ -44,8 +44,8 @@ contract InitStrategy is BaseStrategyForSeparatedVault {
             _strategist
         );
         irm = IIRM(INIT_USDC_LENDING_POOL.irm());
-        want.approve(address(INIT_USDC_LENDING_POOL), type(uint256).max);
-        IERC20(address(INIT_USDC_LENDING_POOL)).approve(
+        want.forceApprove(address(INIT_USDC_LENDING_POOL), type(uint256).max);
+        IERC20(address(INIT_USDC_LENDING_POOL)).forceApprove(
             address(INIT_USDC_LENDING_POOL),
             type(uint256).max
         );
@@ -109,7 +109,7 @@ contract InitStrategy is BaseStrategyForSeparatedVault {
         returns (PreviewAccrueInterestData memory result)
     {
         result = PreviewAccrueInterestData({
-            totalAssets: INIT_USDC_LENDING_POOL.totalAssets(),
+            totalAssets: 0,
             totalShares: IERC20(address(INIT_USDC_LENDING_POOL)).totalSupply()
         });
         uint256 _lastAccruedTime = INIT_USDC_LENDING_POOL.lastAccruedTime();
@@ -128,6 +128,7 @@ contract InitStrategy is BaseStrategyForSeparatedVault {
                 result.totalShares
             );
         }
+        result.totalAssets = _cash + _totalDebt + accruedInterest;
     }
 
     function estimatedTotalAssets()

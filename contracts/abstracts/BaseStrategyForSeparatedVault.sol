@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.18;
 
+import "@openzeppelin/contracts/utils/Address.sol";
+
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 import {ILocusVault} from "../interfaces/separatedVault/ILocusVault.sol";
 
 struct StrategyParams {
@@ -134,7 +137,7 @@ abstract contract BaseStrategyForSeparatedVault {
      * @notice
      *  Used to change `strategist`.
      *
-     *  This may only be called by governance or the existing strategist.
+     *  This may only be called by strategist or the existing strategist.
      * @param _strategist The new address to assign as `strategist`.
      */
     function setStrategist(address _strategist) external onlyAuthorized {
@@ -160,7 +163,7 @@ abstract contract BaseStrategyForSeparatedVault {
      *  flashloan attacks, oracle manipulations, or other DeFi attack
      *  mechanisms).
      *
-     *  It is up to governance to use this function to correctly order this
+     *  It is up to strategist to use this function to correctly order this
      *  Strategy relative to its peers in the withdrawal queue to minimize
      *  losses for the Vault based on sudden withdrawals. This value should be
      *  higher than the total debt of the Strategy and higher than its expected
@@ -243,7 +246,7 @@ abstract contract BaseStrategyForSeparatedVault {
      *  In the rare case the Strategy is in emergency shutdown, this will exit
      *  the Strategy's position.
      *
-     *  This may only be called by governance, the strategist, or the keeper.
+     *  This may only be called by the strategist, or the keeper.
      * @dev
      *  When `harvest()` is called, the Strategy reports to the Vault (via
      *  `vault.report()`), so in some cases `harvest()` must be called in order
@@ -366,6 +369,7 @@ abstract contract BaseStrategyForSeparatedVault {
      * @dev
      *  Implement `protectedTokens()` to specify any additional tokens that
      *  should be protected from sweeping in addition to `want`.
+     *  To be considered: address(0) as `_token` is equal to the native token.
      * @param _token The token to transfer out of this vault.
      */
     function sweep(address _token) external onlyAuthorized {
@@ -377,9 +381,17 @@ abstract contract BaseStrategyForSeparatedVault {
             if (_token == _protectedTokens[i]) revert NotAllowedToken();
         }
 
-        IERC20(_token).safeTransfer(
-            strategist,
-            IERC20(_token).balanceOf(address(this))
-        );
+        if (_token == address(0)) {
+            IERC20(_token).safeTransfer(
+                strategist,
+                IERC20(_token).balanceOf(address(this))
+            );
+        } else {
+            Address.sendValue(payable(strategist), address(this).balance);
+        }
+    }
+
+    function setEmergencyExit(bool emergencyExitStatus) external onlyAuthorized {
+        emergencyExit = emergencyExitStatus;
     }
 }

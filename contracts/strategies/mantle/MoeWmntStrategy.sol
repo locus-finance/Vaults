@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.18;
 
-import {BaseStrategy} from "@yearn-protocol/contracts/BaseStrategy.sol";
 import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -75,16 +74,16 @@ contract MoeWmntStrategy is
             _strategist
         );
         _agniStrategyHelperInitialize();
-        want.approve(address(MOE_ROUTER), type(uint256).max);
-        USDT.approve(address(MOE_ROUTER), type(uint256).max);
-        MOE.approve(address(MOE_ROUTER), type(uint256).max);
-        want.approve(address(AGNI_SWAP_ROUTER), type(uint256).max);
-        WMNT.approve(address(AGNI_SWAP_ROUTER), type(uint256).max);
-        MOE_MERCHANT_MOE_WMNT_POOL.approve(
+        want.forceApprove(address(MOE_ROUTER), type(uint256).max);
+        USDT.forceApprove(address(MOE_ROUTER), type(uint256).max);
+        MOE.forceApprove(address(MOE_ROUTER), type(uint256).max);
+        want.forceApprove(address(AGNI_SWAP_ROUTER), type(uint256).max);
+        WMNT.forceApprove(address(AGNI_SWAP_ROUTER), type(uint256).max);
+        MOE_MERCHANT_MOE_WMNT_POOL.forceApprove(
             address(MOE_ROUTER),
             type(uint256).max
         );
-        MOE_MERCHANT_MOE_WMNT_POOL.approve(
+        MOE_MERCHANT_MOE_WMNT_POOL.forceApprove(
             address(CIRCUIT_VAULT),
             type(uint256).max
         );
