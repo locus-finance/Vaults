@@ -15,8 +15,7 @@ import "../../interfaces/ILocusDataFeedUser.sol";
 
 contract UsdcUsdyStrategy is
     BaseStrategyForSeparatedVault,
-    MoeMerchantStrategyHelper,
-    ILocusDataFeedUser
+    MoeMerchantStrategyHelper
 {
     using SafeERC20 for IERC20;
     using Math for uint256;
@@ -76,26 +75,6 @@ contract UsdcUsdyStrategy is
     function setUpLocusDataFeedReserveTokensTopics() external {
         LOCUS_DATA_FEED.setFeed(TOPICS_AMOUNT);
         LOCUS_DATA_FEED.updateFeed(address(this));
-    }
-
-    function updateFeedRequested(
-        uint256 topicNumber
-    ) public view override returns (bytes32 result) {
-        if (msg.sender != address(LOCUS_DATA_FEED)) {
-            revert OnlyLocusDataFeed();
-        }
-        IMoePair pair = IMoePair(
-            MOE_FACTORY.getPair(address(want), address(USDY))
-        );
-        if (topicNumber == uint256(ReservedTopics.RESERVE_USDC)) {
-            (uint112 reserve0, , ) = pair.getReserves();
-            result = bytes32(uint256(reserve0));
-        } else if (topicNumber == uint256(ReservedTopics.RESERVE_USDY)) {
-            (, uint112 reserve1, ) = pair.getReserves();
-            result = bytes32(uint256(reserve1));
-        } else {
-            revert UnknownTopicNumber(topicNumber);
-        }
     }
 
     function strategistUpdateReserves(uint256 reserveUsdc, uint256 reserveUsdy) external onlyAuthorized {
