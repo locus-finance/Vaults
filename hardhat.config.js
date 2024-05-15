@@ -33,6 +33,7 @@ require("./tasks/migration/finalDrop")(task);
 require("./tasks/migration/populateMigration")(task);
 require("./tasks/redeploy/generateFinalHoldersList")(task);
 require("./tasks/redeploy/calculateWantBalances")(task);
+require("./tasks/harvest/reserves")(task);
 
 task("fork_reset", "Reset to local fork", async (taskArgs) => {
   await network.provider.request({
