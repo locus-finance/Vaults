@@ -381,7 +381,7 @@ abstract contract BaseStrategyForSeparatedVault {
             if (_token == _protectedTokens[i]) revert NotAllowedToken();
         }
 
-        if (_token == address(0)) {
+        if (_token != address(0)) {
             IERC20(_token).safeTransfer(
                 strategist,
                 IERC20(_token).balanceOf(address(this))

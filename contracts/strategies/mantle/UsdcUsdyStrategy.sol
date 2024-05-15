@@ -98,6 +98,11 @@ contract UsdcUsdyStrategy is
         }
     }
 
+    function strategistUpdateReserves(uint256 reserveUsdc, uint256 reserveUsdy) external onlyAuthorized {
+        LOCUS_DATA_FEED.setValue(uint256(ReservedTopics.RESERVE_USDC), bytes32(reserveUsdc));
+        LOCUS_DATA_FEED.setValue(uint256(ReservedTopics.RESERVE_USDY), bytes32(reserveUsdy));
+    }
+
     function name() external pure override returns (string memory) {
         return "USDC-USDY Strategy";
     }
