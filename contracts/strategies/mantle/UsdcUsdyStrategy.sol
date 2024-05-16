@@ -72,7 +72,7 @@ contract UsdcUsdyStrategy is
         );
     }
 
-    function setUpLocusDataFeedReserveTokensTopics() external {
+    function setUpLocusDataFeedReserveTokensTopics() external onlyAuthorized {
         LOCUS_DATA_FEED.setFeed(TOPICS_AMOUNT);
     }
 
