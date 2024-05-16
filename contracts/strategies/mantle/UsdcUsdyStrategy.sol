@@ -74,7 +74,6 @@ contract UsdcUsdyStrategy is
 
     function setUpLocusDataFeedReserveTokensTopics() external {
         LOCUS_DATA_FEED.setFeed(TOPICS_AMOUNT);
-        LOCUS_DATA_FEED.updateFeed(address(this));
     }
 
     function strategistUpdateReserves(uint256 reserveUsdc, uint256 reserveUsdy) external onlyAuthorized {

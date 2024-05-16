@@ -2477,7 +2477,7 @@
             "label": "vault",
             "offset": 0,
             "slot": "0",
-            "type": "t_contract(ILocusVault)9390",
+            "type": "t_contract(ILocusVault)9302",
             "contract": "BaseStrategyForSeparatedVault",
             "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:78"
           },
@@ -2517,7 +2517,7 @@
             "label": "irm",
             "offset": 0,
             "slot": "4",
-            "type": "t_contract(IIRM)7845",
+            "type": "t_contract(IIRM)7761",
             "contract": "InitStrategy",
             "src": "contracts\\strategies\\mantle\\InitStrategy.sol:37"
           }
@@ -2535,11 +2535,11 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IIRM)7845": {
+          "t_contract(IIRM)7761": {
             "label": "contract IIRM",
             "numberOfBytes": "20"
           },
-          "t_contract(ILocusVault)9390": {
+          "t_contract(ILocusVault)9302": {
             "label": "contract ILocusVault",
             "numberOfBytes": "20"
           }
@@ -2556,7 +2556,7 @@
             "label": "vault",
             "offset": 0,
             "slot": "0",
-            "type": "t_contract(ILocusVault)9390",
+            "type": "t_contract(ILocusVault)9302",
             "contract": "BaseStrategyForSeparatedVault",
             "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:78"
           },
@@ -2618,7 +2618,7 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(ILocusVault)9390": {
+          "t_contract(ILocusVault)9302": {
             "label": "contract ILocusVault",
             "numberOfBytes": "20"
           },
@@ -3475,6 +3475,168 @@
           "t_uint24": {
             "label": "uint24",
             "numberOfBytes": "3"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "8291bb43b8ceb7227d944691730cff293c5ce65424231870c04851d1a389f4b4": {
+      "address": "0x9a2F546D3aD3A1De78a18e63665e6b78C7e0B64b",
+      "txHash": "0x967e5e15161fc4dd5892ff98d7878804f91b8826af91ebd38861684b033e6fd9",
+      "layout": {
+        "solcVersion": "0.8.23",
+        "storage": [
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(ILocusVault)11590",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:81"
+          },
+          {
+            "label": "strategist",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:82"
+          },
+          {
+            "label": "keeper",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:83"
+          },
+          {
+            "label": "want",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IERC20)4328",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:84"
+          },
+          {
+            "label": "emergencyExit",
+            "offset": 20,
+            "slot": "3",
+            "type": "t_bool",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:97"
+          },
+          {
+            "label": "irm",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_contract(IIRM)10049",
+            "contract": "InitStrategy",
+            "src": "contracts\\strategies\\mantle\\InitStrategy.sol:37"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)4328": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IIRM)10049": {
+            "label": "contract IIRM",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ILocusVault)11590": {
+            "label": "contract ILocusVault",
+            "numberOfBytes": "20"
+          }
+        }
+      }
+    },
+    "ac5a163d2cfab30420a77a45a6bb5aea950d85ccedc944c6d3c042a07df19c85": {
+      "address": "0xf7F13435A34D452eC2765BCB6F2C4b5C181ed7B0",
+      "txHash": "0xbfdc433a50ccf2c0259975106b6d3f9efbfcff64859b9d836285e8131cada1ee",
+      "layout": {
+        "solcVersion": "0.8.23",
+        "storage": [
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(ILocusVault)4197",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:81"
+          },
+          {
+            "label": "strategist",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:82"
+          },
+          {
+            "label": "keeper",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:83"
+          },
+          {
+            "label": "want",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IERC20)664",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:84"
+          },
+          {
+            "label": "emergencyExit",
+            "offset": 20,
+            "slot": "3",
+            "type": "t_bool",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:97"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "MoeMerchantStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantStrategyHelper.sol:160"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)664": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ILocusVault)4197": {
+            "label": "contract ILocusVault",
+            "numberOfBytes": "20"
           },
           "t_uint256": {
             "label": "uint256",
