@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.18;
 
-import '@uniswap/lib/contracts/libraries/FixedPoint.sol';
+import "@uniswap/lib/contracts/libraries/FixedPoint.sol";
 
 import "../../integrations/merchantMoe/IMoePair.sol";
 import "../../integrations/merchantMoe/IMoeFactory.sol";
@@ -35,7 +35,7 @@ abstract contract MoeMerchantWithOracleStrategyHelper {
         IMoeFactory(0x5bEf015CA9424A7C07B68490616a4C1F094BEdEc);
 
     uint256 private constant MAX_BPS = 10000;
-    
+
     // the desired amount of time over which the moving average should be computed, e.g. 24 hours
     uint256 public windowSize;
     // the number of observations stored for each pair, i.e. how many price observations are stored for the window.
@@ -52,11 +52,17 @@ abstract contract MoeMerchantWithOracleStrategyHelper {
     // mapping from pair address to a list of price observations of that pair
     mapping(address => Observation[]) public pairObservations;
 
-    function _initializeMoeMerchantHelperWithOracle(uint256 windowSize_, uint8 granularity_) internal {
+    function _initializeMoeMerchantHelperWithOracle(
+        uint256 windowSize_,
+        uint8 granularity_
+    ) internal {
         if (granularity_ <= 1) {
             revert TooLittleGranularity(granularity_);
         }
-        if ((periodSize = windowSize_ / granularity_) * granularity_ != windowSize_) {
+        if (
+            (periodSize = windowSize_ / granularity_) * granularity_ !=
+            windowSize_
+        ) {
             revert WindowNotEvenlyDivisible();
         }
         windowSize = windowSize_;
@@ -64,13 +70,17 @@ abstract contract MoeMerchantWithOracleStrategyHelper {
     }
 
     // returns the index of the observation corresponding to the given timestamp
-    function observationIndexOf(uint256 timestamp) public view returns (uint8 index) {
+    function observationIndexOf(
+        uint256 timestamp
+    ) public view returns (uint8 index) {
         uint256 epochPeriod = timestamp / periodSize;
         return uint8(epochPeriod % granularity);
     }
 
     // returns the observation from the oldest epoch (at the beginning of the window) relative to the current time
-    function getFirstObservationInWindow(address pair) private view returns (Observation storage firstObservation) {
+    function getFirstObservationInWindow(
+        address pair
+    ) private view returns (Observation storage firstObservation) {
         uint8 observationIndex = observationIndexOf(block.timestamp);
         // no overflow issue. if observationIndex + 1 overflows, result is still zero.
         uint8 firstObservationIndex = (observationIndex + 1) % granularity;
@@ -89,12 +99,18 @@ abstract contract MoeMerchantWithOracleStrategyHelper {
 
         // get the observation for the current period
         uint8 observationIndex = observationIndexOf(block.timestamp);
-        Observation storage observation = pairObservations[pair][observationIndex];
+        Observation storage observation = pairObservations[pair][
+            observationIndex
+        ];
 
         // we only want to commit updates once per period (i.e. windowSize / granularity)
         uint256 timeElapsed = block.timestamp - observation.timestamp;
         if (timeElapsed > periodSize) {
-            (uint256 price0Cumulative, uint256 price1Cumulative,) = _currentCumulativePrices(pair);
+            (
+                uint256 price0Cumulative,
+                uint256 price1Cumulative,
+
+            ) = _currentCumulativePrices(pair);
             observation.timestamp = block.timestamp;
             observation.price0Cumulative = price0Cumulative;
             observation.price1Cumulative = price1Cumulative;
@@ -104,8 +120,10 @@ abstract contract MoeMerchantWithOracleStrategyHelper {
     // given the cumulative prices of the start and end of a period, and the length of the period, compute the average
     // price in terms of how much amount out is received for the amount in
     function _computeAmountOut(
-        uint256 priceCumulativeStart, uint256 priceCumulativeEnd,
-        uint256 timeElapsed, uint256 amountIn
+        uint256 priceCumulativeStart,
+        uint256 priceCumulativeEnd,
+        uint256 timeElapsed,
+        uint256 amountIn
     ) internal pure returns (uint256 amountOut) {
         // overflow is desired.
         FixedPoint.uq112x112 memory priceAverage = FixedPoint.uq112x112(
@@ -115,11 +133,16 @@ abstract contract MoeMerchantWithOracleStrategyHelper {
     }
 
     // returns sorted token addresses, used to handle return values from pairs sorted in this order
-    function _sortTokens(address tokenA, address tokenB) internal pure returns (address token0, address token1) {
+    function _sortTokens(
+        address tokenA,
+        address tokenB
+    ) internal pure returns (address token0, address token1) {
         if (tokenA == tokenB) {
             revert IdenticalAddresses();
         }
-        (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        (token0, token1) = tokenA < tokenB
+            ? (tokenA, tokenB)
+            : (tokenB, tokenA);
         if (token0 == address(0)) {
             revert ZeroAddress();
         }
@@ -132,30 +155,52 @@ abstract contract MoeMerchantWithOracleStrategyHelper {
 
     function _currentCumulativePrices(
         address pair
-    ) internal view returns (uint price0Cumulative, uint price1Cumulative, uint32 blockTimestamp) {
+    )
+        internal
+        view
+        returns (
+            uint price0Cumulative,
+            uint price1Cumulative,
+            uint32 blockTimestamp
+        )
+    {
         blockTimestamp = _currentBlockTimestamp();
         price0Cumulative = IMoePair(pair).price0CumulativeLast();
         price1Cumulative = IMoePair(pair).price1CumulativeLast();
 
         // if time has elapsed since the last update on the pair, mock the accumulated price values
-        (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast) = IMoePair(pair).getReserves();
+        (
+            uint112 reserve0,
+            uint112 reserve1,
+            uint32 blockTimestampLast
+        ) = IMoePair(pair).getReserves();
         if (blockTimestampLast != blockTimestamp) {
             // subtraction overflow is desired
             uint32 timeElapsed = blockTimestamp - blockTimestampLast;
             // addition overflow is desired
             // counterfactual
-            price0Cumulative += uint(FixedPoint.fraction(reserve1, reserve0)._x) * timeElapsed;
+            price0Cumulative +=
+                uint(FixedPoint.fraction(reserve1, reserve0)._x) *
+                timeElapsed;
             // counterfactual
-            price1Cumulative += uint(FixedPoint.fraction(reserve0, reserve1)._x) * timeElapsed;
+            price1Cumulative +=
+                uint(FixedPoint.fraction(reserve0, reserve1)._x) *
+                timeElapsed;
         }
     }
 
     // returns the amount out corresponding to the amount in for a given token using the moving average over the time
     // range [now - [windowSize, windowSize - periodSize * 2], now]
     // update must have been called for the bucket corresponding to timestamp `now - windowSize`
-    function consult(address tokenIn, uint256 amountIn, address tokenOut) public view returns (uint256 amountOut) {
+    function consult(
+        address tokenIn,
+        uint256 amountIn,
+        address tokenOut
+    ) public view returns (uint256 amountOut) {
         address pair = MOE_FACTORY.getPair(tokenIn, tokenOut);
-        Observation storage firstObservation = getFirstObservationInWindow(pair);
+        Observation storage firstObservation = getFirstObservationInWindow(
+            pair
+        );
 
         uint256 timeElapsed = block.timestamp - firstObservation.timestamp;
         if (timeElapsed > windowSize) {
@@ -165,14 +210,30 @@ abstract contract MoeMerchantWithOracleStrategyHelper {
         if (timeElapsed < windowSize - periodSize * 2) {
             revert UnexpectedTimeElapsed();
         }
-        
-        (uint256 price0Cumulative, uint256 price1Cumulative,) = _currentCumulativePrices(pair);
-        (address token0,) = _sortTokens(tokenIn, tokenOut);
+
+        (
+            uint256 price0Cumulative,
+            uint256 price1Cumulative,
+
+        ) = _currentCumulativePrices(pair);
+        (address token0, ) = _sortTokens(tokenIn, tokenOut);
 
         if (token0 == tokenIn) {
-            return _computeAmountOut(firstObservation.price0Cumulative, price0Cumulative, timeElapsed, amountIn);
+            return
+                _computeAmountOut(
+                    firstObservation.price0Cumulative,
+                    price0Cumulative,
+                    timeElapsed,
+                    amountIn
+                );
         } else {
-            return _computeAmountOut(firstObservation.price1Cumulative, price1Cumulative, timeElapsed, amountIn);
+            return
+                _computeAmountOut(
+                    firstObservation.price1Cumulative,
+                    price1Cumulative,
+                    timeElapsed,
+                    amountIn
+                );
         }
     }
 
@@ -200,73 +261,90 @@ abstract contract MoeMerchantWithOracleStrategyHelper {
         address tokenB,
         uint256 amountA,
         uint256 slippageBps
-    ) internal returns (uint256 lpMinted, uint256 tokensALeft, uint256 tokensBLeft) {
+    ) internal returns (uint256 lpMinted) {
         uint256 amountB = consult(tokenA, amountA, tokenB);
         uint256 amountAToAdd = (amountA * amountA) / amountB;
-        uint256 amountAToSwapToB; 
+        uint256 amountAToSwapToB;
         if (amountAToAdd > amountA) {
-            
+            amountAToSwapToB = (amountA * amountB) / amountA;
+            amountAToAdd = amountA - amountAToSwapToB;
         } else {
             amountAToSwapToB = amountA - amountAToAdd;
         }
+        uint256 amountBToAdd = _moeMerchantSwap(
+            tokenA,
+            tokenB,
+            amountAToSwapToB,
+            slippageBps
+        );
+        (, , lpMinted) = MOE_ROUTER.addLiquidity(
+            tokenA,
+            tokenB,
+            amountAToAdd,
+            amountBToAdd,
+            (amountAToAdd * slippageBps) / MAX_BPS,
+            (amountBToAdd * slippageBps) / MAX_BPS,
+            address(this),
+            block.timestamp
+        );
     }
 
-    // function _moeMerchantAddLiquidity(
-    //     address tokenA,
-    //     address tokenB,
-    //     uint256 amountA, // any amount (even violating the ratio in the reserves)
-    //     uint256 amountB, // any amount (even violating the ratio in the reserves)
-    //     uint256 slippageBps
-    // )
-    //     internal
-    //     returns (uint256 lpMinted, uint256 tokensALeft, uint256 tokensBLeft)
-    // {
+    function _moeMerchantAddLiquidity(
+        address tokenA,
+        address tokenB,
+        uint256 amountA, // any amount (even violating the ratio in the reserves)
+        uint256 amountB, // any amount (even violating the ratio in the reserves)
+        uint256 slippageBps
+    )
+        internal
+        returns (uint256 lpMinted, uint256 tokensALeft, uint256 tokensBLeft)
+    {
         
-    //     uint256 expectedAmountB = MOE_ROUTER.quote(amountA, reserve0, reserve1);
-    //     if (amountB > expectedAmountB) {
-    //         (, , lpMinted) = MOE_ROUTER.addLiquidity(
-    //             tokenA,
-    //             tokenB,
-    //             amountA,
-    //             expectedAmountB,
-    //             (amountA * slippageBps) / MAX_BPS,
-    //             (expectedAmountB * slippageBps) / MAX_BPS,
-    //             address(this),
-    //             block.timestamp
-    //         );
-    //         tokensBLeft = amountB - expectedAmountB;
-    //     } else if (
-    //         amountB < expectedAmountB
-    //     ) {
-    //         uint256 expectedAmountA = MOE_ROUTER.quote(amountB, reserve1, reserve0);
-    //         if (amountA > expectedAmountA) {
-    //             (, , lpMinted) = MOE_ROUTER.addLiquidity(
-    //                 tokenA,
-    //                 tokenB,
-    //                 expectedAmountA,
-    //                 amountB,
-    //                 (expectedAmountA * slippageBps) / MAX_BPS,
-    //                 (amountB * slippageBps) / MAX_BPS,
-    //                 address(this),
-    //                 block.timestamp
-    //             );
-    //             tokensALeft = amountA - expectedAmountA;
-    //         } else {
-    //             revert InvalidRatioToAddAsLiquidity(amountA, amountB);
-    //         }
-    //     } else {
-    //         (, , lpMinted) = MOE_ROUTER.addLiquidity(
-    //             tokenA,
-    //             tokenB,
-    //             amountA,
-    //             amountB,
-    //             (amountA * slippageBps) / MAX_BPS,
-    //             (amountB * slippageBps) / MAX_BPS,
-    //             address(this),
-    //             block.timestamp
-    //         );
-    //     }
-    // }
+        uint256 expectedAmountB = MOE_ROUTER.quote(amountA, reserve0, reserve1);
+        if (amountB > expectedAmountB) {
+            (, , lpMinted) = MOE_ROUTER.addLiquidity(
+                tokenA,
+                tokenB,
+                amountA,
+                expectedAmountB,
+                (amountA * slippageBps) / MAX_BPS,
+                (expectedAmountB * slippageBps) / MAX_BPS,
+                address(this),
+                block.timestamp
+            );
+            tokensBLeft = amountB - expectedAmountB;
+        } else if (
+            amountB < expectedAmountB
+        ) {
+            uint256 expectedAmountA = MOE_ROUTER.quote(amountB, reserve1, reserve0);
+            if (amountA > expectedAmountA) {
+                (, , lpMinted) = MOE_ROUTER.addLiquidity(
+                    tokenA,
+                    tokenB,
+                    expectedAmountA,
+                    amountB,
+                    (expectedAmountA * slippageBps) / MAX_BPS,
+                    (amountB * slippageBps) / MAX_BPS,
+                    address(this),
+                    block.timestamp
+                );
+                tokensALeft = amountA - expectedAmountA;
+            } else {
+                revert InvalidRatioToAddAsLiquidity(amountA, amountB);
+            }
+        } else {
+            (, , lpMinted) = MOE_ROUTER.addLiquidity(
+                tokenA,
+                tokenB,
+                amountA,
+                amountB,
+                (amountA * slippageBps) / MAX_BPS,
+                (amountB * slippageBps) / MAX_BPS,
+                address(this),
+                block.timestamp
+            );
+        }
+    }
 
     function _moeMerchantRemoveLiquidity(
         address tokenA,
