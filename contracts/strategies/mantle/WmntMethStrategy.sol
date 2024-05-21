@@ -2,64 +2,28 @@
 
 pragma solidity ^0.8.18;
 
-import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+import "./libraries/WmntMethStrategyLib.sol";
 import "../../abstracts/BaseStrategyForSeparatedVault.sol";
 import "../../integrations/circuit/ICircuitVault.sol";
-import "../../abstracts/mantle/MoeMerchantStrategyHelper.sol";
+import "../../abstracts/mantle/MoeMerchantWithOracleStrategyHelper.sol";
 import "../../abstracts/mantle/AgniStrategyHelper.sol";
-import "../../interfaces/ILocusDataFeed.sol";
-import "../../interfaces/ILocusDataFeedUser.sol";
 
 contract WmntMethStrategy is
     BaseStrategyForSeparatedVault,
-    MoeMerchantStrategyHelper,
-    AgniStrategyHelper,
-    ILocusDataFeedUser
+    MoeMerchantWithOracleStrategyHelper,
+    AgniStrategyHelper
 {
     using SafeERC20 for IERC20;
     using Math for uint256;
 
-    enum ReservedTopics {
-        RESERVE_IN_WMNT_METH_OF_WMNT,
-        RESERVE_IN_WMNT_METH_OF_METH
-    }
-
-    event MintedCircuitShares(
-        uint256 indexed oldBalance,
-        uint256 indexed newBalance
-    );
-    event MintedMoeLp(uint256 indexed oldBalance, uint256 indexed newBalance);
-    event BurnedCircuitShares(
-        uint256 indexed oldBalance,
-        uint256 indexed newBalance
-    );
-    event BurnedMoeLp(uint256 indexed oldBalance, uint256 indexed newBalance);
-    event WantTokensGathered(uint256 indexed amount);
-
-    uint256 private constant STANDARD_SLIPPAGE = 9000;
-    uint256 private constant MAX_BPS = 10000;
-
-    ILocusDataFeed public constant LOCUS_DATA_FEED =
-        ILocusDataFeed(0x5662AaAc9fdc97910E648e54076Be71D60D4045f);
-    uint256 public constant TOPICS_AMOUNT =
-        uint256(type(ReservedTopics).max) + 1;
-
-    ICircuitVault public constant CIRCUIT_VAULT =
-        ICircuitVault(0xc37c7dEBa5E7F5dE572C914D5c159EA08DE1fefF);
-    IERC20 public constant WMNT =
-        IERC20(0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8);
-    IERC20 public constant METH =
-        IERC20(0xcDA86A272531e8640cD7F1a92c01839911B90bb0);
-    IERC20 public constant MOE_MERCHANT_WMNT_METH_POOL =
-        IERC20(0xa375ea3e1f92d62e3A71B668bAb09f7155267fa3);
-
     uint256 public wmntTokensToAddToMoeLiquidity;
     uint256 public methTokensToAddToMoeLiquidity;
 
-    function initialize(address _vault, address _strategist) external {
+    function initialize(address _vault, address _strategist, uint256 oracleWindowSize, uint8 oracleGranularity) external {
         __Base_Strategy_Initialize(
             _vault,
             _strategist,
@@ -67,50 +31,32 @@ contract WmntMethStrategy is
             _strategist
         );
         _agniStrategyHelperInitialize();
+        _initializeMoeMerchantHelperWithOracle(
+            oracleWindowSize,
+            oracleGranularity
+        );
 
         want.forceApprove(address(MOE_ROUTER), type(uint256).max);
         want.forceApprove(address(AGNI_SWAP_ROUTER), type(uint256).max);
 
-        WMNT.forceApprove(address(AGNI_SWAP_ROUTER), type(uint256).max);
-        METH.forceApprove(address(AGNI_SWAP_ROUTER), type(uint256).max);
+        WmntMethStrategyLib.WMNT.forceApprove(address(AGNI_SWAP_ROUTER), type(uint256).max);
+        WmntMethStrategyLib.METH.forceApprove(address(AGNI_SWAP_ROUTER), type(uint256).max);
 
-        MOE_MERCHANT_WMNT_METH_POOL.forceApprove(
+        WmntMethStrategyLib.MOE_MERCHANT_WMNT_METH_POOL.forceApprove(
             address(MOE_ROUTER),
             type(uint256).max
         );
-        MOE_MERCHANT_WMNT_METH_POOL.forceApprove(
-            address(CIRCUIT_VAULT),
+        WmntMethStrategyLib.MOE_MERCHANT_WMNT_METH_POOL.forceApprove(
+            address(WmntMethStrategyLib.CIRCUIT_VAULT),
             type(uint256).max
         );
     }
 
-    function setUpLocusDataFeedTopics() external {
-        LOCUS_DATA_FEED.setFeed(TOPICS_AMOUNT);
-        LOCUS_DATA_FEED.updateFeed(address(this));
-    }
-
-    function updateFeedRequested(
-        uint256 topicNumber
-    ) public view override returns (bytes32 result) {
-        if (msg.sender != address(LOCUS_DATA_FEED)) {
-            revert OnlyLocusDataFeed();
-        }
-        IMoePair wmntMethPair = IMoePair(
-            MOE_FACTORY.getPair(address(WMNT), address(METH))
+    function resetOracle(uint256 oracleWindowSize, uint8 oracleGranularity) external onlyAuthorized {
+        _initializeMoeMerchantHelperWithOracle(
+            oracleWindowSize,
+            oracleGranularity
         );
-        (uint112 wmntMethReserve0, uint256 wmntMethReserve1, ) = wmntMethPair
-            .getReserves();
-        if (
-            topicNumber == uint256(ReservedTopics.RESERVE_IN_WMNT_METH_OF_WMNT)
-        ) {
-            result = bytes32(uint256(wmntMethReserve0));
-        } else if (
-            topicNumber == uint256(ReservedTopics.RESERVE_IN_WMNT_METH_OF_METH)
-        ) {
-            result = bytes32(uint256(wmntMethReserve1));
-        } else {
-            revert UnknownTopicNumber(topicNumber);
-        }
     }
 
     function name() external pure override returns (string memory) {
@@ -122,56 +68,23 @@ contract WmntMethStrategy is
     }
 
     function balanceOfCircuitShares() public view returns (uint256) {
-        return CIRCUIT_VAULT.balanceOf(address(this));
+        return WmntMethStrategyLib.CIRCUIT_VAULT.balanceOf(address(this));
     }
 
     function balanceOfMoeLp() public view returns (uint256) {
-        return MOE_MERCHANT_WMNT_METH_POOL.balanceOf(address(this));
+        return WmntMethStrategyLib.MOE_MERCHANT_WMNT_METH_POOL.balanceOf(address(this));
     }
 
     function wantToCircuitShares(
         uint256 amount
     ) public view returns (uint256 result) {
-        if (amount == 0) return 0;
-        uint256 usdcForMethSwapAmount = amount / 2;
-        uint256 usdcForWmntSwapAmount = amount - usdcForMethSwapAmount;
-        uint256 methAmount = _agniQuote(
-            address(want),
-            address(METH),
-            usdcForMethSwapAmount
-        );
-        uint256 wmntAmount = _agniQuote(
-            address(want),
-            address(WMNT),
-            usdcForWmntSwapAmount
-        );
-        IMoePair pair = IMoePair(address(MOE_MERCHANT_WMNT_METH_POOL));
-        (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
-        uint256 lpTotalSupply = pair.totalSupply();
-
-        uint256 liquidity = Math.min(
-            (methAmount * lpTotalSupply) / reserve0,
-            (wmntAmount * lpTotalSupply) / reserve1
-        );
-        result =
-            (liquidity * CIRCUIT_VAULT.totalSupply()) /
-            CIRCUIT_VAULT.balance();
+        return WmntMethStrategyLib.wantToCircuitShares(address(want), amount);
     }
 
     function circuitSharesToWant(
         uint256 amount
     ) public view returns (uint256 result) {
-        if (amount == 0) return 0;
-        uint256 liquidity = (amount * CIRCUIT_VAULT.balance()) /
-            CIRCUIT_VAULT.totalSupply();
-        IMoePair pair = IMoePair(address(MOE_MERCHANT_WMNT_METH_POOL));
-        uint256 lpTotalSupply = pair.totalSupply();
-        (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
-        uint256 wmntAmount = (liquidity * reserve0) / lpTotalSupply;
-        uint256 methAmount = (liquidity * reserve1) / lpTotalSupply;
-        result =
-            _agniQuote(address(METH), address(want), methAmount) +
-            _agniQuote(address(WMNT), address(want), wmntAmount);
+        return WmntMethStrategyLib.circuitSharesToWant(address(want), amount);
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {
@@ -254,37 +167,26 @@ contract WmntMethStrategy is
 
         uint256 methAmount = _agniSwap(
             address(want),
-            address(METH),
+            address(WmntMethStrategyLib.METH),
             usdcForMethSwapAmount,
-            STANDARD_SLIPPAGE
+            WmntMethStrategyLib.STANDARD_SLIPPAGE
         );
         uint256 wmntAmount = _agniSwap(
             address(want),
-            address(WMNT),
+            address(WmntMethStrategyLib.WMNT),
             usdcForWmntSwapAmount,
-            STANDARD_SLIPPAGE
-        );
-
-        uint256 wmntMethReserve0 = LOCUS_DATA_FEED.parseUint256FromFeed(
-            address(this),
-            uint256(ReservedTopics.RESERVE_IN_WMNT_METH_OF_WMNT)
-        );
-        uint256 wmntMethReserve1 = LOCUS_DATA_FEED.parseUint256FromFeed(
-            address(this),
-            uint256(ReservedTopics.RESERVE_IN_WMNT_METH_OF_METH)
+            WmntMethStrategyLib.STANDARD_SLIPPAGE
         );
         (
             uint256 lpMinted,
             uint256 wmntLeft,
             uint256 methLeft
         ) = _moeMerchantAddLiquidity(
-                address(WMNT),
-                address(METH),
+                address(WmntMethStrategyLib.WMNT),
+                address(WmntMethStrategyLib.METH),
                 methAmount + methTokensToAddToMoeLiquidity,
                 wmntAmount + wmntTokensToAddToMoeLiquidity,
-                wmntMethReserve0,
-                wmntMethReserve1,
-                STANDARD_SLIPPAGE
+                WmntMethStrategyLib.STANDARD_SLIPPAGE
             );
         methTokensToAddToMoeLiquidity = 0;
         wmntTokensToAddToMoeLiquidity = 0;
@@ -294,43 +196,43 @@ contract WmntMethStrategy is
         if (wmntLeft > 0) {
             wmntTokensToAddToMoeLiquidity = wmntLeft;
         }
-        emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
+        emit WmntMethStrategyLib.MintedMoeLp(oldLpBalance, balanceOfMoeLp());
         uint256 circuitShares = balanceOfCircuitShares();
-        CIRCUIT_VAULT.deposit(lpMinted);
-        emit MintedCircuitShares(circuitShares, balanceOfCircuitShares());
+        WmntMethStrategyLib.CIRCUIT_VAULT.deposit(lpMinted);
+        emit WmntMethStrategyLib.MintedCircuitShares(circuitShares, balanceOfCircuitShares());
     }
 
     function _burnShares(uint256 _shares) internal {
         if (_shares == 0) return;
         uint256 oldLpBalance = balanceOfMoeLp();
         uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
-        CIRCUIT_VAULT.withdraw(_shares);
-        emit BurnedCircuitShares(
+        WmntMethStrategyLib.CIRCUIT_VAULT.withdraw(_shares);
+        emit WmntMethStrategyLib.BurnedCircuitShares(
             oldCircuitSharesBalance,
             balanceOfCircuitShares()
         );
         RemoveLiquidityData
             memory removedLiquidityData = _moeMerchantRemoveLiquidity(
-                address(WMNT),
-                address(METH),
+                address(WmntMethStrategyLib.WMNT),
+                address(WmntMethStrategyLib.METH),
                 balanceOfMoeLp() - oldLpBalance
             );
-        emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
+        emit WmntMethStrategyLib.BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
 
         uint256 swappedFromWmntUsdcAmount = _agniSwap(
-            address(WMNT),
+            address(WmntMethStrategyLib.WMNT),
             address(want),
             removedLiquidityData.amountAWithdrawn,
-            STANDARD_SLIPPAGE
+            WmntMethStrategyLib.STANDARD_SLIPPAGE
         );
         uint256 swappedFromMethhUsdcAmount = _agniSwap(
-            address(METH),
+            address(WmntMethStrategyLib.METH),
             address(want),
             removedLiquidityData.amountBWithdrawn,
-            STANDARD_SLIPPAGE
+            WmntMethStrategyLib.STANDARD_SLIPPAGE
         );
 
-        emit WantTokensGathered(
+        emit WmntMethStrategyLib.WantTokensGathered(
             swappedFromWmntUsdcAmount + swappedFromMethhUsdcAmount
         );
     }
@@ -364,7 +266,7 @@ contract WmntMethStrategy is
         if (wantBalance > 0) {
             _mintShares(wantBalance);
         }
-        IERC20(address(CIRCUIT_VAULT)).safeTransfer(
+        IERC20(address(WmntMethStrategyLib.CIRCUIT_VAULT)).safeTransfer(
             _newStrategy,
             balanceOfCircuitShares()
         );
@@ -377,10 +279,10 @@ contract WmntMethStrategy is
         returns (address[] memory protected)
     {
         protected = new address[](4);
-        protected[0] = address(CIRCUIT_VAULT);
-        protected[1] = address(WMNT);
-        protected[2] = address(METH);
-        protected[4] = address(MOE_MERCHANT_WMNT_METH_POOL);
+        protected[0] = address(WmntMethStrategyLib.CIRCUIT_VAULT);
+        protected[1] = address(WmntMethStrategyLib.WMNT);
+        protected[2] = address(WmntMethStrategyLib.METH);
+        protected[4] = address(WmntMethStrategyLib.MOE_MERCHANT_WMNT_METH_POOL);
         return protected;
     }
 

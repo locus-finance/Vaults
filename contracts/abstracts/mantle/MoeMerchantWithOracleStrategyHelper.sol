@@ -299,50 +299,28 @@ abstract contract MoeMerchantWithOracleStrategyHelper {
         internal
         returns (uint256 lpMinted, uint256 tokensALeft, uint256 tokensBLeft)
     {
-        
-        uint256 expectedAmountB = MOE_ROUTER.quote(amountA, reserve0, reserve1);
-        if (amountB > expectedAmountB) {
-            (, , lpMinted) = MOE_ROUTER.addLiquidity(
-                tokenA,
-                tokenB,
-                amountA,
-                expectedAmountB,
-                (amountA * slippageBps) / MAX_BPS,
-                (expectedAmountB * slippageBps) / MAX_BPS,
-                address(this),
-                block.timestamp
-            );
-            tokensBLeft = amountB - expectedAmountB;
-        } else if (
-            amountB < expectedAmountB
-        ) {
-            uint256 expectedAmountA = MOE_ROUTER.quote(amountB, reserve1, reserve0);
-            if (amountA > expectedAmountA) {
-                (, , lpMinted) = MOE_ROUTER.addLiquidity(
-                    tokenA,
-                    tokenB,
-                    expectedAmountA,
-                    amountB,
-                    (expectedAmountA * slippageBps) / MAX_BPS,
-                    (amountB * slippageBps) / MAX_BPS,
-                    address(this),
-                    block.timestamp
-                );
-                tokensALeft = amountA - expectedAmountA;
-            } else {
-                revert InvalidRatioToAddAsLiquidity(amountA, amountB);
-            }
-        } else {
-            (, , lpMinted) = MOE_ROUTER.addLiquidity(
-                tokenA,
-                tokenB,
-                amountA,
-                amountB,
-                (amountA * slippageBps) / MAX_BPS,
-                (amountB * slippageBps) / MAX_BPS,
-                address(this),
-                block.timestamp
-            );
+        uint256 amountBMin =
+            (consult(tokenA, amountA, tokenB) * slippageBps) /
+            MAX_BPS;
+        uint256 amountAMin =
+            (consult(tokenB, amountB, tokenA) * slippageBps) /
+            MAX_BPS;
+        (uint256 amountASent, uint256 amountBSent, uint256 _lpMinted) = MOE_ROUTER.addLiquidity(
+            tokenA,
+            tokenB,
+            amountA,
+            amountB,
+            amountAMin,
+            amountBMin,
+            address(this),
+            block.timestamp
+        );
+        lpMinted = _lpMinted;
+        if (amountA > amountASent) {
+            tokensALeft = amountA - amountASent; 
+        }
+        if (amountB > amountBSent) {
+            tokensBLeft = amountB - amountBSent; 
         }
     }
 
