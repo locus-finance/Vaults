@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.18;
 
-import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -23,7 +23,7 @@ contract MethWethStrategy is
     uint256 public wethTokensToAddToMoeLiquidity;
 
     function initialize(
-        address _vault, 
+        address _vault,
         address _strategist,
         uint256 oracleWindowSize,
         uint8 oracleGranularity
@@ -39,11 +39,27 @@ contract MethWethStrategy is
             oracleGranularity
         );
 
-        want.forceApprove(address(MoeMerchantLib.MOE_ROUTER), type(uint256).max);
-        want.forceApprove(address(AgniSwapLib.AGNI_SWAP_ROUTER), type(uint256).max);
+        want.forceApprove(
+            address(MoeMerchantLib.MOE_ROUTER),
+            type(uint256).max
+        );
+        want.forceApprove(
+            address(AgniSwapLib.AGNI_SWAP_ROUTER),
+            type(uint256).max
+        );
 
-        MethWethStrategyLib.METH.forceApprove(address(MoeMerchantLib.MOE_ROUTER), type(uint256).max);
-        MethWethStrategyLib.WETH.forceApprove(address(AgniSwapLib.AGNI_SWAP_ROUTER), type(uint256).max);
+        MethWethStrategyLib.METH.forceApprove(
+            address(MoeMerchantLib.MOE_ROUTER),
+            type(uint256).max
+        );
+        MethWethStrategyLib.WETH.forceApprove(
+            address(AgniSwapLib.AGNI_SWAP_ROUTER),
+            type(uint256).max
+        );
+        MethWethStrategyLib.WETH.forceApprove(
+            address(MoeMerchantLib.MOE_ROUTER),
+            type(uint256).max
+        );
 
         MethWethStrategyLib.MOE_MERCHANT_METH_WETH_POOL.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
@@ -72,10 +88,8 @@ contract MethWethStrategy is
     }
 
     function updateOracle() external onlyAuthorized {
-        _update(
-            address(want),
-            address(MethWethStrategyLib.METH)
-        );
+        _update(address(want), address(MethWethStrategyLib.METH));
+        _update(address(MethWethStrategyLib.METH), address(MethWethStrategyLib.WETH));
     }
 
     function wantToCircuitShares(
@@ -111,7 +125,10 @@ contract MethWethStrategy is
     }
 
     function balanceOfMoeLp() public view returns (uint256) {
-        return MethWethStrategyLib.MOE_MERCHANT_METH_WETH_POOL.balanceOf(address(this));
+        return
+            MethWethStrategyLib.MOE_MERCHANT_METH_WETH_POOL.balanceOf(
+                address(this)
+            );
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {

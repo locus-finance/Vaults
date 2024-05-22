@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.18;
 
-import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -23,7 +23,7 @@ contract MoeWmntStrategy is
     uint256 public wmntTokensToAddToMoeLiquidity;
 
     function initialize(
-        address _vault, 
+        address _vault,
         address _strategist,
         uint256 oracleWindowSize,
         uint8 oracleGranularity
@@ -38,11 +38,26 @@ contract MoeWmntStrategy is
             oracleWindowSize,
             oracleGranularity
         );
-        want.forceApprove(address(MoeMerchantLib.MOE_ROUTER), type(uint256).max);
-        MoeWmntStrategyLib.USDT.forceApprove(address(MoeMerchantLib.MOE_ROUTER), type(uint256).max);
-        MoeWmntStrategyLib.MOE.forceApprove(address(MoeMerchantLib.MOE_ROUTER), type(uint256).max);
-        want.forceApprove(address(AgniSwapLib.AGNI_SWAP_ROUTER), type(uint256).max);
-        MoeWmntStrategyLib.WMNT.forceApprove(address(AgniSwapLib.AGNI_SWAP_ROUTER), type(uint256).max);
+        want.forceApprove(
+            address(MoeMerchantLib.MOE_ROUTER),
+            type(uint256).max
+        );
+        MoeWmntStrategyLib.USDT.forceApprove(
+            address(MoeMerchantLib.MOE_ROUTER),
+            type(uint256).max
+        );
+        MoeWmntStrategyLib.MOE.forceApprove(
+            address(MoeMerchantLib.MOE_ROUTER),
+            type(uint256).max
+        );
+        want.forceApprove(
+            address(AgniSwapLib.AGNI_SWAP_ROUTER),
+            type(uint256).max
+        );
+        MoeWmntStrategyLib.WMNT.forceApprove(
+            address(AgniSwapLib.AGNI_SWAP_ROUTER),
+            type(uint256).max
+        );
         MoeWmntStrategyLib.MOE_MERCHANT_MOE_WMNT_POOL.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -70,13 +85,14 @@ contract MoeWmntStrategy is
     }
 
     function updateOracle() external onlyAuthorized {
-        _update(
-            address(want),
-            address(MoeWmntStrategyLib.USDT)
-        );
+        _update(address(want), address(MoeWmntStrategyLib.USDT));
         _update(
             address(MoeWmntStrategyLib.USDT),
             address(MoeWmntStrategyLib.MOE)
+        );
+        _update(
+            address(MoeWmntStrategyLib.MOE),
+            address(MoeWmntStrategyLib.WMNT)
         );
     }
 
@@ -105,9 +121,12 @@ contract MoeWmntStrategy is
     }
 
     function balanceOfMoeLp() public view returns (uint256) {
-        return MoeWmntStrategyLib.MOE_MERCHANT_MOE_WMNT_POOL.balanceOf(address(this));
+        return
+            MoeWmntStrategyLib.MOE_MERCHANT_MOE_WMNT_POOL.balanceOf(
+                address(this)
+            );
     }
-    
+
     function wantToCircuitShares(
         uint256 amount
     ) public view returns (uint256 result) {

@@ -55,6 +55,15 @@ contract WmntMethStrategy is
             address(AgniSwapLib.AGNI_SWAP_ROUTER),
             type(uint256).max
         );
+        
+        WmntMethStrategyLib.WMNT.forceApprove(
+            address(MoeMerchantLib.MOE_ROUTER),
+            type(uint256).max
+        );
+        WmntMethStrategyLib.METH.forceApprove(
+            address(MoeMerchantLib.MOE_ROUTER),
+            type(uint256).max
+        );
 
         WmntMethStrategyLib.MOE_MERCHANT_WMNT_METH_POOL.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),

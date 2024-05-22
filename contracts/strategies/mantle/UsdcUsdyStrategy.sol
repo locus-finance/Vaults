@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.18;
 
-import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -184,7 +184,10 @@ contract UsdcUsdyStrategy is
         }
 
         if (_excessWant > 0) {
-            (wantTokensToAddToMoeLiquidity, usdyTokensToAddToMoeLiquidity) = UsdcUsdyStrategyLib.mintShares(
+            (
+                wantTokensToAddToMoeLiquidity,
+                usdyTokensToAddToMoeLiquidity
+            ) = UsdcUsdyStrategyLib.mintShares(
                 _excessWant,
                 address(want),
                 wantTokensToAddToMoeLiquidity,
@@ -229,7 +232,10 @@ contract UsdcUsdyStrategy is
     function prepareMigration(address _newStrategy) internal override {
         uint256 wantBalance = balanceOfWant();
         if (wantBalance > 0) {
-            (wantTokensToAddToMoeLiquidity, usdyTokensToAddToMoeLiquidity) = UsdcUsdyStrategyLib.mintShares(
+            (
+                wantTokensToAddToMoeLiquidity,
+                usdyTokensToAddToMoeLiquidity
+            ) = UsdcUsdyStrategyLib.mintShares(
                 wantBalance,
                 address(want),
                 wantTokensToAddToMoeLiquidity,
@@ -240,10 +246,7 @@ contract UsdcUsdyStrategy is
             );
         }
         if (wantTokensToAddToMoeLiquidity > 0) {
-            want.safeTransfer(
-                _newStrategy,
-                wantTokensToAddToMoeLiquidity
-            );
+            want.safeTransfer(_newStrategy, wantTokensToAddToMoeLiquidity);
         }
         if (usdyTokensToAddToMoeLiquidity > 0) {
             UsdcUsdyStrategyLib.USDY.safeTransfer(
