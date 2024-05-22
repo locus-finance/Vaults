@@ -11,32 +11,37 @@ const DEPLOY_SETTINGS = {
     InitStrategy: {
         ratio: "1670",
         minDebtHarvestUsdc: "0",
-        maxDebtHarvestUsdc: "1000000000000",
+        maxDebtHarvestUsdc: "1000000000000"
     },
     UsdcUsdyStrategy: {
         ratio: "1666",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
+        libraryNames: ["UsdcUsdyStrategy", "AgniSwapLib", "MoeMerchantLib"]
     },
     LendWmntStrategy: {
         ratio: "1666",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
+        libraryNames: ["LendWmntStrategyLib", "AgniSwapLib", "MoeMerchantLib"]
     },
     MoeWmntStrategy: {
         ratio: "1666",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
+        libraryNames: ["MoeWmntStrategyLib", "AgniSwapLib", "MoeMerchantLib"]
     },
     MethWethStrategy: {
         ratio: "1666",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
+        libraryNames: ["MethWethStrategyLib", "AgniSwapLib", "MoeMerchantLib"]
     },
     WmntMethStrategy: {
         ratio: "1666",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
+        libraryNames: ["WmntMethStrategyLib", "AgniSwapLib", "MoeMerchantLib"]
     }
 };
 const OWNABLE_ABI = ["function owner() view returns (address)"];
@@ -49,20 +54,37 @@ async function main() {
     const [deployer] = await ethers.getSigners();
 
     const { vaultAddress } = DEPLOY_SETTINGS;
+    const { libraryNames } = DEPLOY_SETTINGS[TARGET_STRATEGY];
 
     const Vault = await hre.ethers.getContractFactory("LocusVault");
     const vault = Vault.attach(vaultAddress);
 
+    const libraries = {};
+    if (libraryNames !== undefined) {
+        console.log('Found libraries to deploy and link!');
+        for (const libraryName of libraryNames) {
+            const library = await hre.ethers.deployContract(libraryName);
+            console.log(`Deployed library: ${libraryName} - ${library.address}`);
+            libraries[libraryName] = library.address;
+        }
+    } else {
+        console.log("No external libraries for this strategy. Continue...");
+    }
+    console.log({libraries});
     const Strategy = await hre.ethers.getContractFactory(
         TARGET_STRATEGY,
-        deployer
+        deployer,
+        libraryNames !== undefined ? {libraries} : undefined
     );
     const strategy = await upgrades.deployProxy(
         Strategy,
         [vault.address, strategist],
         {
             initializer: "initialize",
-            kind: "transparent"
+            kind: "transparent",
+            unsafeAllow: [
+                "external-library-linking"
+            ]
         }
     );
     await strategy.deployed();
