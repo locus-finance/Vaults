@@ -24,7 +24,6 @@ library WmntMethStrategyLib {
     event WantTokensGathered(uint256 indexed amount);
 
     uint256 public constant STANDARD_SLIPPAGE = 9000;
-    uint256 public constant MAX_BPS = 10000;
 
     ICircuitVault public constant CIRCUIT_VAULT =
         ICircuitVault(0xc37c7dEBa5E7F5dE572C914D5c159EA08DE1fefF);

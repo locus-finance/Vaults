@@ -10,7 +10,7 @@ import "./MoeMerchantLib.sol";
 import "../../../integrations/circuit/ICircuitVault.sol";
 import "../../../integrations/merchantMoe/IMoePair.sol";
 
-library MoeWmntStrategyLib {
+library MethWethStrategyLib {
     event MintedCircuitShares(
         uint256 indexed oldBalance,
         uint256 indexed newBalance
@@ -26,55 +26,47 @@ library MoeWmntStrategyLib {
     uint256 private constant STANDARD_SLIPPAGE = 9000;
 
     ICircuitVault public constant CIRCUIT_VAULT =
-        ICircuitVault(0xa3647389cf2bF9279ab239d3710bB8a2eFE0BC8B);
+        ICircuitVault(0x16FA0C5f3eA649259C02c075dbA1C31fc66ea4E0);
 
-    IERC20 public constant USDT =
-        IERC20(0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE);
-    IERC20 public constant MOE =
-        IERC20(0x4515A45337F461A11Ff0FE8aBF3c606AE5dC00c9);
-    IERC20 public constant WMNT =
-        IERC20(0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8);
-
-    IERC20 public constant MOE_MERCHANT_MOE_WMNT_POOL =
-        IERC20(0x763868612858358f62b05691dB82Ad35a9b3E110);
+    IERC20 public constant WETH =
+        IERC20(0xdEAddEaDdeadDEadDEADDEAddEADDEAddead1111);
+    IERC20 public constant METH =
+        IERC20(0xcDA86A272531e8640cD7F1a92c01839911B90bb0);
+    IERC20 public constant MOE_MERCHANT_METH_WETH_POOL =
+        IERC20(0x86e3a987187feD135D6d9C114f1857D8144F01e1);
 
     function wantToCircuitShares(
         uint256 amount,
         address wantAddress
-    ) external view returns (uint256 result) {
+    ) public view returns (uint256 result) {
         if (amount == 0) return 0;
-        uint256 usdcForUsdtSwapAmount = amount / 2;
-        uint256 usdcForWmntSwapAmount = amount - usdcForUsdtSwapAmount;
+        uint256 usdcForMethSwapAmount = amount / 2;
+        uint256 usdcForWethSwapAmount = amount - usdcForMethSwapAmount;
 
-        uint256 wmntAmount = AgniSwapLib.agniQuote(
+        uint256 wethAmount = AgniSwapLib.agniQuote(
             wantAddress,
-            address(WMNT),
-            usdcForWmntSwapAmount
+            address(WETH),
+            usdcForWethSwapAmount
         );
 
         address[] memory path = new address[](2);
         path[0] = wantAddress;
-        path[1] = address(USDT);
+        path[1] = address(METH);
         IMoePair pair = IMoePair(
-            MoeMerchantLib.MOE_FACTORY.getPair(wantAddress, address(USDT))
+            MoeMerchantLib.MOE_FACTORY.getPair(wantAddress, address(METH))
         );
-        uint256 usdtAmount = MoeMerchantLib.MOE_ROUTER.getAmountsOut(
-            usdcForUsdtSwapAmount,
+        uint256 methAmount = MoeMerchantLib.MOE_ROUTER.getAmountsOut(
+            usdcForMethSwapAmount,
             path
         )[1];
 
-        path[0] = address(USDT);
-        path[1] = address(MOE);
-        uint256 moeAmount = MoeMerchantLib.MOE_ROUTER.getAmountsOut(usdtAmount, path)[1];
-
-        pair = IMoePair(MoeMerchantLib.MOE_FACTORY.getPair(address(MOE), address(WMNT)));
-
+        pair = IMoePair(MoeMerchantLib.MOE_FACTORY.getPair(address(METH), address(WETH)));
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
         uint256 lpTotalSupply = pair.totalSupply();
 
         uint256 liquidity = Math.min(
-            (wmntAmount * lpTotalSupply) / reserve0,
-            (moeAmount * lpTotalSupply) / reserve1
+            (wethAmount * lpTotalSupply) / reserve0,
+            (methAmount * lpTotalSupply) / reserve1
         );
 
         result =
@@ -85,94 +77,77 @@ library MoeWmntStrategyLib {
     function circuitSharesToWant(
         uint256 amount,
         address wantAddress
-    ) external view returns (uint256 result) {
+    ) public view returns (uint256 result) {
         if (amount == 0) return 0;
         uint256 liquidity = (amount * CIRCUIT_VAULT.balance()) /
             CIRCUIT_VAULT.totalSupply();
-
         IMoePair pair = IMoePair(
-            MoeMerchantLib.MOE_FACTORY.getPair(address(MOE), address(WMNT))
+            MoeMerchantLib.MOE_FACTORY.getPair(address(METH), address(WETH))
         );
         uint256 lpTotalSupply = pair.totalSupply();
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
-
-        uint256 moeAmount = (liquidity * reserve0) / lpTotalSupply;
-        uint256 wmntAmount = (liquidity * reserve1) / lpTotalSupply;
-
-        result = AgniSwapLib.agniQuote(address(WMNT), wantAddress, wmntAmount);
-
+        uint256 methAmount = (liquidity * reserve0) / lpTotalSupply;
+        uint256 wethAmount = (liquidity * reserve1) / lpTotalSupply;
+        result = AgniSwapLib.agniQuote(address(WETH), wantAddress, wethAmount);
         address[] memory path = new address[](2);
-
-        path[0] = address(MOE);
-        path[1] = address(USDT);
-        uint256 usdtAmount = MoeMerchantLib.MOE_ROUTER.getAmountsOut(moeAmount, path)[1];
-        path[0] = address(USDT);
+        path[0] = address(METH);
         path[1] = wantAddress;
-
-        result += MoeMerchantLib.MOE_ROUTER.getAmountsOut(usdtAmount, path)[1];
+        result += MoeMerchantLib.MOE_ROUTER.getAmountsOut(methAmount, path)[1];
     }
 
     function mintShares(
         uint256 amount,
         address wantAddress,
-        uint256 moeTokensToAddToMoeLiquidity,
-        uint256 wmntTokensToAddToMoeLiquidity,
+        uint256 methTokensToAddToMoeLiquidity,
+        uint256 wethTokensToAddToMoeLiquidity,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
         function(address, uint256, address) external view returns(uint256) consult
     )
         external
         returns (
-            uint256 resultingMoeTokensToAddToMoeLiquidity,
-            uint256 resultingWmntTokensToAddToMoeLiquidity
+            uint256 resultingMethTokensToAddToMoeLiquidity,
+            uint256 resultingWethTokensToAddToMoeLiquidity
         ) 
     {
-        if (amount == 0) return (moeTokensToAddToMoeLiquidity, wmntTokensToAddToMoeLiquidity);
+        if (amount == 0) return (methTokensToAddToMoeLiquidity, wethTokensToAddToMoeLiquidity);
         uint256 oldLpBalance = balanceOfMoeLp();
 
-        uint256 usdcForUsdtSwapAmount = amount / 2;
-        uint256 usdcForWmntSwapAmount = amount - usdcForUsdtSwapAmount;
+        uint256 usdcForWethSwapAmount = amount / 2;
+        uint256 usdcForMethSwapAmount = amount - usdcForWethSwapAmount;
 
-        uint256 wmntAmount = AgniSwapLib.agniSwap(
+        uint256 wethAmount = AgniSwapLib.agniSwap(
             wantAddress,
-            address(WMNT),
-            usdcForWmntSwapAmount,
+            address(WETH),
+            usdcForWethSwapAmount,
             STANDARD_SLIPPAGE
         );
 
-        uint256 usdtAmount = MoeMerchantLib.moeMerchantSwap(
+        uint256 methAmount = MoeMerchantLib.moeMerchantSwap(
             wantAddress,
-            address(USDT),
-            usdcForUsdtSwapAmount,
-            STANDARD_SLIPPAGE,
-            consult
-        );
-
-        uint256 moeAmount = MoeMerchantLib.moeMerchantSwap(
-            address(USDT),
-            address(MOE),
-            usdtAmount,
+            address(METH),
+            usdcForMethSwapAmount,
             STANDARD_SLIPPAGE,
             consult
         );
 
         (
             uint256 lpMinted,
-            uint256 moeLeft,
-            uint256 wmntLeft
+            uint256 methLeft,
+            uint256 wethLeft
         ) = MoeMerchantLib.moeMerchantAddLiquidity(
-                address(MOE),
-                address(WMNT),
-                moeAmount + moeTokensToAddToMoeLiquidity,
-                wmntAmount + wmntTokensToAddToMoeLiquidity,
+                address(METH),
+                address(WETH),
+                wethAmount + wethTokensToAddToMoeLiquidity,
+                methAmount + methTokensToAddToMoeLiquidity,
                 STANDARD_SLIPPAGE,
                 consult
             );
-        if (moeLeft > 0) {
-            resultingMoeTokensToAddToMoeLiquidity = moeLeft;
+        if (wethLeft > 0) {
+            resultingWethTokensToAddToMoeLiquidity = wethLeft;
         }
-        if (wmntLeft > 0) {
-            resultingWmntTokensToAddToMoeLiquidity = wmntLeft;
+        if (methLeft > 0) {
+            resultingMethTokensToAddToMoeLiquidity = methLeft;
         }
         emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
         uint256 circuitShares = balanceOfCircuitShares();
@@ -196,36 +171,28 @@ library MoeWmntStrategyLib {
             balanceOfCircuitShares()
         );
         (uint256 amountAWithdrawn, uint256 amountBWithdrawn) = MoeMerchantLib.moeMerchantRemoveLiquidity(
-                address(MOE),
-                address(WMNT),
+                address(METH),
+                address(WETH),
                 balanceOfMoeLp() - oldLpBalance
             );
         emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
 
-        uint256 swappedFromWmntUsdcAmount = AgniSwapLib.agniSwap(
-            address(WMNT),
+        uint256 swappedFromWethUsdcAmount = AgniSwapLib.agniSwap(
+            address(WETH),
             wantAddress,
             amountBWithdrawn,
             STANDARD_SLIPPAGE
         );
 
-        uint256 swappedFromMoeUsdtAmount = MoeMerchantLib.moeMerchantSwap(
-            address(MOE),
-            address(USDT),
+        uint256 swappedFromMethUsdcAmount = MoeMerchantLib.moeMerchantSwap(
+            address(METH),
+            wantAddress,
             amountAWithdrawn,
             STANDARD_SLIPPAGE,
             consult
         );
-
-        uint256 swappedFromUsdtUsdcAmount = MoeMerchantLib.moeMerchantSwap(
-            address(USDT),
-            wantAddress,
-            swappedFromMoeUsdtAmount,
-            STANDARD_SLIPPAGE,
-            consult
-        );
         emit WantTokensGathered(
-            swappedFromWmntUsdcAmount + swappedFromUsdtUsdcAmount
+            swappedFromWethUsdcAmount + swappedFromMethUsdcAmount
         );
     }
 }
