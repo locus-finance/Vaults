@@ -91,7 +91,7 @@ library WmntMethStrategyLib {
     }
 
     function mintShares(
-        uint256 _amount,
+        uint256 amount,
         address wantAddress,
         uint256 methTokensToAddToMoeLiquidity,
         uint256 wmntTokensToAddToMoeLiquidity,
@@ -105,11 +105,11 @@ library WmntMethStrategyLib {
             uint256 resultingWmntTokensToAddToMoeLiquidity
         )
     {
-        if (_amount == 0) return (methTokensToAddToMoeLiquidity, wmntTokensToAddToMoeLiquidity);
+        if (amount == 0) return (methTokensToAddToMoeLiquidity, wmntTokensToAddToMoeLiquidity);
         uint256 oldLpBalance = balanceOfMoeLp();
 
-        uint256 usdcForMethSwapAmount = _amount / 2;
-        uint256 usdcForWmntSwapAmount = _amount - usdcForMethSwapAmount;
+        uint256 usdcForMethSwapAmount = amount / 2;
+        uint256 usdcForWmntSwapAmount = amount - usdcForMethSwapAmount;
 
         uint256 methAmount = AgniSwapLib.agniSwap(
             wantAddress,
@@ -148,15 +148,15 @@ library WmntMethStrategyLib {
     }
 
     function burnShares(
-        uint256 _shares, 
+        uint256 shares, 
         address wantAddress,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares
     ) external {
-        if (_shares == 0) return;
+        if (shares == 0) return;
         uint256 oldLpBalance = balanceOfMoeLp();
         uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
-        CIRCUIT_VAULT.withdraw(_shares);
+        CIRCUIT_VAULT.withdraw(shares);
         emit BurnedCircuitShares(
             oldCircuitSharesBalance,
             balanceOfCircuitShares()

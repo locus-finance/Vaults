@@ -6,8 +6,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "./libraries/MoeMerchantLib.sol";
-import "./libraries/AgniSwapLib.sol";
 import "./libraries/WmntMethStrategyLib.sol";
 
 import "../../abstracts/BaseStrategyForSeparatedVault.sol";
