@@ -74,7 +74,7 @@ library MoeMerchantLib {
         uint256 amountA, // any amount (even violating the ratio in the reserves)
         uint256 amountB, // any amount (even violating the ratio in the reserves)
         uint256 slippageBps,
-        function(address, uint256, address) internal view returns(uint256) consult
+        function(address, uint256, address) external view returns(uint256) consult
     )
         internal
         returns (uint256 lpMinted, uint256 tokensALeft, uint256 tokensBLeft)

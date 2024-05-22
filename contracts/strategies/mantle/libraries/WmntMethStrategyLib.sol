@@ -38,7 +38,7 @@ library WmntMethStrategyLib {
     function wantToCircuitShares(
         address wantAddress,
         uint256 amount
-    ) internal view returns (uint256 result) {
+    ) external view returns (uint256 result) {
         if (amount == 0) return 0;
         uint256 usdcForMethSwapAmount = amount / 2;
         uint256 usdcForWmntSwapAmount = amount - usdcForMethSwapAmount;
@@ -68,7 +68,7 @@ library WmntMethStrategyLib {
     function circuitSharesToWant(
         address wantAddress,
         uint256 amount
-    ) internal view returns (uint256 result) {
+    ) external view returns (uint256 result) {
         if (amount == 0) return 0;
         uint256 liquidity = (amount * CIRCUIT_VAULT.balance()) /
             CIRCUIT_VAULT.totalSupply();
@@ -94,15 +94,18 @@ library WmntMethStrategyLib {
         uint256 _amount,
         address wantAddress,
         uint256 methTokensToAddToMoeLiquidity,
-        uint256 wmntTokensToAddToMoeLiquidity
+        uint256 wmntTokensToAddToMoeLiquidity,
+        function() external view returns (uint256) balanceOfMoeLp,
+        function() external view returns (uint256) balanceOfCircuitShares,
+        function(address, uint256, address) external view returns(uint256) consult
     )
-        internal
+        external
         returns (
             uint256 resultingMethTokensToAddToMoeLiquidity,
             uint256 resultingWmntTokensToAddToMoeLiquidity
         )
     {
-        if (_amount == 0) return;
+        if (_amount == 0) return (methTokensToAddToMoeLiquidity, wmntTokensToAddToMoeLiquidity);
         uint256 oldLpBalance = balanceOfMoeLp();
 
         uint256 usdcForMethSwapAmount = _amount / 2;
@@ -126,7 +129,8 @@ library WmntMethStrategyLib {
                 address(WmntMethStrategyLib.METH),
                 methAmount + methTokensToAddToMoeLiquidity,
                 wmntAmount + wmntTokensToAddToMoeLiquidity,
-                WmntMethStrategyLib.STANDARD_SLIPPAGE
+                WmntMethStrategyLib.STANDARD_SLIPPAGE,
+                consult
             );
         if (methLeft > 0) {
             resultingMethTokensToAddToMoeLiquidity = methLeft;
@@ -143,7 +147,12 @@ library WmntMethStrategyLib {
         );
     }
 
-    function burnShares(uint256 _shares, address wantAddress) internal {
+    function burnShares(
+        uint256 _shares, 
+        address wantAddress,
+        function() external view returns (uint256) balanceOfMoeLp,
+        function() external view returns (uint256) balanceOfCircuitShares
+    ) external {
         if (_shares == 0) return;
         uint256 oldLpBalance = balanceOfMoeLp();
         uint256 oldCircuitSharesBalance = balanceOfCircuitShares();

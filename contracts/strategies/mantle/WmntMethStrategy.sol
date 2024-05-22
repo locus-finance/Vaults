@@ -6,8 +6,10 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+import "./libraries/MoeMerchantLib.sol";
 import "./libraries/AgniSwapLib.sol";
 import "./libraries/WmntMethStrategyLib.sol";
+
 import "../../abstracts/BaseStrategyForSeparatedVault.sol";
 import "../../integrations/circuit/ICircuitVault.sol";
 import "../../abstracts/mantle/MoeMerchantWithOracleStrategyHelper.sol";
@@ -33,15 +35,14 @@ contract WmntMethStrategy is
             oracleWindowSize,
             oracleGranularity
         );
-
-        want.forceApprove(address(MOE_ROUTER), type(uint256).max);
+        want.forceApprove(address(MoeMerchantLib.MOE_ROUTER), type(uint256).max);
         want.forceApprove(address(AgniSwapLib.AGNI_SWAP_ROUTER), type(uint256).max);
 
         WmntMethStrategyLib.WMNT.forceApprove(address(AgniSwapLib.AGNI_SWAP_ROUTER), type(uint256).max);
         WmntMethStrategyLib.METH.forceApprove(address(AgniSwapLib.AGNI_SWAP_ROUTER), type(uint256).max);
 
         WmntMethStrategyLib.MOE_MERCHANT_WMNT_METH_POOL.forceApprove(
-            address(MOE_ROUTER),
+            address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
         );
         WmntMethStrategyLib.MOE_MERCHANT_WMNT_METH_POOL.forceApprove(
@@ -51,10 +52,20 @@ contract WmntMethStrategy is
     }
 
     function resetOracle(uint256 oracleWindowSize, uint8 oracleGranularity) external onlyAuthorized {
+        if (oracleWindowSize == 0) {
+            oracleWindowSize = 1 weeks;
+        }
+        if (oracleGranularity == 0) {
+            oracleGranularity = 3;
+        }
         _initializeMoeMerchantHelperWithOracle(
             oracleWindowSize,
             oracleGranularity
         );
+    }
+
+    function updateOracle() external onlyAuthorized {
+        _update(address(WmntMethStrategyLib.WMNT), address(WmntMethStrategyLib.METH));
     }
 
     function name() external pure override returns (string memory) {
@@ -93,7 +104,12 @@ contract WmntMethStrategy is
             wantToCircuitShares(_amountNeeded),
             balanceOfCircuitShares()
         );
-        WmntMethStrategyLib.burnShares(sharesToWithdraw);
+        WmntMethStrategyLib.burnShares(
+            sharesToWithdraw,
+            address(want),
+            this.balanceOfWant,
+            this.balanceOfCircuitShares
+        );
     }
 
     function estimatedTotalAssets()
@@ -152,12 +168,25 @@ contract WmntMethStrategy is
         }
 
         if (_excessWant > 0) {
-            WmntMethStrategyLib.mintShares(_excessWant);
+            (methTokensToAddToMoeLiquidity, wmntTokensToAddToMoeLiquidity) = WmntMethStrategyLib.mintShares(
+                _excessWant,
+                address(want),
+                methTokensToAddToMoeLiquidity,
+                wmntTokensToAddToMoeLiquidity,
+                this.balanceOfMoeLp,
+                this.balanceOfCircuitShares,
+                this.consult
+            );
         }
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        WmntMethStrategyLib.burnShares(balanceOfCircuitShares());
+        WmntMethStrategyLib.burnShares(
+            balanceOfCircuitShares(),
+            address(want),
+            this.balanceOfMoeLp,
+            this.balanceOfCircuitShares
+        );
         return want.balanceOf(address(this));
     }
 
@@ -183,7 +212,21 @@ contract WmntMethStrategy is
     function prepareMigration(address _newStrategy) internal override {
         uint256 wantBalance = balanceOfWant();
         if (wantBalance > 0) {
-            WmntMethStrategyLib.mintShares(wantBalance);
+            (methTokensToAddToMoeLiquidity, wmntTokensToAddToMoeLiquidity) = WmntMethStrategyLib.mintShares(
+                wantBalance,
+                address(want),
+                methTokensToAddToMoeLiquidity, 
+                wmntTokensToAddToMoeLiquidity,
+                this.balanceOfMoeLp,
+                this.balanceOfCircuitShares,
+                this.consult
+            );
+        }
+        if (methTokensToAddToMoeLiquidity > 0) {
+            WmntMethStrategyLib.METH.safeTransfer(_newStrategy, methTokensToAddToMoeLiquidity);
+        }
+        if (wmntTokensToAddToMoeLiquidity > 0) {
+            WmntMethStrategyLib.WMNT.safeTransfer(_newStrategy, wmntTokensToAddToMoeLiquidity);
         }
         IERC20(address(WmntMethStrategyLib.CIRCUIT_VAULT)).safeTransfer(
             _newStrategy,
