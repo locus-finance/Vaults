@@ -18,7 +18,7 @@ library MoeMerchantLib {
         address to,
         uint256 amount,
         uint256 slippageBps,
-        function(address, uint256, address) internal view returns(uint256) consult
+        function(address, uint256, address) external view returns(uint256) consult
     ) internal returns (uint256 result) {
         address[] memory path = new address[](2);
         path[0] = from;
@@ -38,8 +38,8 @@ library MoeMerchantLib {
         address tokenB,
         uint256 amountA,
         uint256 slippageBps,
-        function(address, uint256, address) internal view returns(uint256) consult
-    ) internal returns (uint256 lpMinted) {
+        function(address, uint256, address) external view returns(uint256) consult
+    ) internal returns (uint256 lpMinted, uint256 tokensALeft, uint256 tokensBLeft) {
         uint256 amountB = consult(tokenA, amountA, tokenB);
         uint256 amountAToAdd = (amountA * amountA) / amountB;
         uint256 amountAToSwapToB;
@@ -56,7 +56,7 @@ library MoeMerchantLib {
             slippageBps,
             consult
         );
-        (, , lpMinted) = MOE_ROUTER.addLiquidity(
+        (uint256 amountASent, uint256 amountBSent, uint256 _lpMinted) = MOE_ROUTER.addLiquidity(
             tokenA,
             tokenB,
             amountAToAdd,
@@ -66,6 +66,13 @@ library MoeMerchantLib {
             address(this),
             block.timestamp
         );
+        lpMinted = _lpMinted;
+        if (amountA > amountASent) {
+            tokensALeft = amountA - amountASent; 
+        }
+        if (amountB > amountBSent) {
+            tokensBLeft = amountB - amountBSent; 
+        }
     }
 
     function moeMerchantAddLiquidity(

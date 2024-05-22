@@ -24,7 +24,12 @@ contract WmntMethStrategy is
     uint256 public wmntTokensToAddToMoeLiquidity;
     uint256 public methTokensToAddToMoeLiquidity;
 
-    function initialize(address _vault, address _strategist, uint256 oracleWindowSize, uint8 oracleGranularity) external {
+    function initialize(
+        address _vault,
+        address _strategist,
+        uint256 oracleWindowSize,
+        uint8 oracleGranularity
+    ) external {
         __Base_Strategy_Initialize(
             _vault,
             _strategist,
@@ -35,11 +40,23 @@ contract WmntMethStrategy is
             oracleWindowSize,
             oracleGranularity
         );
-        want.forceApprove(address(MoeMerchantLib.MOE_ROUTER), type(uint256).max);
-        want.forceApprove(address(AgniSwapLib.AGNI_SWAP_ROUTER), type(uint256).max);
+        want.forceApprove(
+            address(MoeMerchantLib.MOE_ROUTER),
+            type(uint256).max
+        );
+        want.forceApprove(
+            address(AgniSwapLib.AGNI_SWAP_ROUTER),
+            type(uint256).max
+        );
 
-        WmntMethStrategyLib.WMNT.forceApprove(address(AgniSwapLib.AGNI_SWAP_ROUTER), type(uint256).max);
-        WmntMethStrategyLib.METH.forceApprove(address(AgniSwapLib.AGNI_SWAP_ROUTER), type(uint256).max);
+        WmntMethStrategyLib.WMNT.forceApprove(
+            address(AgniSwapLib.AGNI_SWAP_ROUTER),
+            type(uint256).max
+        );
+        WmntMethStrategyLib.METH.forceApprove(
+            address(AgniSwapLib.AGNI_SWAP_ROUTER),
+            type(uint256).max
+        );
 
         WmntMethStrategyLib.MOE_MERCHANT_WMNT_METH_POOL.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
@@ -51,7 +68,10 @@ contract WmntMethStrategy is
         );
     }
 
-    function resetOracle(uint256 oracleWindowSize, uint8 oracleGranularity) external onlyAuthorized {
+    function resetOracle(
+        uint256 oracleWindowSize,
+        uint8 oracleGranularity
+    ) external onlyAuthorized {
         if (oracleWindowSize == 0) {
             oracleWindowSize = 1 weeks;
         }
@@ -65,7 +85,10 @@ contract WmntMethStrategy is
     }
 
     function updateOracle() external onlyAuthorized {
-        _update(address(WmntMethStrategyLib.WMNT), address(WmntMethStrategyLib.METH));
+        _update(
+            address(WmntMethStrategyLib.WMNT),
+            address(WmntMethStrategyLib.METH)
+        );
     }
 
     function name() external pure override returns (string memory) {
@@ -81,7 +104,10 @@ contract WmntMethStrategy is
     }
 
     function balanceOfMoeLp() public view returns (uint256) {
-        return WmntMethStrategyLib.MOE_MERCHANT_WMNT_METH_POOL.balanceOf(address(this));
+        return
+            WmntMethStrategyLib.MOE_MERCHANT_WMNT_METH_POOL.balanceOf(
+                address(this)
+            );
     }
 
     function wantToCircuitShares(
@@ -168,7 +194,10 @@ contract WmntMethStrategy is
         }
 
         if (_excessWant > 0) {
-            (methTokensToAddToMoeLiquidity, wmntTokensToAddToMoeLiquidity) = WmntMethStrategyLib.mintShares(
+            (
+                methTokensToAddToMoeLiquidity,
+                wmntTokensToAddToMoeLiquidity
+            ) = WmntMethStrategyLib.mintShares(
                 _excessWant,
                 address(want),
                 methTokensToAddToMoeLiquidity,
@@ -212,10 +241,13 @@ contract WmntMethStrategy is
     function prepareMigration(address _newStrategy) internal override {
         uint256 wantBalance = balanceOfWant();
         if (wantBalance > 0) {
-            (methTokensToAddToMoeLiquidity, wmntTokensToAddToMoeLiquidity) = WmntMethStrategyLib.mintShares(
+            (
+                methTokensToAddToMoeLiquidity,
+                wmntTokensToAddToMoeLiquidity
+            ) = WmntMethStrategyLib.mintShares(
                 wantBalance,
                 address(want),
-                methTokensToAddToMoeLiquidity, 
+                methTokensToAddToMoeLiquidity,
                 wmntTokensToAddToMoeLiquidity,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
@@ -223,10 +255,16 @@ contract WmntMethStrategy is
             );
         }
         if (methTokensToAddToMoeLiquidity > 0) {
-            WmntMethStrategyLib.METH.safeTransfer(_newStrategy, methTokensToAddToMoeLiquidity);
+            WmntMethStrategyLib.METH.safeTransfer(
+                _newStrategy,
+                methTokensToAddToMoeLiquidity
+            );
         }
         if (wmntTokensToAddToMoeLiquidity > 0) {
-            WmntMethStrategyLib.WMNT.safeTransfer(_newStrategy, wmntTokensToAddToMoeLiquidity);
+            WmntMethStrategyLib.WMNT.safeTransfer(
+                _newStrategy,
+                wmntTokensToAddToMoeLiquidity
+            );
         }
         IERC20(address(WmntMethStrategyLib.CIRCUIT_VAULT)).safeTransfer(
             _newStrategy,

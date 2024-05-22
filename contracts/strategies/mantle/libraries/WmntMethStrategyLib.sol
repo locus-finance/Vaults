@@ -113,23 +113,23 @@ library WmntMethStrategyLib {
 
         uint256 methAmount = AgniSwapLib.agniSwap(
             wantAddress,
-            address(WmntMethStrategyLib.METH),
+            address(METH),
             usdcForMethSwapAmount,
-            WmntMethStrategyLib.STANDARD_SLIPPAGE
+            STANDARD_SLIPPAGE
         );
         uint256 wmntAmount = AgniSwapLib.agniSwap(
             wantAddress,
-            address(WmntMethStrategyLib.WMNT),
+            address(WMNT),
             usdcForWmntSwapAmount,
-            WmntMethStrategyLib.STANDARD_SLIPPAGE
+            STANDARD_SLIPPAGE
         );
         (uint256 lpMinted, uint256 wmntLeft, uint256 methLeft) = MoeMerchantLib
             .moeMerchantAddLiquidity(
-                address(WmntMethStrategyLib.WMNT),
-                address(WmntMethStrategyLib.METH),
+                address(WMNT),
+                address(METH),
                 methAmount + methTokensToAddToMoeLiquidity,
                 wmntAmount + wmntTokensToAddToMoeLiquidity,
-                WmntMethStrategyLib.STANDARD_SLIPPAGE,
+                STANDARD_SLIPPAGE,
                 consult
             );
         if (methLeft > 0) {
@@ -138,10 +138,10 @@ library WmntMethStrategyLib {
         if (wmntLeft > 0) {
             resultingWmntTokensToAddToMoeLiquidity = wmntLeft;
         }
-        emit WmntMethStrategyLib.MintedMoeLp(oldLpBalance, balanceOfMoeLp());
+        emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
         uint256 circuitShares = balanceOfCircuitShares();
-        WmntMethStrategyLib.CIRCUIT_VAULT.deposit(lpMinted);
-        emit WmntMethStrategyLib.MintedCircuitShares(
+        CIRCUIT_VAULT.deposit(lpMinted);
+        emit MintedCircuitShares(
             circuitShares,
             balanceOfCircuitShares()
         );
@@ -156,33 +156,33 @@ library WmntMethStrategyLib {
         if (_shares == 0) return;
         uint256 oldLpBalance = balanceOfMoeLp();
         uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
-        WmntMethStrategyLib.CIRCUIT_VAULT.withdraw(_shares);
-        emit WmntMethStrategyLib.BurnedCircuitShares(
+        CIRCUIT_VAULT.withdraw(_shares);
+        emit BurnedCircuitShares(
             oldCircuitSharesBalance,
             balanceOfCircuitShares()
         );
         (uint256 amountAWithdrawn, uint256 amountBWithdrawn) = MoeMerchantLib
             .moeMerchantRemoveLiquidity(
-                address(WmntMethStrategyLib.WMNT),
-                address(WmntMethStrategyLib.METH),
+                address(WMNT),
+                address(METH),
                 balanceOfMoeLp() - oldLpBalance
             );
-        emit WmntMethStrategyLib.BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
+        emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
 
         uint256 swappedFromWmntUsdcAmount = AgniSwapLib.agniSwap(
-            address(WmntMethStrategyLib.WMNT),
+            address(WMNT),
             wantAddress,
             amountAWithdrawn,
-            WmntMethStrategyLib.STANDARD_SLIPPAGE
+            STANDARD_SLIPPAGE
         );
         uint256 swappedFromMethhUsdcAmount = AgniSwapLib.agniSwap(
-            address(WmntMethStrategyLib.METH),
+            address(METH),
             wantAddress,
             amountBWithdrawn,
-            WmntMethStrategyLib.STANDARD_SLIPPAGE
+            STANDARD_SLIPPAGE
         );
 
-        emit WmntMethStrategyLib.WantTokensGathered(
+        emit WantTokensGathered(
             swappedFromWmntUsdcAmount + swappedFromMethhUsdcAmount
         );
     }
