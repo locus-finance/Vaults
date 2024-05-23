@@ -2,7 +2,7 @@ const hre = require("hardhat");
 
 const { getEnv } = require("../../utils");
 
-const TARGET_STRATEGY = "WmntMethStrategy";
+const TARGET_STRATEGY = "MethWethStrategy";
 const strategist = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe"
 const vaultAddress = "0x877559B8D37E5a05dB12F289214c51D05856fcA0";
 
@@ -17,31 +17,41 @@ const DEPLOY_SETTINGS = {
         ratio: "1666",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
-        libraryNames: ["UsdcUsdyStrategy", "AgniSwapLib", "MoeMerchantLib"]
+        libraryNames: ["UsdcUsdyStrategyLib"],
+        oracleWindowSize: 604800,
+        oracleGranularity: 3
     },
     LendWmntStrategy: {
         ratio: "1666",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
-        libraryNames: ["LendWmntStrategyLib", "AgniSwapLib", "MoeMerchantLib"]
+        libraryNames: ["LendWmntStrategyLib"],
+        oracleWindowSize: 604800,
+        oracleGranularity: 3
     },
     MoeWmntStrategy: {
         ratio: "1666",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
-        libraryNames: ["MoeWmntStrategyLib", "AgniSwapLib", "MoeMerchantLib"]
+        libraryNames: ["MoeWmntStrategyLib"],
+        oracleWindowSize: 604800,
+        oracleGranularity: 3
     },
     MethWethStrategy: {
         ratio: "1666",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
-        libraryNames: ["MethWethStrategyLib", "AgniSwapLib", "MoeMerchantLib"]
+        libraryNames: ["MethWethStrategyLib"],
+        oracleWindowSize: 604800,
+        oracleGranularity: 3
     },
     WmntMethStrategy: {
         ratio: "1666",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
-        libraryNames: ["WmntMethStrategyLib", "AgniSwapLib", "MoeMerchantLib"]
+        libraryNames: ["WmntMethStrategyLib"],
+        oracleWindowSize: 604800,
+        oracleGranularity: 3
     }
 };
 const OWNABLE_ABI = ["function owner() view returns (address)"];
@@ -54,7 +64,7 @@ async function main() {
     const [deployer] = await ethers.getSigners();
 
     const { vaultAddress } = DEPLOY_SETTINGS;
-    const { libraryNames } = DEPLOY_SETTINGS[TARGET_STRATEGY];
+    const { libraryNames, oracleWindowSize, oracleGranularity } = DEPLOY_SETTINGS[TARGET_STRATEGY];
 
     const Vault = await hre.ethers.getContractFactory("LocusVault");
     const vault = Vault.attach(vaultAddress);
@@ -70,15 +80,31 @@ async function main() {
     } else {
         console.log("No external libraries for this strategy. Continue...");
     }
-    console.log({libraries});
+
+    let factoryParams;
+    if (libraryNames !== undefined) {
+        factoryParams = {
+            signer: deployer,
+            libraries
+        }
+    } else {
+        factoryParams = {
+            signer: deployer
+        }
+    }
     const Strategy = await hre.ethers.getContractFactory(
         TARGET_STRATEGY,
-        deployer,
-        libraryNames !== undefined ? {libraries} : undefined
+        factoryParams
     );
+    let strategyInitializerParams;
+    if (oracleWindowSize !== undefined && oracleGranularity !== undefined) {
+        strategyInitializerParams = [vault.address, strategist, oracleWindowSize, oracleGranularity]
+    } else {
+        strategyInitializerParams = [vault.address, strategist];
+    }
     const strategy = await upgrades.deployProxy(
         Strategy,
-        [vault.address, strategist],
+        strategyInitializerParams,
         {
             initializer: "initialize",
             kind: "transparent",
