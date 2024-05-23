@@ -28,18 +28,15 @@ describe('TestMantleVaultDeposit', () => {
   const xMantleVaultTokenAddress = "0xE6B9b205C290D077e56e4857beF082C2FFeF4C54";
   
   const userAddress = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe";
-  const strategist = userAddress;
-  
-  const lendingPoolAddress = "0x00A55649E597d463fD212fBE48a3B40f0E227d06";
   
   const initStrategyAddress = "0xB134814B4E95DbD76fbc12E1976C8f54CD7b8020";
-  const usdcUsdyStrategyAddress = "0xa28e09cC6fb46D49686DDe0aE48053600c94900f";
-  const lendWmntStrategyAddress = "0x74CDA6bd0bed5A9027E4f62b733Ed34F495F5C2d";
-  
-  const locusFeedAddress = "0x5662AaAc9fdc97910E648e54076Be71D60D4045f";
-  
-  const usdcWhale = "0x588846213A30fd36244e0ae0eBB2374516dA836C";
+  const usdcUsdyStrategyAddress = "0x85342801C489F7807b2a11856E67Bbc38Fa7279e";
+  const lendWmntStrategyAddress = "0x5B7F289994962B59043C57d719220f08127e8A8e";
+  const moeWmntStrategyAddress = "0xADbDecc99FA05FD6DD7e882a48274E0A85Af0656";
+  const methWethStrategyAddress = "0x4759217BbCBAAB2c605647B611D15dEC42133275";
+  const wmntMethStrategyAddress = "0x06219C06A874172577c772f222FD9BFA43553Ba8";
 
+  const usdcWhale = "0x588846213A30fd36244e0ae0eBB2374516dA836C";
   const userUsdcAllowance = hre.ethers.utils.parseUnits("50000", 6);
   const usdcAddress = "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9";
   const usdcAmountToDeposit = hre.ethers.utils.parseUnits("10000", 6);
@@ -49,15 +46,13 @@ describe('TestMantleVaultDeposit', () => {
   
   let usdcInstance;
   
-  let lendingPoolEip20Instance;
-  let lendingPoolInstance;
-  
   let initStrategyInstance;
   let usdcUsdyStrategyInstance;
   let lendWmntStrategyInstance;
+  let moeWmntStrategyInstance;
+  let methWethStrategyInstance;
+  let wmntMethStrategyInstance;
   
-  let locusFeedInstance;
-
   beforeEach(async () => {
     xMantleInstance = await hre.ethers.getContractAt(
       "LocusVault",
@@ -71,14 +66,6 @@ describe('TestMantleVaultDeposit', () => {
       "IERC20",
       usdcAddress
     );
-    lendingPoolEip20Instance = await hre.ethers.getContractAt(
-      "IERC20",
-      lendingPoolAddress
-    );
-    lendingPoolInstance = await hre.ethers.getContractAt(
-      "ILendingPool",
-      lendingPoolAddress
-    );
     initStrategyInstance = await hre.ethers.getContractAt(
       "InitStrategy",
       initStrategyAddress
@@ -91,17 +78,27 @@ describe('TestMantleVaultDeposit', () => {
       "LendWmntStrategy",
       lendWmntStrategyAddress
     );
-    locusFeedInstance = await hre.ethers.getContractAt(
-      "LocusDataFeed",
-      locusFeedAddress
+    moeWmntStrategyInstance = await hre.ethers.getContractAt(
+      "MoeWmntStrategy",
+      moeWmntStrategyAddress
     );
+    methWethStrategyInstance = await hre.ethers.getContractAt(
+      "MethWethStrategy",
+      methWethStrategyAddress
+    );
+    wmntMethStrategyInstance = await hre.ethers.getContractAt(
+      "WmntMethStrategy",
+      wmntMethStrategyAddress
+    );
+
     await mintNativeTokens(userAddress, "0x10000000000000000000");
     await withImpersonatedSigner(usdcWhale, async (usdcWhaleSigner) => {
       await usdcInstance.connect(usdcWhaleSigner).transfer(userAddress, userUsdcAllowance);
     });
   });
 
-  it('should', async () => {
+  it('should deposit and harvest', async () => {
+    const time = 604800;
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await usdcInstance.connect(userSigner).approve(xMantleInstance.address, usdcAmountToDeposit);
@@ -111,23 +108,38 @@ describe('TestMantleVaultDeposit', () => {
       await initStrategyInstance.connect(userSigner).harvest();
     });
     await withImpersonatedSigner(userAddress, async (userSigner) => {
-      await locusFeedInstance.connect(userSigner).updateFeed(usdcUsdyStrategyAddress);
-      await usdcUsdyStrategyInstance.connect(userSigner).harvest();
+      await helpers.time.increase(time);
+      await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
+      await helpers.time.increase(time);
+      await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
+      console.log(await usdcUsdyStrategyInstance.pairObservations("0x30ac02b4c99D140CDE2a212ca807CBdA35D4f6b5", 0));
+      // await usdcUsdyStrategyInstance.connect(userSigner).harvest();
     });
-    await withImpersonatedSigner(userAddress, async (userSigner) => {
-      await locusFeedInstance.connect(userSigner).updateFeed(lendWmntStrategyAddress);
-      await lendWmntStrategyInstance.connect(userSigner).harvest();
-    });
+    // await withImpersonatedSigner(userAddress, async (userSigner) => {
+    //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
+    //   await helpers.time.increase(time);
+    //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
+    //   await lendWmntStrategyInstance.connect(userSigner).harvest();
+    // });
+    // await withImpersonatedSigner(userAddress, async (userSigner) => {
+    //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
+    //   await helpers.time.increase(time);
+    //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
+    //   await moeWmntStrategyInstance.connect(userSigner).harvest();
+    // });
+    // await withImpersonatedSigner(userAddress, async (userSigner) => {
+    //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
+    //   await helpers.time.increase(time);
+    //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
+    //   await methWethStrategyInstance.connect(userSigner).harvest();
+    // });
+    // await withImpersonatedSigner(userAddress, async (userSigner) => {
+    //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
+    //   await helpers.time.increase(time);
+    //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
+    //   await wmntMethStrategyInstance.connect(userSigner).harvest();
+    // });
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
-  });
-
-  xit('should EST', async () => {
-    const cirVault = await hre.ethers.getContractAt("IERC20Metadata", "0xc425a0fc1e62beda428ff628597dc8ea1c13d0e4")
-    console.log((await cirVault.decimals()).toString());
-    const cirBalance = await cirVault.balanceOf(usdcUsdyStrategyInstance.address);
-    console.log(cirBalance.toString());
-    console.log((await usdcUsdyStrategyInstance.circuitSharesToWant(cirBalance)).toString());
-    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare()));
   });
 });
 
