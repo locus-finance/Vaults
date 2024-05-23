@@ -99,21 +99,22 @@ describe('TestMantleVaultDeposit', () => {
 
   it('should deposit and harvest', async () => {
     const time = 604800;
-    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
+    // console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await usdcInstance.connect(userSigner).approve(xMantleInstance.address, usdcAmountToDeposit);
       await xMantleInstance.connect(userSigner)["deposit(uint256)"](usdcAmountToDeposit);
     });
+    // await withImpersonatedSigner(userAddress, async (userSigner) => {
+    //   await initStrategyInstance.connect(userSigner).harvest();
+    // });
     await withImpersonatedSigner(userAddress, async (userSigner) => {
-      await initStrategyInstance.connect(userSigner).harvest();
-    });
-    await withImpersonatedSigner(userAddress, async (userSigner) => {
-      await helpers.time.increase(time);
+      // await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
+      // await helpers.time.increase(time);
       await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
-      await helpers.time.increase(time);
-      await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
-      console.log(await usdcUsdyStrategyInstance.pairObservations("0x30ac02b4c99D140CDE2a212ca807CBdA35D4f6b5", 0));
-      // await usdcUsdyStrategyInstance.connect(userSigner).harvest();
+      console.log(await usdcUsdyStrategyInstance.connect(userSigner).windowSize());
+      console.log(await usdcUsdyStrategyInstance.connect(userSigner).periodSize());
+      // console.log(await usdcUsdyStrategyInstance.pairObservations("0x30ac02b4c99D140CDE2a212ca807CBdA35D4f6b5", 0));
+      await usdcUsdyStrategyInstance.connect(userSigner).harvest();
     });
     // await withImpersonatedSigner(userAddress, async (userSigner) => {
     //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
@@ -139,7 +140,7 @@ describe('TestMantleVaultDeposit', () => {
     //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
     //   await wmntMethStrategyInstance.connect(userSigner).harvest();
     // });
-    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
+    // console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
   });
 });
 

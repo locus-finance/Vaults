@@ -207,6 +207,9 @@ module.exports = {
     runOnCompile: true,
     strict: false,
   },
+  tracer: {
+    gasCost: true
+  },
   abiExporter: {
     path: "./abi",
     runOnCompile: true,
