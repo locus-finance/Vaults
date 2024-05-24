@@ -108,13 +108,15 @@ describe('TestMantleVaultDeposit', () => {
     //   await initStrategyInstance.connect(userSigner).harvest();
     // });
     await withImpersonatedSigner(userAddress, async (userSigner) => {
-      // await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
-      // await helpers.time.increase(time);
       await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
-      console.log(await usdcUsdyStrategyInstance.connect(userSigner).windowSize());
-      console.log(await usdcUsdyStrategyInstance.connect(userSigner).periodSize());
-      // console.log(await usdcUsdyStrategyInstance.pairObservations("0x30ac02b4c99D140CDE2a212ca807CBdA35D4f6b5", 0));
-      await usdcUsdyStrategyInstance.connect(userSigner).harvest();
+      console.log(await usdcUsdyStrategyInstance.connect(userSigner).checkFirstObservationInWindow("0xc1f43E45F86E7bfb92C3c309b0eF366F9Ba33Bfa"));
+      await helpers.time.increase(time);
+      await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
+      console.log(await usdcUsdyStrategyInstance.connect(userSigner).checkFirstObservationInWindow("0xc1f43E45F86E7bfb92C3c309b0eF366F9Ba33Bfa"));
+      
+      // console.log((await usdcUsdyStrategyInstance.connect(userSigner).windowSize()).toString());
+      // console.log((await usdcUsdyStrategyInstance.connect(userSigner).periodSize()).toString());
+      // await usdcUsdyStrategyInstance.connect(userSigner).harvest();
     });
     // await withImpersonatedSigner(userAddress, async (userSigner) => {
     //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();

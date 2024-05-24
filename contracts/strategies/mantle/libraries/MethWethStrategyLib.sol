@@ -23,7 +23,7 @@ library MethWethStrategyLib {
     event BurnedMoeLp(uint256 indexed oldBalance, uint256 indexed newBalance);
     event WantTokensGathered(uint256 indexed amount);
 
-    uint256 private constant STANDARD_SLIPPAGE = 9000;
+    uint24 public constant STANDARD_AGNI_FEE_USDC_WETH = 100;
 
     ICircuitVault public constant CIRCUIT_VAULT =
         ICircuitVault(0x16FA0C5f3eA649259C02c075dbA1C31fc66ea4E0);
@@ -46,7 +46,8 @@ library MethWethStrategyLib {
         uint256 wethAmount = AgniSwapLib.agniQuote(
             wantAddress,
             address(WETH),
-            usdcForWethSwapAmount
+            usdcForWethSwapAmount,
+            STANDARD_AGNI_FEE_USDC_WETH
         );
 
         address[] memory path = new address[](2);
@@ -88,7 +89,7 @@ library MethWethStrategyLib {
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
         uint256 methAmount = (liquidity * reserve0) / lpTotalSupply;
         uint256 wethAmount = (liquidity * reserve1) / lpTotalSupply;
-        result = AgniSwapLib.agniQuote(address(WETH), wantAddress, wethAmount);
+        result = AgniSwapLib.agniQuote(address(WETH), wantAddress, wethAmount, STANDARD_AGNI_FEE_USDC_WETH);
         address[] memory path = new address[](2);
         path[0] = address(METH);
         path[1] = wantAddress;
@@ -100,6 +101,7 @@ library MethWethStrategyLib {
         address wantAddress,
         uint256 methTokensToAddToMoeLiquidity,
         uint256 wethTokensToAddToMoeLiquidity,
+        uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
         function(address, uint256, address) external view returns(uint256) consult
@@ -120,14 +122,15 @@ library MethWethStrategyLib {
             wantAddress,
             address(WETH),
             usdcForWethSwapAmount,
-            STANDARD_SLIPPAGE
+            slippageBps,
+            STANDARD_AGNI_FEE_USDC_WETH
         );
 
         uint256 methAmount = MoeMerchantLib.moeMerchantSwap(
             wantAddress,
             address(METH),
             usdcForMethSwapAmount,
-            STANDARD_SLIPPAGE,
+            slippageBps,
             consult
         );
 
@@ -140,7 +143,7 @@ library MethWethStrategyLib {
                 address(WETH),
                 wethAmount + wethTokensToAddToMoeLiquidity,
                 methAmount + methTokensToAddToMoeLiquidity,
-                STANDARD_SLIPPAGE,
+                slippageBps,
                 consult
             );
         if (wethLeft > 0) {
@@ -158,6 +161,7 @@ library MethWethStrategyLib {
     function burnShares(
         uint256 shares, 
         address wantAddress,
+        uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
         function(address, uint256, address) external view returns(uint256) consult
@@ -181,14 +185,15 @@ library MethWethStrategyLib {
             address(WETH),
             wantAddress,
             amountBWithdrawn,
-            STANDARD_SLIPPAGE
+            slippageBps,
+            STANDARD_AGNI_FEE_USDC_WETH
         );
 
         uint256 swappedFromMethUsdcAmount = MoeMerchantLib.moeMerchantSwap(
             address(METH),
             wantAddress,
             amountAWithdrawn,
-            STANDARD_SLIPPAGE,
+            slippageBps,
             consult
         );
         emit WantTokensGathered(

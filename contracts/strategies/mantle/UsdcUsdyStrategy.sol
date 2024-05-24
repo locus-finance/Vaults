@@ -21,12 +21,11 @@ contract UsdcUsdyStrategy is
 
     uint256 public wantTokensToAddToMoeLiquidity;
     uint256 public usdyTokensToAddToMoeLiquidity;
+    uint256 public slippageBps;
 
     function initialize(
         address _vault,
-        address _strategist,
-        uint256 oracleWindowSize,
-        uint8 oracleGranularity
+        address _strategist
     ) external {
         __Base_Strategy_Initialize(
             _vault,
@@ -34,10 +33,8 @@ contract UsdcUsdyStrategy is
             _strategist,
             _strategist
         );
-        _initializeMoeMerchantHelperWithOracle(
-            oracleWindowSize,
-            oracleGranularity
-        );
+        _updateOracle();
+        _setWindowSize(1 weeks);
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -56,24 +53,20 @@ contract UsdcUsdyStrategy is
         );
     }
 
-    function resetOracle(
-        uint256 oracleWindowSize,
-        uint8 oracleGranularity
-    ) external onlyAuthorized {
-        if (oracleWindowSize == 0) {
-            oracleWindowSize = 1 weeks;
-        }
-        if (oracleGranularity == 0) {
-            oracleGranularity = 3;
-        }
-        _initializeMoeMerchantHelperWithOracle(
-            oracleWindowSize,
-            oracleGranularity
-        );
+    function _updateOracle() internal {
+        _update(address(want), address(UsdcUsdyStrategyLib.USDY));
     }
 
     function updateOracle() external onlyAuthorized {
-        _update(address(want), address(UsdcUsdyStrategyLib.USDY));
+        _updateOracle();
+    }
+
+    function setOracleWindowSize(uint256 newWindowSize) external onlyAuthorized {
+        _setWindowSize(newWindowSize);
+    }
+
+    function setSlippage(uint256 newSlippage) external onlyAuthorized {
+        slippageBps = newSlippage;
     }
 
     function name() external pure override returns (string memory) {
@@ -122,6 +115,7 @@ contract UsdcUsdyStrategy is
         UsdcUsdyStrategyLib.burnShares(
             sharesToWithdraw,
             address(want),
+            slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
             this.consult
@@ -192,6 +186,7 @@ contract UsdcUsdyStrategy is
                 address(want),
                 wantTokensToAddToMoeLiquidity,
                 usdyTokensToAddToMoeLiquidity,
+                slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
                 this.consult
@@ -203,6 +198,7 @@ contract UsdcUsdyStrategy is
         UsdcUsdyStrategyLib.burnShares(
             balanceOfCircuitShares(),
             address(want),
+            slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
             this.consult
@@ -240,6 +236,7 @@ contract UsdcUsdyStrategy is
                 address(want),
                 wantTokensToAddToMoeLiquidity,
                 usdyTokensToAddToMoeLiquidity,
+                slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
                 this.consult

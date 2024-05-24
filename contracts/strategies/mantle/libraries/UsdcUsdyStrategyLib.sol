@@ -30,8 +30,6 @@ library UsdcUsdyStrategyLib {
     IERC20 public constant MOE_MERCHANT_USDC_USDY_POOL =
         IERC20(0xc1f43E45F86E7bfb92C3c309b0eF366F9Ba33Bfa);
 
-    uint256 public constant STANDARD_SLIPPAGE = 9000;
-
     function wantToCircuitShares(
         uint256 amount,
         address wantAddress
@@ -84,6 +82,7 @@ library UsdcUsdyStrategyLib {
         address wantAddress,
         uint256 wantTokensToAddToMoeLiquidity,
         uint256 usdyTokensToAddToMoeLiquidity,
+        uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
         function(address, uint256, address) external view returns(uint256) consult
@@ -100,7 +99,7 @@ library UsdcUsdyStrategyLib {
             wantAddress,
             address(USDY),
             amount,
-            STANDARD_SLIPPAGE,
+            slippageBps,
             consult
         );
         if (wantLeft > 0) {
@@ -118,6 +117,7 @@ library UsdcUsdyStrategyLib {
     function burnShares(
         uint256 shares,
         address wantAddress,
+        uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
         function(address, uint256, address) external view returns(uint256) consult
@@ -141,7 +141,7 @@ library UsdcUsdyStrategyLib {
             address(USDY),
             wantAddress,
             amountBWithdrawn,
-            STANDARD_SLIPPAGE,
+            slippageBps,
             consult
         );
         emit WantTokensGathered(

@@ -21,12 +21,11 @@ contract WmntMethStrategy is
 
     uint256 public wmntTokensToAddToMoeLiquidity;
     uint256 public methTokensToAddToMoeLiquidity;
+    uint256 public slippageBps;
 
     function initialize(
         address _vault,
-        address _strategist,
-        uint256 oracleWindowSize,
-        uint8 oracleGranularity
+        address _strategist
     ) external {
         __Base_Strategy_Initialize(
             _vault,
@@ -34,10 +33,8 @@ contract WmntMethStrategy is
             _strategist,
             _strategist
         );
-        _initializeMoeMerchantHelperWithOracle(
-            oracleWindowSize,
-            oracleGranularity
-        );
+        _updateOracle();
+        _setWindowSize(1 weeks);
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -75,27 +72,24 @@ contract WmntMethStrategy is
         );
     }
 
-    function resetOracle(
-        uint256 oracleWindowSize,
-        uint8 oracleGranularity
-    ) external onlyAuthorized {
-        if (oracleWindowSize == 0) {
-            oracleWindowSize = 1 weeks;
-        }
-        if (oracleGranularity == 0) {
-            oracleGranularity = 3;
-        }
-        _initializeMoeMerchantHelperWithOracle(
-            oracleWindowSize,
-            oracleGranularity
-        );
-    }
-
-    function updateOracle() external onlyAuthorized {
+    function _updateOracle() internal {
         _update(
             address(WmntMethStrategyLib.WMNT),
             address(WmntMethStrategyLib.METH)
         );
+
+    }
+
+    function updateOracle() external onlyAuthorized {
+        _updateOracle();
+    }
+
+    function setOracleWindowSize(uint256 newWindowSize) public onlyAuthorized {
+        _setWindowSize(newWindowSize);
+    }
+
+    function setSlippage(uint256 newSlippage) external onlyAuthorized {
+        slippageBps = newSlippage;
     }
 
     function name() external pure override returns (string memory) {
@@ -140,6 +134,7 @@ contract WmntMethStrategy is
         WmntMethStrategyLib.burnShares(
             sharesToWithdraw,
             address(want),
+            slippageBps,
             this.balanceOfWant,
             this.balanceOfCircuitShares
         );
@@ -209,6 +204,7 @@ contract WmntMethStrategy is
                 address(want),
                 methTokensToAddToMoeLiquidity,
                 wmntTokensToAddToMoeLiquidity,
+                slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
                 this.consult
@@ -220,6 +216,7 @@ contract WmntMethStrategy is
         WmntMethStrategyLib.burnShares(
             balanceOfCircuitShares(),
             address(want),
+            slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares
         );
@@ -256,6 +253,7 @@ contract WmntMethStrategy is
                 address(want),
                 methTokensToAddToMoeLiquidity,
                 wmntTokensToAddToMoeLiquidity,
+                slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
                 this.consult

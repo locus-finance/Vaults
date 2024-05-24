@@ -21,29 +21,41 @@ contract LendWmntStrategy is
 
     uint256 public lendTokensToAddToMoeLiquidity;
     uint256 public wmntTokensToAddToMoeLiquidity;
+    uint256 public slippageBps;
 
-    function initialize(
-        address _vault, 
-        address _strategist,
-        uint256 oracleWindowSize,
-        uint8 oracleGranularity
-    ) external {
+    function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(
             _vault,
             _strategist,
             _strategist,
             _strategist
         );
-        _initializeMoeMerchantHelperWithOracle(
-            oracleWindowSize,
-            oracleGranularity
+        _updateOracle();
+        _setWindowSize(1 weeks);
+        want.forceApprove(
+            address(MoeMerchantLib.MOE_ROUTER),
+            type(uint256).max
         );
-        want.forceApprove(address(MoeMerchantLib.MOE_ROUTER), type(uint256).max);
-        LendWmntStrategyLib.WMNT.forceApprove(address(MoeMerchantLib.MOE_ROUTER), type(uint256).max);
-        LendWmntStrategyLib.LEND.forceApprove(address(MoeMerchantLib.MOE_ROUTER), type(uint256).max);
-        want.forceApprove(address(AgniSwapLib.AGNI_SWAP_ROUTER), type(uint256).max);
-        LendWmntStrategyLib.WMNT.forceApprove(address(AgniSwapLib.AGNI_SWAP_ROUTER), type(uint256).max);
-        LendWmntStrategyLib.LEND.forceApprove(address(AgniSwapLib.AGNI_SWAP_ROUTER), type(uint256).max);
+        LendWmntStrategyLib.WMNT.forceApprove(
+            address(MoeMerchantLib.MOE_ROUTER),
+            type(uint256).max
+        );
+        LendWmntStrategyLib.LEND.forceApprove(
+            address(MoeMerchantLib.MOE_ROUTER),
+            type(uint256).max
+        );
+        want.forceApprove(
+            address(AgniSwapLib.AGNI_SWAP_ROUTER),
+            type(uint256).max
+        );
+        LendWmntStrategyLib.WMNT.forceApprove(
+            address(AgniSwapLib.AGNI_SWAP_ROUTER),
+            type(uint256).max
+        );
+        LendWmntStrategyLib.LEND.forceApprove(
+            address(AgniSwapLib.AGNI_SWAP_ROUTER),
+            type(uint256).max
+        );
         LendWmntStrategyLib.MOE_MERCHANT_LEND_WMNT_POOL.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -54,25 +66,24 @@ contract LendWmntStrategy is
         );
     }
 
-    function resetOracle(
-        uint256 oracleWindowSize,
-        uint8 oracleGranularity
-    ) external onlyAuthorized {
-        if (oracleWindowSize == 0) {
-            oracleWindowSize = 1 weeks;
-        }
-        if (oracleGranularity == 0) {
-            oracleGranularity = 3;
-        }
-        _initializeMoeMerchantHelperWithOracle(
-            oracleWindowSize,
-            oracleGranularity
+    function _updateOracle() internal {
+        _update(address(want), address(LendWmntStrategyLib.LEND));
+        _update(
+            address(LendWmntStrategyLib.LEND),
+            address(LendWmntStrategyLib.WMNT)
         );
     }
 
-    function updateOracle() external onlyAuthorized {
-        _update(address(want), address(LendWmntStrategyLib.LEND));
-        _update(address(LendWmntStrategyLib.LEND), address(LendWmntStrategyLib.WMNT));
+    function updateOracle() public onlyAuthorized {
+        _updateOracle();
+    }
+
+    function setOracleWindowSize(uint256 newWindowSize) external onlyAuthorized {
+        _setWindowSize(newWindowSize);
+    }
+
+    function setSlippage(uint256 newSlippage) external onlyAuthorized {
+        slippageBps = newSlippage;
     }
 
     function name() external pure override returns (string memory) {
@@ -96,7 +107,10 @@ contract LendWmntStrategy is
     }
 
     function balanceOfMoeLp() public view returns (uint256) {
-        return LendWmntStrategyLib.MOE_MERCHANT_LEND_WMNT_POOL.balanceOf(address(this));
+        return
+            LendWmntStrategyLib.MOE_MERCHANT_LEND_WMNT_POOL.balanceOf(
+                address(this)
+            );
     }
 
     function wantToCircuitShares(
@@ -122,6 +136,7 @@ contract LendWmntStrategy is
         LendWmntStrategyLib.burnShares(
             sharesToWithdraw,
             address(want),
+            slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
             this.consult
@@ -192,6 +207,7 @@ contract LendWmntStrategy is
                 address(want),
                 lendTokensToAddToMoeLiquidity,
                 wmntTokensToAddToMoeLiquidity,
+                slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
                 this.consult
@@ -203,6 +219,7 @@ contract LendWmntStrategy is
         LendWmntStrategyLib.burnShares(
             balanceOfCircuitShares(),
             address(want),
+            slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
             this.consult
@@ -240,6 +257,7 @@ contract LendWmntStrategy is
                 address(want),
                 lendTokensToAddToMoeLiquidity,
                 wmntTokensToAddToMoeLiquidity,
+                slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
                 this.consult

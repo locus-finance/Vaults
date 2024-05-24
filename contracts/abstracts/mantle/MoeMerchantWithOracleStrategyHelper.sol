@@ -8,128 +8,103 @@ import "../../strategies/mantle/libraries/MoeMerchantLib.sol";
 abstract contract MoeMerchantWithOracleStrategyHelper {
     using FixedPoint for *;
 
-    error MissingHistoricalObservation();
-    error UnexpectedTimeElapsed();
-    error TooLittleGranularity(uint256 granularity);
-    error WindowNotEvenlyDivisible();
-    error IdenticalAddresses();
-    error ZeroAddress();
+    error WindowHasNotElapsed(uint256 remainingTimeInSecs);
+    error NoObservationsFor(address tokenIn);
 
-    struct Observation {
-        uint256 timestamp;
-        uint256 price0Cumulative;
-        uint256 price1Cumulative;
+    event ObservationsUpdated(
+        address indexed pair,
+        uint256 indexed lastPrice0Cumulative,
+        uint256 indexed lastPrice1Cumulative,
+        uint32 lastBlockTimestamp,
+        FixedPoint.uq112x112 price0Average,
+        FixedPoint.uq112x112 price1Average
+    );
+
+    struct Observations {
+        uint256 lastPrice0Cumulative;
+        uint256 lastPrice1Cumulative;
+        uint32 lastBlockTimestamp;
+        FixedPoint.uq112x112 price0Average;
+        FixedPoint.uq112x112 price1Average;
     }
 
-    // the desired amount of time over which the moving average should be computed, e.g. 24 hours
+    mapping(address pair => Observations observations)
+        public getPairObservations;
+
     uint256 public windowSize;
-    // the number of observations stored for each pair, i.e. how many price observations are stored for the window.
-    // as granularity increases from 1, more frequent updates are needed, but moving averages become more precise.
-    // averages are computed over intervals with sizes in the range:
-    //   [windowSize - (windowSize / granularity) * 2, windowSize]
-    // e.g. if the window size is 24 hours, and the granularity is 24, the oracle will return the average price for
-    //   the period:
-    //   [now - [22 hours, 24 hours], now]
-    uint8 public granularity;
-    // this is redundant with granularity and windowSize, but stored for gas savings & informational purposes.
-    uint256 public periodSize;
 
-    // mapping from pair address to a list of price observations of that pair
-    mapping(address => Observation[]) public pairObservations;
-
-    function _initializeMoeMerchantHelperWithOracle(
-        uint256 windowSize_,
-        uint8 granularity_
-    ) internal {
-        if (granularity_ <= 1) {
-            revert TooLittleGranularity(granularity_);
-        }
-        if (
-            (periodSize = windowSize_ / granularity_) * granularity_ !=
-            windowSize_
-        ) {
-            revert WindowNotEvenlyDivisible();
-        }
-        windowSize = windowSize_;
-        granularity = granularity_;
+    function _setWindowSize(uint256 newWindowSize) internal {
+        windowSize = newWindowSize;
     }
 
-    // returns the index of the observation corresponding to the given timestamp
-    function observationIndexOf(
-        uint256 timestamp
-    ) public view returns (uint8 index) {
-        uint256 epochPeriod = timestamp / periodSize;
-        return uint8(epochPeriod % granularity);
-    }
-
-    // returns the observation from the oldest epoch (at the beginning of the window) relative to the current time
-    function getFirstObservationInWindow(
-        address pair
-    ) private view returns (Observation storage firstObservation) {
-        uint8 observationIndex = observationIndexOf(block.timestamp);
-        // no overflow issue. if observationIndex + 1 overflows, result is still zero.
-        uint8 firstObservationIndex = (observationIndex + 1) % granularity;
-        firstObservation = pairObservations[pair][firstObservationIndex];
-    }
-
-    // update the cumulative price for the observation at the current timestamp. each observation is updated at most
-    // once per epoch period.
     function _update(address tokenA, address tokenB) internal {
         address pair = MoeMerchantLib.MOE_FACTORY.getPair(tokenA, tokenB);
-
-        // populate the array with empty observations (first call only)
-        for (uint256 i = pairObservations[pair].length; i < granularity; i++) {
-            pairObservations[pair].push();
-        }
-
-        // get the observation for the current period
-        uint8 observationIndex = observationIndexOf(block.timestamp);
-        Observation storage observation = pairObservations[pair][
-            observationIndex
-        ];
-
-        // we only want to commit updates once per period (i.e. windowSize / granularity)
-        uint256 timeElapsed = block.timestamp - observation.timestamp;
-        if (timeElapsed > periodSize) {
+        Observations storage pairObservations = getPairObservations[pair];
+        if (pairObservations.lastBlockTimestamp == 0) {
+            IMoePair pairInstance = IMoePair(pair);
+            pairObservations.lastPrice0Cumulative = pairInstance
+                .price0CumulativeLast();
+            pairObservations.lastPrice1Cumulative = pairInstance
+                .price1CumulativeLast();
+            (, , pairObservations.lastBlockTimestamp) = pairInstance
+                .getReserves();
+        } else {
             (
-                uint256 price0Cumulative,
-                uint256 price1Cumulative,
-
+                uint price0Cumulative,
+                uint price1Cumulative,
+                uint32 blockTimestamp
             ) = _currentCumulativePrices(pair);
-            observation.timestamp = block.timestamp;
-            observation.price0Cumulative = price0Cumulative;
-            observation.price1Cumulative = price1Cumulative;
-        }
-    }
 
-    // given the cumulative prices of the start and end of a period, and the length of the period, compute the average
-    // price in terms of how much amount out is received for the amount in
-    function _computeAmountOut(
-        uint256 priceCumulativeStart,
-        uint256 priceCumulativeEnd,
-        uint256 timeElapsed,
-        uint256 amountIn
-    ) internal pure returns (uint256 amountOut) {
-        // overflow is desired.
-        FixedPoint.uq112x112 memory priceAverage = FixedPoint.uq112x112(
-            uint224((priceCumulativeEnd - priceCumulativeStart) / timeElapsed)
+            uint32 timeElapsed = blockTimestamp -
+                pairObservations.lastBlockTimestamp; // overflow is desired
+            // ensure that at least one full period has passed since the last update
+            if (timeElapsed < windowSize) {
+                revert WindowHasNotElapsed(windowSize - timeElapsed);
+            }
+
+            // overflow is desired, casting never truncates
+            // cumulative price is in (uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
+            pairObservations.price0Average = FixedPoint.uq112x112(
+                uint224(
+                    (price0Cumulative - pairObservations.lastPrice0Cumulative) /
+                        timeElapsed
+                )
+            );
+            pairObservations.price1Average = FixedPoint.uq112x112(
+                uint224(
+                    (price1Cumulative - pairObservations.lastPrice1Cumulative) /
+                        timeElapsed
+                )
+            );
+
+            pairObservations.lastPrice0Cumulative = price0Cumulative;
+            pairObservations.lastPrice1Cumulative = price1Cumulative;
+            pairObservations.lastBlockTimestamp = blockTimestamp;
+        }
+        emit ObservationsUpdated(
+            pair,
+            pairObservations.lastPrice0Cumulative,
+            pairObservations.lastPrice1Cumulative,
+            pairObservations.lastBlockTimestamp,
+            pairObservations.price0Average,
+            pairObservations.price1Average
         );
-        amountOut = priceAverage.mul(amountIn).decode144();
     }
 
-    // returns sorted token addresses, used to handle return values from pairs sorted in this order
-    function _sortTokens(
-        address tokenA,
-        address tokenB
-    ) internal pure returns (address token0, address token1) {
-        if (tokenA == tokenB) {
-            revert IdenticalAddresses();
-        }
-        (token0, token1) = tokenA < tokenB
-            ? (tokenA, tokenB)
-            : (tokenB, tokenA);
-        if (token0 == address(0)) {
-            revert ZeroAddress();
+    // note this will always return 0 before update has been called successfully for the first time.
+    function consult(
+        address tokenIn,
+        uint256 amountIn,
+        address tokenOut
+    ) external view returns (uint amountOut) {
+        IMoePair pair = IMoePair(MoeMerchantLib.MOE_FACTORY.getPair(tokenIn, tokenOut));
+        Observations storage pairObservations = getPairObservations[address(pair)];
+        if (tokenIn == pair.token0()) {
+            amountOut = pairObservations.price0Average.mul(amountIn).decode144();
+        } else if (tokenIn == pair.token1()) {
+            amountOut = pairObservations.price1Average.mul(amountIn).decode144();
+        } else {
+            revert NoObservationsFor(tokenIn);
         }
     }
 
@@ -171,54 +146,6 @@ abstract contract MoeMerchantWithOracleStrategyHelper {
             price1Cumulative +=
                 uint(FixedPoint.fraction(reserve0, reserve1)._x) *
                 timeElapsed;
-        }
-    }
-
-    // returns the amount out corresponding to the amount in for a given token using the moving average over the time
-    // range [now - [windowSize, windowSize - periodSize * 2], now]
-    // update must have been called for the bucket corresponding to timestamp `now - windowSize`
-    function consult(
-        address tokenIn,
-        uint256 amountIn,
-        address tokenOut
-    ) public view returns (uint256 amountOut) {
-        address pair = MoeMerchantLib.MOE_FACTORY.getPair(tokenIn, tokenOut);
-        Observation storage firstObservation = getFirstObservationInWindow(
-            pair
-        );
-
-        uint256 timeElapsed = block.timestamp - firstObservation.timestamp;
-        if (timeElapsed > windowSize) {
-            revert MissingHistoricalObservation();
-        }
-        // should never happen.
-        if (timeElapsed < windowSize - periodSize * 2) {
-            revert UnexpectedTimeElapsed();
-        }
-
-        (
-            uint256 price0Cumulative,
-            uint256 price1Cumulative,
-
-        ) = _currentCumulativePrices(pair);
-        (address token0, ) = _sortTokens(tokenIn, tokenOut);
-
-        if (token0 == tokenIn) {
-            return
-                _computeAmountOut(
-                    firstObservation.price0Cumulative,
-                    price0Cumulative,
-                    timeElapsed,
-                    amountIn
-                );
-        } else {
-            return
-                _computeAmountOut(
-                    firstObservation.price1Cumulative,
-                    price1Cumulative,
-                    timeElapsed,
-                    amountIn
-                );
         }
     }
 

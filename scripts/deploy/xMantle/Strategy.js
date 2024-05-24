@@ -17,41 +17,31 @@ const DEPLOY_SETTINGS = {
         ratio: "1666",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
-        libraryNames: ["UsdcUsdyStrategyLib"],
-        oracleWindowSize: 604800,
-        oracleGranularity: 3
+        libraryNames: ["UsdcUsdyStrategyLib"]
     },
     LendWmntStrategy: {
         ratio: "1666",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
-        libraryNames: ["LendWmntStrategyLib"],
-        oracleWindowSize: 604800,
-        oracleGranularity: 3
+        libraryNames: ["LendWmntStrategyLib"]
     },
     MoeWmntStrategy: {
         ratio: "1666",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
-        libraryNames: ["MoeWmntStrategyLib"],
-        oracleWindowSize: 604800,
-        oracleGranularity: 3
+        libraryNames: ["MoeWmntStrategyLib"]
     },
     MethWethStrategy: {
         ratio: "1666",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
-        libraryNames: ["MethWethStrategyLib"],
-        oracleWindowSize: 604800,
-        oracleGranularity: 3
+        libraryNames: ["MethWethStrategyLib"]
     },
     WmntMethStrategy: {
         ratio: "1666",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
-        libraryNames: ["WmntMethStrategyLib"],
-        oracleWindowSize: 604800,
-        oracleGranularity: 3
+        libraryNames: ["WmntMethStrategyLib"]
     }
 };
 const OWNABLE_ABI = ["function owner() view returns (address)"];
@@ -96,15 +86,9 @@ async function main() {
         TARGET_STRATEGY,
         factoryParams
     );
-    let strategyInitializerParams;
-    if (oracleWindowSize !== undefined && oracleGranularity !== undefined) {
-        strategyInitializerParams = [vault.address, strategist, oracleWindowSize, oracleGranularity]
-    } else {
-        strategyInitializerParams = [vault.address, strategist];
-    }
     const strategy = await upgrades.deployProxy(
         Strategy,
-        strategyInitializerParams,
+        [vault.address, strategist],
         {
             initializer: "initialize",
             kind: "transparent",

@@ -23,7 +23,7 @@ library MoeWmntStrategyLib {
     event BurnedMoeLp(uint256 indexed oldBalance, uint256 indexed newBalance);
     event WantTokensGathered(uint256 indexed amount);
 
-    uint256 private constant STANDARD_SLIPPAGE = 9000;
+    uint24 public constant STANDARD_AGNI_FEE_USDC_WMNT = 100;
 
     ICircuitVault public constant CIRCUIT_VAULT =
         ICircuitVault(0xa3647389cf2bF9279ab239d3710bB8a2eFE0BC8B);
@@ -49,7 +49,8 @@ library MoeWmntStrategyLib {
         uint256 wmntAmount = AgniSwapLib.agniQuote(
             wantAddress,
             address(WMNT),
-            usdcForWmntSwapAmount
+            usdcForWmntSwapAmount,
+            STANDARD_AGNI_FEE_USDC_WMNT
         );
 
         address[] memory path = new address[](2);
@@ -99,7 +100,7 @@ library MoeWmntStrategyLib {
         uint256 moeAmount = (liquidity * reserve0) / lpTotalSupply;
         uint256 wmntAmount = (liquidity * reserve1) / lpTotalSupply;
 
-        result = AgniSwapLib.agniQuote(address(WMNT), wantAddress, wmntAmount);
+        result = AgniSwapLib.agniQuote(address(WMNT), wantAddress, wmntAmount, STANDARD_AGNI_FEE_USDC_WMNT);
 
         address[] memory path = new address[](2);
 
@@ -117,6 +118,7 @@ library MoeWmntStrategyLib {
         address wantAddress,
         uint256 moeTokensToAddToMoeLiquidity,
         uint256 wmntTokensToAddToMoeLiquidity,
+        uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
         function(address, uint256, address) external view returns(uint256) consult
@@ -137,14 +139,15 @@ library MoeWmntStrategyLib {
             wantAddress,
             address(WMNT),
             usdcForWmntSwapAmount,
-            STANDARD_SLIPPAGE
+            slippageBps,
+            STANDARD_AGNI_FEE_USDC_WMNT
         );
 
         uint256 usdtAmount = MoeMerchantLib.moeMerchantSwap(
             wantAddress,
             address(USDT),
             usdcForUsdtSwapAmount,
-            STANDARD_SLIPPAGE,
+            slippageBps,
             consult
         );
 
@@ -152,7 +155,7 @@ library MoeWmntStrategyLib {
             address(USDT),
             address(MOE),
             usdtAmount,
-            STANDARD_SLIPPAGE,
+            slippageBps,
             consult
         );
 
@@ -165,7 +168,7 @@ library MoeWmntStrategyLib {
                 address(WMNT),
                 moeAmount + moeTokensToAddToMoeLiquidity,
                 wmntAmount + wmntTokensToAddToMoeLiquidity,
-                STANDARD_SLIPPAGE,
+                slippageBps,
                 consult
             );
         if (moeLeft > 0) {
@@ -183,6 +186,7 @@ library MoeWmntStrategyLib {
     function burnShares(
         uint256 shares, 
         address wantAddress,
+        uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
         function(address, uint256, address) external view returns(uint256) consult
@@ -206,14 +210,15 @@ library MoeWmntStrategyLib {
             address(WMNT),
             wantAddress,
             amountBWithdrawn,
-            STANDARD_SLIPPAGE
+            slippageBps,
+            STANDARD_AGNI_FEE_USDC_WMNT
         );
 
         uint256 swappedFromMoeUsdtAmount = MoeMerchantLib.moeMerchantSwap(
             address(MOE),
             address(USDT),
             amountAWithdrawn,
-            STANDARD_SLIPPAGE,
+            slippageBps,
             consult
         );
 
@@ -221,7 +226,7 @@ library MoeWmntStrategyLib {
             address(USDT),
             wantAddress,
             swappedFromMoeUsdtAmount,
-            STANDARD_SLIPPAGE,
+            slippageBps,
             consult
         );
         emit WantTokensGathered(

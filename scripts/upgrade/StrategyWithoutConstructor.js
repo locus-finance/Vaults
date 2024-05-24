@@ -1,6 +1,3 @@
-// const hre = require("hardhat");
-const { ethers, upgrades } = require("hardhat");
-
 const { getEnv } = require("../utils");
 
 const TARGET_STRATEGY = getEnv("TARGET_STRATEGY");

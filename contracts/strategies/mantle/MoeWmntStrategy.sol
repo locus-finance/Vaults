@@ -21,12 +21,11 @@ contract MoeWmntStrategy is
 
     uint256 public moeTokensToAddToMoeLiquidity;
     uint256 public wmntTokensToAddToMoeLiquidity;
+    uint256 public slippageBps;
 
     function initialize(
         address _vault,
-        address _strategist,
-        uint256 oracleWindowSize,
-        uint8 oracleGranularity
+        address _strategist
     ) external {
         __Base_Strategy_Initialize(
             _vault,
@@ -34,10 +33,8 @@ contract MoeWmntStrategy is
             _strategist,
             _strategist
         );
-        _initializeMoeMerchantHelperWithOracle(
-            oracleWindowSize,
-            oracleGranularity
-        );
+        _updateOracle();
+        _setWindowSize(1 weeks);
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -68,23 +65,7 @@ contract MoeWmntStrategy is
         );
     }
 
-    function resetOracle(
-        uint256 oracleWindowSize,
-        uint8 oracleGranularity
-    ) external onlyAuthorized {
-        if (oracleWindowSize == 0) {
-            oracleWindowSize = 1 weeks;
-        }
-        if (oracleGranularity == 0) {
-            oracleGranularity = 3;
-        }
-        _initializeMoeMerchantHelperWithOracle(
-            oracleWindowSize,
-            oracleGranularity
-        );
-    }
-
-    function updateOracle() external onlyAuthorized {
+    function _updateOracle() internal {
         _update(address(want), address(MoeWmntStrategyLib.USDT));
         _update(
             address(MoeWmntStrategyLib.USDT),
@@ -94,6 +75,18 @@ contract MoeWmntStrategy is
             address(MoeWmntStrategyLib.MOE),
             address(MoeWmntStrategyLib.WMNT)
         );
+    }
+
+    function updateOracle() external onlyAuthorized {
+        _updateOracle();
+    }
+
+    function setOracleWindowSize(uint256 newWindowSize) external onlyAuthorized {
+        _setWindowSize(newWindowSize);
+    }
+
+    function setSlippage(uint256 newSlippage) external onlyAuthorized {
+        slippageBps = newSlippage;
     }
 
     function name() external pure override returns (string memory) {
@@ -150,6 +143,7 @@ contract MoeWmntStrategy is
         MoeWmntStrategyLib.burnShares(
             sharesToWithdraw,
             address(want),
+            slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
             this.consult
@@ -220,6 +214,7 @@ contract MoeWmntStrategy is
                 address(want),
                 moeTokensToAddToMoeLiquidity,
                 wmntTokensToAddToMoeLiquidity,
+                slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
                 this.consult
@@ -231,6 +226,7 @@ contract MoeWmntStrategy is
         MoeWmntStrategyLib.burnShares(
             balanceOfCircuitShares(),
             address(want),
+            slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
             this.consult
@@ -268,6 +264,7 @@ contract MoeWmntStrategy is
                 address(want),
                 moeTokensToAddToMoeLiquidity,
                 wmntTokensToAddToMoeLiquidity,
+                slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
                 this.consult

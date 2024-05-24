@@ -21,12 +21,11 @@ contract MethWethStrategy is
 
     uint256 public methTokensToAddToMoeLiquidity;
     uint256 public wethTokensToAddToMoeLiquidity;
+    uint256 public slippageBps;
 
     function initialize(
         address _vault,
-        address _strategist,
-        uint256 oracleWindowSize,
-        uint8 oracleGranularity
+        address _strategist
     ) external {
         __Base_Strategy_Initialize(
             _vault,
@@ -34,11 +33,8 @@ contract MethWethStrategy is
             _strategist,
             _strategist
         );
-        _initializeMoeMerchantHelperWithOracle(
-            oracleWindowSize,
-            oracleGranularity
-        );
-
+        _updateOracle();
+        _setWindowSize(1 weeks);
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -71,25 +67,21 @@ contract MethWethStrategy is
         );
     }
 
-    function resetOracle(
-        uint256 oracleWindowSize,
-        uint8 oracleGranularity
-    ) external onlyAuthorized {
-        if (oracleWindowSize == 0) {
-            oracleWindowSize = 1 weeks;
-        }
-        if (oracleGranularity == 0) {
-            oracleGranularity = 3;
-        }
-        _initializeMoeMerchantHelperWithOracle(
-            oracleWindowSize,
-            oracleGranularity
-        );
+    function _updateOracle() internal {
+        _update(address(want), address(MethWethStrategyLib.METH));
+        _update(address(MethWethStrategyLib.METH), address(MethWethStrategyLib.WETH));
     }
 
     function updateOracle() external onlyAuthorized {
-        _update(address(want), address(MethWethStrategyLib.METH));
-        _update(address(MethWethStrategyLib.METH), address(MethWethStrategyLib.WETH));
+        _updateOracle();
+    }
+
+    function setOracleWindowSize(uint256 newWindowSize) external onlyAuthorized {
+        _setWindowSize(newWindowSize);
+    }
+
+    function setSlippage(uint256 newSlippage) external onlyAuthorized {
+        slippageBps = newSlippage;
     }
 
     function wantToCircuitShares(
@@ -142,6 +134,7 @@ contract MethWethStrategy is
         MethWethStrategyLib.burnShares(
             sharesToWithdraw,
             address(want),
+            slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
             this.consult
@@ -212,6 +205,7 @@ contract MethWethStrategy is
                 address(want),
                 methTokensToAddToMoeLiquidity,
                 wethTokensToAddToMoeLiquidity,
+                slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
                 this.consult
@@ -223,6 +217,7 @@ contract MethWethStrategy is
         MethWethStrategyLib.burnShares(
             balanceOfCircuitShares(),
             address(want),
+            slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
             this.consult
@@ -260,6 +255,7 @@ contract MethWethStrategy is
                 address(want),
                 methTokensToAddToMoeLiquidity,
                 wethTokensToAddToMoeLiquidity,
+                slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
                 this.consult
