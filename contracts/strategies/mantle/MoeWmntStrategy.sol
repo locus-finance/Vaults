@@ -35,6 +35,7 @@ contract MoeWmntStrategy is
         );
         _updateOracle();
         _setWindowSize(1 weeks);
+        slippageBps = 9000;
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
