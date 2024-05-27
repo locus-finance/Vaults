@@ -40,15 +40,8 @@ library MoeMerchantLib {
         uint256 slippageBps,
         function(address, uint256, address) external view returns(uint256) consult
     ) internal returns (uint256 lpMinted, uint256 tokensALeft, uint256 tokensBLeft) {
-        uint256 amountB = consult(tokenA, amountA, tokenB);
-        uint256 amountAToAdd = (amountA * amountA) / amountB;
-        uint256 amountAToSwapToB;
-        if (amountAToAdd > amountA) {
-            amountAToSwapToB = (amountA * amountB) / amountA;
-            amountAToAdd = amountA - amountAToSwapToB;
-        } else {
-            amountAToSwapToB = amountA - amountAToAdd;
-        }
+        uint256 amountAToAdd = amountA / 2;
+        uint256 amountAToSwapToB = amountA - amountAToAdd;
         uint256 amountBToAdd = moeMerchantSwap(
             tokenA,
             tokenB,
@@ -67,11 +60,11 @@ library MoeMerchantLib {
             block.timestamp
         );
         lpMinted = _lpMinted;
-        if (amountA > amountASent) {
-            tokensALeft = amountA - amountASent; 
+        if (amountAToAdd > amountASent) {
+            tokensALeft = amountAToAdd - amountASent; 
         }
-        if (amountB > amountBSent) {
-            tokensBLeft = amountB - amountBSent; 
+        if (amountBToAdd > amountBSent) {
+            tokensBLeft = amountBToAdd - amountBSent; 
         }
     }
 

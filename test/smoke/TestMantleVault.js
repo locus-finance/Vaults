@@ -30,11 +30,11 @@ describe('TestMantleVaultDeposit', () => {
   const userAddress = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe";
   
   const initStrategyAddress = "0xB134814B4E95DbD76fbc12E1976C8f54CD7b8020";
-  const usdcUsdyStrategyAddress = "0x85342801C489F7807b2a11856E67Bbc38Fa7279e";
-  const lendWmntStrategyAddress = "0x5B7F289994962B59043C57d719220f08127e8A8e";
-  const moeWmntStrategyAddress = "0xADbDecc99FA05FD6DD7e882a48274E0A85Af0656";
-  const methWethStrategyAddress = "0x4759217BbCBAAB2c605647B611D15dEC42133275";
-  const wmntMethStrategyAddress = "0x06219C06A874172577c772f222FD9BFA43553Ba8";
+  const usdcUsdyStrategyAddress = "0xB6582a1Ab673C514d0311332E39F7f305a78aC4a";
+  const lendWmntStrategyAddress = "0x6667a54f0F3E9f6D97499b2404d6282b4a321f43";
+  const moeWmntStrategyAddress = "0x0Fe16A7Bc673B92014D6f1e4D88355499D40671D";
+  const methWethStrategyAddress = "0xFCE625E69Bd4952417Fe628bC63D9AA0e4012684";
+  const wmntMethStrategyAddress = "0x977b3A2E8022dd9B8aF97C72B71409171B5394A8";
 
   const usdcWhale = "0x588846213A30fd36244e0ae0eBB2374516dA836C";
   const userUsdcAllowance = hre.ethers.utils.parseUnits("50000", 6);
@@ -98,51 +98,37 @@ describe('TestMantleVaultDeposit', () => {
   });
 
   it('should deposit and harvest', async () => {
-    const time = 604800;
-    // console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
+    const time = 604800 + 3600;
+    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
+    await helpers.time.increase(time);
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await usdcInstance.connect(userSigner).approve(xMantleInstance.address, usdcAmountToDeposit);
       await xMantleInstance.connect(userSigner)["deposit(uint256)"](usdcAmountToDeposit);
     });
-    // await withImpersonatedSigner(userAddress, async (userSigner) => {
-    //   await initStrategyInstance.connect(userSigner).harvest();
-    // });
+    await withImpersonatedSigner(userAddress, async (userSigner) => {
+      await initStrategyInstance.connect(userSigner).harvest();
+    });
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
-      console.log(await usdcUsdyStrategyInstance.connect(userSigner).checkFirstObservationInWindow("0xc1f43E45F86E7bfb92C3c309b0eF366F9Ba33Bfa"));
-      await helpers.time.increase(time);
-      await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
-      console.log(await usdcUsdyStrategyInstance.connect(userSigner).checkFirstObservationInWindow("0xc1f43E45F86E7bfb92C3c309b0eF366F9Ba33Bfa"));
-      
-      // console.log((await usdcUsdyStrategyInstance.connect(userSigner).windowSize()).toString());
-      // console.log((await usdcUsdyStrategyInstance.connect(userSigner).periodSize()).toString());
-      // await usdcUsdyStrategyInstance.connect(userSigner).harvest();
+      await usdcUsdyStrategyInstance.connect(userSigner).harvest();
+    });
+    await withImpersonatedSigner(userAddress, async (userSigner) => {
+      await lendWmntStrategyInstance.connect(userSigner).updateOracle();
+      await lendWmntStrategyInstance.connect(userSigner).harvest();
     });
     // await withImpersonatedSigner(userAddress, async (userSigner) => {
-    //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
-    //   await helpers.time.increase(time);
-    //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
-    //   await lendWmntStrategyInstance.connect(userSigner).harvest();
-    // });
-    // await withImpersonatedSigner(userAddress, async (userSigner) => {
-    //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
-    //   await helpers.time.increase(time);
-    //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
+    //   await moeWmntStrategyInstance.connect(userSigner).updateOracle();
     //   await moeWmntStrategyInstance.connect(userSigner).harvest();
     // });
     // await withImpersonatedSigner(userAddress, async (userSigner) => {
-    //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
-    //   await helpers.time.increase(time);
-    //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
+    //   await methWethStrategyInstance.connect(userSigner).updateOracle();
     //   await methWethStrategyInstance.connect(userSigner).harvest();
     // });
     // await withImpersonatedSigner(userAddress, async (userSigner) => {
-    //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
-    //   await helpers.time.increase(time);
-    //   await usdcUsdyStrategyInstance.connect(userSigner).updateOracle();
+    //   await wmntMethStrategyInstance.connect(userSigner).updateOracle();
     //   await wmntMethStrategyInstance.connect(userSigner).harvest();
     // });
-    // console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
+    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
   });
 });
 
