@@ -5,7 +5,6 @@ pragma solidity ^0.8.18;
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-import "./AgniSwapLib.sol";
 import "./MoeMerchantLib.sol";
 import "../../../integrations/circuit/ICircuitVault.sol";
 import "../../../integrations/merchantMoe/IMoePair.sol";
