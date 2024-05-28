@@ -37,6 +37,16 @@ contract LendWmntStrategy is
         _setWindowSize(1 weeks);
         slippageBps = 9000;
         agniTwapRangeSecs = 1 days;
+        _initializeAgniSwapStrategyHelper(
+            address(want),
+            address(LendWmntStrategyLib.USDT),
+            address(LendWmntStrategyLib.WETH),
+            address(LendWmntStrategyLib.WMNT),
+            LendWmntStrategyLib.STANDARD_AGNI_FEE_USDC_USDT,
+            LendWmntStrategyLib.STANDARD_AGNI_FEE_USDT_WETH,
+            LendWmntStrategyLib.STANDARD_AGNI_FEE_WETH_WMNT
+        );
+        
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -49,6 +59,7 @@ contract LendWmntStrategy is
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
         );
+
         want.forceApprove(
             address(AgniSwapLib.AGNI_SWAP_ROUTER),
             type(uint256).max
@@ -61,6 +72,19 @@ contract LendWmntStrategy is
             address(AgniSwapLib.AGNI_SWAP_ROUTER),
             type(uint256).max
         );
+        LendWmntStrategyLib.USDT.forceApprove(
+            address(AgniSwapLib.AGNI_SWAP_ROUTER),
+            type(uint256).max
+        );
+        LendWmntStrategyLib.WETH.forceApprove(
+            address(AgniSwapLib.AGNI_SWAP_ROUTER),
+            type(uint256).max
+        );
+        LendWmntStrategyLib.WMNT.forceApprove(
+            address(AgniSwapLib.AGNI_SWAP_ROUTER),
+            type(uint256).max
+        );
+
         LendWmntStrategyLib.MOE_MERCHANT_LEND_WMNT_POOL.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max

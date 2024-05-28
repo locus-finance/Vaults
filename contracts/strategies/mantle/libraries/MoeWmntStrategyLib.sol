@@ -36,6 +36,8 @@ library MoeWmntStrategyLib {
         IERC20(0x4515A45337F461A11Ff0FE8aBF3c606AE5dC00c9);
     IERC20 public constant WMNT =
         IERC20(0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8);
+    IERC20 public constant WETH =
+        IERC20(0xdEAddEaDdeadDEadDEADDEAddEADDEAddead1111);
 
     IERC20 public constant MOE_MERCHANT_MOE_WMNT_POOL =
         IERC20(0x763868612858358f62b05691dB82Ad35a9b3E110);

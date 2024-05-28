@@ -40,6 +40,15 @@ contract WmntMethStrategy is
         _setWindowSize(1 weeks);
         slippageBps = 9000;
         agniTwapRangeSecs = 1 days;
+        _initializeAgniSwapStrategyHelper(
+            address(want),
+            address(WmntMethStrategyLib.USDT),
+            address(WmntMethStrategyLib.WETH),
+            address(WmntMethStrategyLib.WMNT),
+            WmntMethStrategyLib.STANDARD_AGNI_FEE_USDC_USDT,
+            WmntMethStrategyLib.STANDARD_AGNI_FEE_USDT_WETH,
+            WmntMethStrategyLib.STANDARD_AGNI_FEE_WETH_WMNT
+        );
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -73,6 +82,15 @@ contract WmntMethStrategy is
         );
         WmntMethStrategyLib.MOE_MERCHANT_WMNT_METH_POOL.forceApprove(
             address(WmntMethStrategyLib.CIRCUIT_VAULT),
+            type(uint256).max
+        );
+
+        WmntMethStrategyLib.USDT.forceApprove(
+            address(AgniSwapLib.AGNI_SWAP_ROUTER),
+            type(uint256).max
+        );
+        WmntMethStrategyLib.WETH.forceApprove(
+            address(AgniSwapLib.AGNI_SWAP_ROUTER),
             type(uint256).max
         );
     }

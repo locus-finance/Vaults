@@ -30,12 +30,17 @@ library WmntMethStrategyLib {
 
     ICircuitVault public constant CIRCUIT_VAULT =
         ICircuitVault(0xc37c7dEBa5E7F5dE572C914D5c159EA08DE1fefF);
-    IERC20 public constant WMNT =
-        IERC20(0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8);
     IERC20 public constant METH =
         IERC20(0xcDA86A272531e8640cD7F1a92c01839911B90bb0);
     IERC20 public constant MOE_MERCHANT_WMNT_METH_POOL =
         IERC20(0xa375ea3e1f92d62e3A71B668bAb09f7155267fa3);
+
+    IERC20 public constant WMNT =
+        IERC20(0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8);
+    IERC20 public constant USDT =
+        IERC20(0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE);
+    IERC20 public constant WETH =
+        IERC20(0xdEAddEaDdeadDEadDEADDEAddEADDEAddead1111);
 
     function wantToCircuitShares(
         address wantAddress,
