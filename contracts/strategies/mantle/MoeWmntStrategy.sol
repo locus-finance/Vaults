@@ -26,10 +26,7 @@ contract MoeWmntStrategy is
     uint256 public slippageBps;
     uint32 public agniTwapRangeSecs;
 
-    function initialize(
-        address _vault,
-        address _strategist
-    ) external {
+    function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(
             _vault,
             _strategist,
@@ -105,7 +102,9 @@ contract MoeWmntStrategy is
         _updateOracle();
     }
 
-    function setOracleWindowSize(uint256 newWindowSize) external onlyAuthorized {
+    function setOracleWindowSize(
+        uint256 newWindowSize
+    ) external onlyAuthorized {
         _setWindowSize(newWindowSize);
     }
 
@@ -113,7 +112,9 @@ contract MoeWmntStrategy is
         slippageBps = newSlippage;
     }
 
-    function setAgniTwapRangeSecs(uint32 newAgniTwapRangeSecs) external onlyAuthorized {
+    function setAgniTwapRangeSecs(
+        uint32 newAgniTwapRangeSecs
+    ) external onlyAuthorized {
         agniTwapRangeSecs = newAgniTwapRangeSecs;
     }
 
@@ -151,13 +152,25 @@ contract MoeWmntStrategy is
     function wantToCircuitShares(
         uint256 amount
     ) public view returns (uint256 result) {
-        return MoeWmntStrategyLib.wantToCircuitShares(amount, address(want), agniTwapRangeSecs, this.usdcToWmntQuote);
+        return
+            MoeWmntStrategyLib.wantToCircuitShares(
+                amount,
+                address(want),
+                agniTwapRangeSecs,
+                this.usdcToWmntQuote
+            );
     }
 
     function circuitSharesToWant(
         uint256 amount
     ) public view returns (uint256 result) {
-        return MoeWmntStrategyLib.circuitSharesToWant(amount, address(want), agniTwapRangeSecs, this.wmntToUsdcQuote);
+        return
+            MoeWmntStrategyLib.circuitSharesToWant(
+                amount,
+                address(want),
+                agniTwapRangeSecs,
+                this.wmntToUsdcQuote
+            );
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {

@@ -46,7 +46,7 @@ contract LendWmntStrategy is
             LendWmntStrategyLib.STANDARD_AGNI_FEE_USDT_WETH,
             LendWmntStrategyLib.STANDARD_AGNI_FEE_WETH_WMNT
         );
-        
+
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -107,7 +107,9 @@ contract LendWmntStrategy is
         _updateOracle();
     }
 
-    function setOracleWindowSize(uint256 newWindowSize) external onlyAuthorized {
+    function setOracleWindowSize(
+        uint256 newWindowSize
+    ) external onlyAuthorized {
         _setWindowSize(newWindowSize);
     }
 
@@ -115,7 +117,9 @@ contract LendWmntStrategy is
         slippageBps = newSlippage;
     }
 
-    function setAgniTwapRangeSecs(uint32 newAgniTwapRangeSecs) external onlyAuthorized {
+    function setAgniTwapRangeSecs(
+        uint32 newAgniTwapRangeSecs
+    ) external onlyAuthorized {
         agniTwapRangeSecs = newAgniTwapRangeSecs;
     }
 
@@ -149,13 +153,25 @@ contract LendWmntStrategy is
     function wantToCircuitShares(
         uint256 amount
     ) public view returns (uint256 result) {
-        return LendWmntStrategyLib.wantToCircuitShares(amount, address(want), agniTwapRangeSecs, this.usdcToWmntQuote);
+        return
+            LendWmntStrategyLib.wantToCircuitShares(
+                amount,
+                address(want),
+                agniTwapRangeSecs,
+                this.usdcToWmntQuote
+            );
     }
 
     function circuitSharesToWant(
         uint256 amount
     ) public view returns (uint256 result) {
-        return LendWmntStrategyLib.circuitSharesToWant(amount, address(want), agniTwapRangeSecs, this.wmntToUsdcQuote);
+        return
+            LendWmntStrategyLib.circuitSharesToWant(
+                amount,
+                address(want),
+                agniTwapRangeSecs,
+                this.wmntToUsdcQuote
+            );
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {

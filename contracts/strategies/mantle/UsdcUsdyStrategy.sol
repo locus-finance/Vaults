@@ -23,10 +23,7 @@ contract UsdcUsdyStrategy is
     uint256 public usdyTokensToAddToMoeLiquidity;
     uint256 public slippageBps;
 
-    function initialize(
-        address _vault,
-        address _strategist
-    ) external {
+    function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(
             _vault,
             _strategist,
@@ -62,7 +59,9 @@ contract UsdcUsdyStrategy is
         _updateOracle();
     }
 
-    function setOracleWindowSize(uint256 newWindowSize) external onlyAuthorized {
+    function setOracleWindowSize(
+        uint256 newWindowSize
+    ) external onlyAuthorized {
         _setWindowSize(newWindowSize);
     }
 

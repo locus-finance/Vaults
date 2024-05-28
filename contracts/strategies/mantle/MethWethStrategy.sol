@@ -24,10 +24,7 @@ contract MethWethStrategy is
     uint256 public slippageBps;
     uint32 public agniTwapRangeSecs;
 
-    function initialize(
-        address _vault,
-        address _strategist
-    ) external {
+    function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(
             _vault,
             _strategist,
@@ -72,14 +69,19 @@ contract MethWethStrategy is
 
     function _updateOracle() internal {
         _update(address(want), address(MethWethStrategyLib.METH));
-        _update(address(MethWethStrategyLib.METH), address(MethWethStrategyLib.WETH));
+        _update(
+            address(MethWethStrategyLib.METH),
+            address(MethWethStrategyLib.WETH)
+        );
     }
 
     function updateOracle() external onlyAuthorized {
         _updateOracle();
     }
 
-    function setOracleWindowSize(uint256 newWindowSize) external onlyAuthorized {
+    function setOracleWindowSize(
+        uint256 newWindowSize
+    ) external onlyAuthorized {
         _setWindowSize(newWindowSize);
     }
 
@@ -87,20 +89,32 @@ contract MethWethStrategy is
         slippageBps = newSlippage;
     }
 
-    function setAgniTwapRangeSecs(uint32 newAgniTwapRangeSecs) external onlyAuthorized {
+    function setAgniTwapRangeSecs(
+        uint32 newAgniTwapRangeSecs
+    ) external onlyAuthorized {
         agniTwapRangeSecs = newAgniTwapRangeSecs;
     }
 
     function wantToCircuitShares(
         uint256 amount
     ) public view returns (uint256 result) {
-        return MethWethStrategyLib.wantToCircuitShares(amount, address(want), agniTwapRangeSecs);
+        return
+            MethWethStrategyLib.wantToCircuitShares(
+                amount,
+                address(want),
+                agniTwapRangeSecs
+            );
     }
 
     function circuitSharesToWant(
         uint256 amount
     ) public view returns (uint256 result) {
-        return MethWethStrategyLib.circuitSharesToWant(amount, address(want), agniTwapRangeSecs);
+        return
+            MethWethStrategyLib.circuitSharesToWant(
+                amount,
+                address(want),
+                agniTwapRangeSecs
+            );
     }
 
     function name() external pure override returns (string memory) {

@@ -26,10 +26,7 @@ contract WmntMethStrategy is
     uint256 public slippageBps;
     uint32 public agniTwapRangeSecs;
 
-    function initialize(
-        address _vault,
-        address _strategist
-    ) external {
+    function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(
             _vault,
             _strategist,
@@ -66,7 +63,7 @@ contract WmntMethStrategy is
             address(AgniSwapLib.AGNI_SWAP_ROUTER),
             type(uint256).max
         );
-        
+
         WmntMethStrategyLib.WMNT.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -100,7 +97,6 @@ contract WmntMethStrategy is
             address(WmntMethStrategyLib.WMNT),
             address(WmntMethStrategyLib.METH)
         );
-
     }
 
     function updateOracle() external onlyAuthorized {
@@ -115,7 +111,9 @@ contract WmntMethStrategy is
         slippageBps = newSlippage;
     }
 
-    function setAgniTwapRangeSecs(uint32 newAgniTwapRangeSecs) external onlyAuthorized {
+    function setAgniTwapRangeSecs(
+        uint32 newAgniTwapRangeSecs
+    ) external onlyAuthorized {
         agniTwapRangeSecs = newAgniTwapRangeSecs;
     }
 
@@ -141,13 +139,25 @@ contract WmntMethStrategy is
     function wantToCircuitShares(
         uint256 amount
     ) public view returns (uint256 result) {
-        return WmntMethStrategyLib.wantToCircuitShares(address(want), amount, agniTwapRangeSecs, this.usdcToWmntQuote);
+        return
+            WmntMethStrategyLib.wantToCircuitShares(
+                address(want),
+                amount,
+                agniTwapRangeSecs,
+                this.usdcToWmntQuote
+            );
     }
 
     function circuitSharesToWant(
         uint256 amount
     ) public view returns (uint256 result) {
-        return WmntMethStrategyLib.circuitSharesToWant(address(want), amount, agniTwapRangeSecs, this.wmntToUsdcQuote);
+        return
+            WmntMethStrategyLib.circuitSharesToWant(
+                address(want),
+                amount,
+                agniTwapRangeSecs,
+                this.wmntToUsdcQuote
+            );
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {
