@@ -22,6 +22,7 @@ contract MoeWmntStrategy is
     uint256 public moeTokensToAddToMoeLiquidity;
     uint256 public wmntTokensToAddToMoeLiquidity;
     uint256 public slippageBps;
+    uint32 public agniTwapRangeSecs;
 
     function initialize(
         address _vault,
@@ -36,6 +37,7 @@ contract MoeWmntStrategy is
         _updateOracle();
         _setWindowSize(1 weeks);
         slippageBps = 9000;
+        agniTwapRangeSecs = 1 days;
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -90,6 +92,10 @@ contract MoeWmntStrategy is
         slippageBps = newSlippage;
     }
 
+    function setAgniTwapRangeSecs(uint32 newAgniTwapRangeSecs) external onlyAuthorized {
+        agniTwapRangeSecs = newAgniTwapRangeSecs;
+    }
+
     function name() external pure override returns (string memory) {
         return "MOE-WMNT Strategy";
     }
@@ -124,13 +130,13 @@ contract MoeWmntStrategy is
     function wantToCircuitShares(
         uint256 amount
     ) public view returns (uint256 result) {
-        return MoeWmntStrategyLib.wantToCircuitShares(amount, address(want));
+        return MoeWmntStrategyLib.wantToCircuitShares(amount, address(want), agniTwapRangeSecs);
     }
 
     function circuitSharesToWant(
         uint256 amount
     ) public view returns (uint256 result) {
-        return MoeWmntStrategyLib.circuitSharesToWant(amount, address(want));
+        return MoeWmntStrategyLib.circuitSharesToWant(amount, address(want), agniTwapRangeSecs);
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {
@@ -145,6 +151,7 @@ contract MoeWmntStrategy is
             sharesToWithdraw,
             address(want),
             slippageBps,
+            agniTwapRangeSecs,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
             this.consult
@@ -216,6 +223,7 @@ contract MoeWmntStrategy is
                 moeTokensToAddToMoeLiquidity,
                 wmntTokensToAddToMoeLiquidity,
                 slippageBps,
+                agniTwapRangeSecs,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
                 this.consult
@@ -228,6 +236,7 @@ contract MoeWmntStrategy is
             balanceOfCircuitShares(),
             address(want),
             slippageBps,
+            agniTwapRangeSecs,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
             this.consult
@@ -266,6 +275,7 @@ contract MoeWmntStrategy is
                 moeTokensToAddToMoeLiquidity,
                 wmntTokensToAddToMoeLiquidity,
                 slippageBps,
+                agniTwapRangeSecs,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
                 this.consult

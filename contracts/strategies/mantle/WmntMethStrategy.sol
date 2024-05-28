@@ -22,6 +22,7 @@ contract WmntMethStrategy is
     uint256 public wmntTokensToAddToMoeLiquidity;
     uint256 public methTokensToAddToMoeLiquidity;
     uint256 public slippageBps;
+    uint32 public agniTwapRangeSecs;
 
     function initialize(
         address _vault,
@@ -36,6 +37,7 @@ contract WmntMethStrategy is
         _updateOracle();
         _setWindowSize(1 weeks);
         slippageBps = 9000;
+        agniTwapRangeSecs = 1 days;
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -93,6 +95,10 @@ contract WmntMethStrategy is
         slippageBps = newSlippage;
     }
 
+    function setAgniTwapRangeSecs(uint32 newAgniTwapRangeSecs) external onlyAuthorized {
+        agniTwapRangeSecs = newAgniTwapRangeSecs;
+    }
+
     function name() external pure override returns (string memory) {
         return "wMNT-METH LP Strategy";
     }
@@ -115,13 +121,13 @@ contract WmntMethStrategy is
     function wantToCircuitShares(
         uint256 amount
     ) public view returns (uint256 result) {
-        return WmntMethStrategyLib.wantToCircuitShares(address(want), amount);
+        return WmntMethStrategyLib.wantToCircuitShares(address(want), amount, agniTwapRangeSecs);
     }
 
     function circuitSharesToWant(
         uint256 amount
     ) public view returns (uint256 result) {
-        return WmntMethStrategyLib.circuitSharesToWant(address(want), amount);
+        return WmntMethStrategyLib.circuitSharesToWant(address(want), amount, agniTwapRangeSecs);
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {
@@ -136,6 +142,7 @@ contract WmntMethStrategy is
             sharesToWithdraw,
             address(want),
             slippageBps,
+            agniTwapRangeSecs,
             this.balanceOfWant,
             this.balanceOfCircuitShares
         );
@@ -206,6 +213,7 @@ contract WmntMethStrategy is
                 methTokensToAddToMoeLiquidity,
                 wmntTokensToAddToMoeLiquidity,
                 slippageBps,
+                agniTwapRangeSecs,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
                 this.consult
@@ -218,6 +226,7 @@ contract WmntMethStrategy is
             balanceOfCircuitShares(),
             address(want),
             slippageBps,
+            agniTwapRangeSecs,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares
         );
@@ -255,6 +264,7 @@ contract WmntMethStrategy is
                 methTokensToAddToMoeLiquidity,
                 wmntTokensToAddToMoeLiquidity,
                 slippageBps,
+                agniTwapRangeSecs,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
                 this.consult

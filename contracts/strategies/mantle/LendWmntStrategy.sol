@@ -22,6 +22,7 @@ contract LendWmntStrategy is
     uint256 public lendTokensToAddToMoeLiquidity;
     uint256 public wmntTokensToAddToMoeLiquidity;
     uint256 public slippageBps;
+    uint32 public agniTwapRangeSecs;
 
     function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(
@@ -33,6 +34,7 @@ contract LendWmntStrategy is
         _updateOracle();
         _setWindowSize(1 weeks);
         slippageBps = 9000;
+        agniTwapRangeSecs = 1 days;
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -87,6 +89,10 @@ contract LendWmntStrategy is
         slippageBps = newSlippage;
     }
 
+    function setAgniTwapRangeSecs(uint32 newAgniTwapRangeSecs) external onlyAuthorized {
+        agniTwapRangeSecs = newAgniTwapRangeSecs;
+    }
+
     function name() external pure override returns (string memory) {
         return "LEND-WMNT Strategy";
     }
@@ -117,13 +123,13 @@ contract LendWmntStrategy is
     function wantToCircuitShares(
         uint256 amount
     ) public view returns (uint256 result) {
-        return LendWmntStrategyLib.wantToCircuitShares(amount, address(want));
+        return LendWmntStrategyLib.wantToCircuitShares(amount, address(want), agniTwapRangeSecs);
     }
 
     function circuitSharesToWant(
         uint256 amount
     ) public view returns (uint256 result) {
-        return LendWmntStrategyLib.circuitSharesToWant(amount, address(want));
+        return LendWmntStrategyLib.circuitSharesToWant(amount, address(want), agniTwapRangeSecs);
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {
@@ -138,6 +144,7 @@ contract LendWmntStrategy is
             sharesToWithdraw,
             address(want),
             slippageBps,
+            agniTwapRangeSecs,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
             this.consult
@@ -209,6 +216,7 @@ contract LendWmntStrategy is
                 lendTokensToAddToMoeLiquidity,
                 wmntTokensToAddToMoeLiquidity,
                 slippageBps,
+                agniTwapRangeSecs,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
                 this.consult
@@ -221,6 +229,7 @@ contract LendWmntStrategy is
             balanceOfCircuitShares(),
             address(want),
             slippageBps,
+            agniTwapRangeSecs,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
             this.consult
@@ -259,6 +268,7 @@ contract LendWmntStrategy is
                 lendTokensToAddToMoeLiquidity,
                 wmntTokensToAddToMoeLiquidity,
                 slippageBps,
+                agniTwapRangeSecs,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
                 this.consult
