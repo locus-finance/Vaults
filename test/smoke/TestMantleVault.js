@@ -100,6 +100,7 @@ describe('TestMantleVaultDeposit', () => {
   it('should deposit and harvest', async () => {
     const time = 604800 + 3600;
     const day = 86400;
+    const agniTwapRangeSecs = 3600;//day * 7;
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
     await helpers.time.increase(time);
     await withImpersonatedSigner(userAddress, async (userSigner) => {
@@ -114,7 +115,7 @@ describe('TestMantleVaultDeposit', () => {
       await usdcUsdyStrategyInstance.connect(userSigner).harvest();
     });
     await withImpersonatedSigner(userAddress, async (userSigner) => {
-      await lendWmntStrategyInstance.connect(userSigner).setAgniTwapRangeSecs(day * 7);
+      await lendWmntStrategyInstance.connect(userSigner).setAgniTwapRangeSecs(agniTwapRangeSecs);
       await lendWmntStrategyInstance.connect(userSigner).updateOracle();
       await lendWmntStrategyInstance.connect(userSigner).harvest();
     });

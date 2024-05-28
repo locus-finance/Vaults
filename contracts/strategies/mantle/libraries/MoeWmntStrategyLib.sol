@@ -23,7 +23,9 @@ library MoeWmntStrategyLib {
     event BurnedMoeLp(uint256 indexed oldBalance, uint256 indexed newBalance);
     event WantTokensGathered(uint256 indexed amount);
 
-    uint24 public constant STANDARD_AGNI_FEE_USDC_WMNT = 100;
+    uint24 public constant STANDARD_AGNI_FEE_USDC_USDT = 100;
+    uint24 public constant STANDARD_AGNI_FEE_USDT_WETH = 100;
+    uint24 public constant STANDARD_AGNI_FEE_WETH_WMNT = 100;
 
     ICircuitVault public constant CIRCUIT_VAULT =
         ICircuitVault(0xa3647389cf2bF9279ab239d3710bB8a2eFE0BC8B);
@@ -41,19 +43,14 @@ library MoeWmntStrategyLib {
     function wantToCircuitShares(
         uint256 amount,
         address wantAddress,
-        uint32 agniTwapRangeSecs
+        uint32 agniTwapRangeSecs,
+        function(uint32, uint256) external view returns (uint256) usdcToWmntQuote
     ) external view returns (uint256 result) {
         if (amount == 0) return 0;
         uint256 usdcForUsdtSwapAmount = amount / 2;
         uint256 usdcForWmntSwapAmount = amount - usdcForUsdtSwapAmount;
 
-        uint256 wmntAmount = AgniSwapLib.agniQuote(
-            wantAddress,
-            address(WMNT),
-            usdcForWmntSwapAmount,
-            STANDARD_AGNI_FEE_USDC_WMNT,
-            agniTwapRangeSecs
-        );
+        uint256 wmntAmount = usdcToWmntQuote(agniTwapRangeSecs, usdcForWmntSwapAmount);
 
         address[] memory path = new address[](2);
         path[0] = wantAddress;
@@ -88,7 +85,8 @@ library MoeWmntStrategyLib {
     function circuitSharesToWant(
         uint256 amount,
         address wantAddress,
-        uint32 agniTwapRangeSecs
+        uint32 agniTwapRangeSecs,
+        function(uint32, uint256) external view returns (uint256) wmntToUsdcQuote
     ) external view returns (uint256 result) {
         if (amount == 0) return 0;
         uint256 liquidity = (amount * CIRCUIT_VAULT.balance()) /
@@ -103,7 +101,7 @@ library MoeWmntStrategyLib {
         uint256 moeAmount = (liquidity * reserve0) / lpTotalSupply;
         uint256 wmntAmount = (liquidity * reserve1) / lpTotalSupply;
 
-        result = AgniSwapLib.agniQuote(address(WMNT), wantAddress, wmntAmount, STANDARD_AGNI_FEE_USDC_WMNT, agniTwapRangeSecs);
+        result = wmntToUsdcQuote(agniTwapRangeSecs, wmntAmount);
 
         address[] memory path = new address[](2);
 
@@ -125,7 +123,8 @@ library MoeWmntStrategyLib {
         uint32 agniTwapRangeSecs,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
-        function(address, uint256, address) external view returns(uint256) consult
+        function(address, uint256, address) external view returns(uint256) consult,
+        function(uint32, uint256, uint256) external returns (uint256) usdcToWmntSwap
     )
         external
         returns (
@@ -139,14 +138,7 @@ library MoeWmntStrategyLib {
         uint256 usdcForUsdtSwapAmount = amount / 2;
         uint256 usdcForWmntSwapAmount = amount - usdcForUsdtSwapAmount;
 
-        uint256 wmntAmount = AgniSwapLib.agniSwap(
-            wantAddress,
-            address(WMNT),
-            usdcForWmntSwapAmount,
-            slippageBps,
-            STANDARD_AGNI_FEE_USDC_WMNT,
-            agniTwapRangeSecs
-        );
+        uint256 wmntAmount = usdcToWmntSwap(agniTwapRangeSecs, slippageBps, usdcForWmntSwapAmount);
 
         uint256 usdtAmount = MoeMerchantLib.moeMerchantSwap(
             wantAddress,
@@ -195,7 +187,8 @@ library MoeWmntStrategyLib {
         uint32 agniTwapRangeSecs,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
-        function(address, uint256, address) external view returns(uint256) consult
+        function(address, uint256, address) external view returns(uint256) consult,
+        function(uint32, uint256, uint256) external returns (uint256) wmntToUsdcSwap
     ) external {
         if (shares == 0) return;
         uint256 oldLpBalance = balanceOfMoeLp();
@@ -212,14 +205,7 @@ library MoeWmntStrategyLib {
             );
         emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
 
-        uint256 swappedFromWmntUsdcAmount = AgniSwapLib.agniSwap(
-            address(WMNT),
-            wantAddress,
-            amountBWithdrawn,
-            slippageBps,
-            STANDARD_AGNI_FEE_USDC_WMNT,
-            agniTwapRangeSecs
-        );
+        uint256 swappedFromWmntUsdcAmount = wmntToUsdcSwap(agniTwapRangeSecs, slippageBps, amountBWithdrawn);
 
         uint256 swappedFromMoeUsdtAmount = MoeMerchantLib.moeMerchantSwap(
             address(MOE),

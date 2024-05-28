@@ -24,7 +24,7 @@ library MethWethStrategyLib {
     event WantTokensGathered(uint256 indexed amount);
 
     uint24 public constant STANDARD_AGNI_FEE_USDC_WETH = 100;
-
+    
     ICircuitVault public constant CIRCUIT_VAULT =
         ICircuitVault(0x16FA0C5f3eA649259C02c075dbA1C31fc66ea4E0);
 
@@ -122,7 +122,7 @@ library MethWethStrategyLib {
         uint256 usdcForWethSwapAmount = amount / 2;
         uint256 usdcForMethSwapAmount = amount - usdcForWethSwapAmount;
 
-        uint256 wethAmount = AgniSwapLib.agniSwap(
+        uint256 wethAmount = AgniSwapLib.agniSwapSingle(
             wantAddress,
             address(WETH),
             usdcForWethSwapAmount,
@@ -187,7 +187,7 @@ library MethWethStrategyLib {
             );
         emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
 
-        uint256 swappedFromWethUsdcAmount = AgniSwapLib.agniSwap(
+        uint256 swappedFromWethUsdcAmount = AgniSwapLib.agniSwapSingle(
             address(WETH),
             wantAddress,
             amountBWithdrawn,

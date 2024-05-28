@@ -11,10 +11,12 @@ import "./libraries/LendWmntStrategyLib.sol";
 import "../../abstracts/BaseStrategyForSeparatedVault.sol";
 import "../../integrations/circuit/ICircuitVault.sol";
 import "../../abstracts/mantle/MoeMerchantWithOracleStrategyHelper.sol";
+import "../../abstracts/mantle/AgniMultihopOpsStrategyHelper.sol";
 
 contract LendWmntStrategy is
     BaseStrategyForSeparatedVault,
-    MoeMerchantWithOracleStrategyHelper
+    MoeMerchantWithOracleStrategyHelper,
+    AgniMultihopOpsStrategyHelper
 {
     using SafeERC20 for IERC20;
     using Math for uint256;
@@ -123,13 +125,13 @@ contract LendWmntStrategy is
     function wantToCircuitShares(
         uint256 amount
     ) public view returns (uint256 result) {
-        return LendWmntStrategyLib.wantToCircuitShares(amount, address(want), agniTwapRangeSecs);
+        return LendWmntStrategyLib.wantToCircuitShares(amount, address(want), agniTwapRangeSecs, this.usdcToWmntQuote);
     }
 
     function circuitSharesToWant(
         uint256 amount
     ) public view returns (uint256 result) {
-        return LendWmntStrategyLib.circuitSharesToWant(amount, address(want), agniTwapRangeSecs);
+        return LendWmntStrategyLib.circuitSharesToWant(amount, address(want), agniTwapRangeSecs, this.wmntToUsdcQuote);
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {
@@ -147,7 +149,8 @@ contract LendWmntStrategy is
             agniTwapRangeSecs,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
-            this.consult
+            this.consult,
+            this.wmntToUsdcSwap
         );
     }
 
@@ -219,7 +222,8 @@ contract LendWmntStrategy is
                 agniTwapRangeSecs,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
-                this.consult
+                this.consult,
+                this.usdcToWmntSwap
             );
         }
     }
@@ -232,7 +236,8 @@ contract LendWmntStrategy is
             agniTwapRangeSecs,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
-            this.consult
+            this.consult,
+            this.wmntToUsdcSwap
         );
         return want.balanceOf(address(this));
     }
@@ -271,7 +276,8 @@ contract LendWmntStrategy is
                 agniTwapRangeSecs,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
-                this.consult
+                this.consult,
+                this.usdcToWmntSwap
             );
         }
         if (lendTokensToAddToMoeLiquidity > 0) {
