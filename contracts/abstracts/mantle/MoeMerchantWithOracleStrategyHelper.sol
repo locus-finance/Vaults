@@ -4,8 +4,9 @@ pragma solidity ^0.8.18;
 import "@uniswap/lib/contracts/libraries/FixedPoint.sol";
 
 import "../../strategies/mantle/libraries/MoeMerchantLib.sol";
+import "./StrategyHelper.sol";
 
-abstract contract MoeMerchantWithOracleStrategyHelper {
+abstract contract MoeMerchantWithOracleStrategyHelper is StrategyHelper {
     using FixedPoint for *;
 
     error WindowHasNotElapsed(uint256 remainingTimeInSecs);
@@ -37,7 +38,7 @@ abstract contract MoeMerchantWithOracleStrategyHelper {
         windowSize = newWindowSize;
     }
 
-    function _update(address tokenA, address tokenB) internal {
+    function update(address tokenA, address tokenB) external onlySelf {
         address pair = MoeMerchantLib.MOE_FACTORY.getPair(tokenA, tokenB);
         Observations storage pairObservations = getPairObservations[pair];
         if (pairObservations.lastBlockTimestamp == 0) {

@@ -131,7 +131,7 @@ library MethWethStrategyLib {
             agniTwapRangeSecs
         );
 
-        uint256 methAmount = MoeMerchantLib.moeMerchantSwap(
+        uint256 methAmount = MoeMerchantLib.moeMerchantSwapSingle(
             wantAddress,
             address(METH),
             usdcForMethSwapAmount,
@@ -196,7 +196,7 @@ library MethWethStrategyLib {
             agniTwapRangeSecs
         );
 
-        uint256 swappedFromMethUsdcAmount = MoeMerchantLib.moeMerchantSwap(
+        uint256 swappedFromMethUsdcAmount = MoeMerchantLib.moeMerchantSwapSingle(
             address(METH),
             wantAddress,
             amountAWithdrawn,

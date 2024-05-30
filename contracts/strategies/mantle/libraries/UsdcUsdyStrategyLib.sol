@@ -136,7 +136,7 @@ library UsdcUsdyStrategyLib {
             );
         emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
 
-        uint256 usdyToUsdcSwappedAmount = MoeMerchantLib.moeMerchantSwap(
+        uint256 usdyToUsdcSwappedAmount = MoeMerchantLib.moeMerchantSwapSingle(
             address(USDY),
             wantAddress,
             amountBWithdrawn,

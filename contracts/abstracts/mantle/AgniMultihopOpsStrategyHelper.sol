@@ -2,21 +2,13 @@
 pragma solidity ^0.8.18;
 
 import "../../strategies/mantle/libraries/AgniSwapLib.sol";
+import "./StrategyHelper.sol";
 
-abstract contract AgniMultihopOpsStrategyHelper {
-    error SelfSenderOnly();
-    
+abstract contract AgniMultihopOpsStrategyHelper is StrategyHelper {
     address[] public fromUsdcToWmntChain;
     address[] public fromWmntToUsdcChain;
     uint24[] public fromUsdcToWmntFeesChain;
     uint24[] public fromWmntToUsdcFeesChain;
-
-    modifier onlySelf {
-        if (msg.sender != address(this)) {
-            revert SelfSenderOnly();
-        }
-        _;
-    }
 
     function _initializeAgniSwapStrategyHelper(
         address _usdcAddress,
@@ -103,4 +95,11 @@ abstract contract AgniMultihopOpsStrategyHelper {
             agniTwapRangeSecs
         );
     }
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[45] private __gap;
 }

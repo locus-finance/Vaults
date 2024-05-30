@@ -33,7 +33,6 @@ contract MoeWmntStrategy is
             _strategist,
             _strategist
         );
-        _updateOracle();
         _setWindowSize(1 weeks);
         slippageBps = 9000;
         agniTwapRangeSecs = 1 days;
@@ -87,12 +86,12 @@ contract MoeWmntStrategy is
     }
 
     function _updateOracle() internal {
-        _update(address(want), address(MoeWmntStrategyLib.USDT));
-        _update(
+        this.update(address(want), address(MoeWmntStrategyLib.USDT));
+        this.update(
             address(MoeWmntStrategyLib.USDT),
             address(MoeWmntStrategyLib.MOE)
         );
-        _update(
+        this.update(
             address(MoeWmntStrategyLib.MOE),
             address(MoeWmntStrategyLib.WMNT)
         );

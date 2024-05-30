@@ -23,8 +23,8 @@ library MoeWmntStrategyLib {
     event WantTokensGathered(uint256 indexed amount);
 
     uint24 public constant STANDARD_AGNI_FEE_USDC_USDT = 100;
-    uint24 public constant STANDARD_AGNI_FEE_USDT_WETH = 100;
-    uint24 public constant STANDARD_AGNI_FEE_WETH_WMNT = 100;
+    uint24 public constant STANDARD_AGNI_FEE_USDT_WETH = 500;
+    uint24 public constant STANDARD_AGNI_FEE_WETH_WMNT = 500;
 
     ICircuitVault public constant CIRCUIT_VAULT =
         ICircuitVault(0xa3647389cf2bF9279ab239d3710bB8a2eFE0BC8B);
@@ -141,7 +141,7 @@ library MoeWmntStrategyLib {
 
         uint256 wmntAmount = usdcToWmntSwap(agniTwapRangeSecs, slippageBps, usdcForWmntSwapAmount);
 
-        uint256 usdtAmount = MoeMerchantLib.moeMerchantSwap(
+        uint256 usdtAmount = MoeMerchantLib.moeMerchantSwapSingle(
             wantAddress,
             address(USDT),
             usdcForUsdtSwapAmount,
@@ -149,7 +149,7 @@ library MoeWmntStrategyLib {
             consult
         );
 
-        uint256 moeAmount = MoeMerchantLib.moeMerchantSwap(
+        uint256 moeAmount = MoeMerchantLib.moeMerchantSwapSingle(
             address(USDT),
             address(MOE),
             usdtAmount,
@@ -208,7 +208,7 @@ library MoeWmntStrategyLib {
 
         uint256 swappedFromWmntUsdcAmount = wmntToUsdcSwap(agniTwapRangeSecs, slippageBps, amountBWithdrawn);
 
-        uint256 swappedFromMoeUsdtAmount = MoeMerchantLib.moeMerchantSwap(
+        uint256 swappedFromMoeUsdtAmount = MoeMerchantLib.moeMerchantSwapSingle(
             address(MOE),
             address(USDT),
             amountAWithdrawn,
@@ -216,7 +216,7 @@ library MoeWmntStrategyLib {
             consult
         );
 
-        uint256 swappedFromUsdtUsdcAmount = MoeMerchantLib.moeMerchantSwap(
+        uint256 swappedFromUsdtUsdcAmount = MoeMerchantLib.moeMerchantSwapSingle(
             address(USDT),
             wantAddress,
             swappedFromMoeUsdtAmount,

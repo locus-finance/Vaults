@@ -33,7 +33,6 @@ contract WmntMethStrategy is
             _strategist,
             _strategist
         );
-        _updateOracle();
         _setWindowSize(1 weeks);
         slippageBps = 9000;
         agniTwapRangeSecs = 1 days;
@@ -93,7 +92,7 @@ contract WmntMethStrategy is
     }
 
     function _updateOracle() internal {
-        _update(
+        this.update(
             address(WmntMethStrategyLib.WMNT),
             address(WmntMethStrategyLib.METH)
         );

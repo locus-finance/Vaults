@@ -30,7 +30,6 @@ contract UsdcUsdyStrategy is
             _strategist,
             _strategist
         );
-        _updateOracle();
         _setWindowSize(1 weeks);
         slippageBps = 9000;
         want.forceApprove(
@@ -52,7 +51,7 @@ contract UsdcUsdyStrategy is
     }
 
     function _updateOracle() internal {
-        _update(address(want), address(UsdcUsdyStrategyLib.USDY));
+        this.update(address(want), address(UsdcUsdyStrategyLib.USDY));
     }
 
     function updateOracle() external onlyAuthorized {

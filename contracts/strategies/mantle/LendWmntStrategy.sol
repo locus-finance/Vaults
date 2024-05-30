@@ -33,7 +33,6 @@ contract LendWmntStrategy is
             _strategist,
             _strategist
         );
-        _updateOracle();
         _setWindowSize(1 weeks);
         slippageBps = 9000;
         agniTwapRangeSecs = 1 days;
@@ -56,6 +55,10 @@ contract LendWmntStrategy is
             type(uint256).max
         );
         LendWmntStrategyLib.LEND.forceApprove(
+            address(MoeMerchantLib.MOE_ROUTER),
+            type(uint256).max
+        );
+        LendWmntStrategyLib.USDT.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
         );
@@ -96,10 +99,9 @@ contract LendWmntStrategy is
     }
 
     function _updateOracle() internal {
-        _update(address(want), address(LendWmntStrategyLib.LEND));
-        _update(
-            address(LendWmntStrategyLib.LEND),
-            address(LendWmntStrategyLib.WMNT)
+        LendWmntStrategyLib.updateTraces(
+            address(want),
+            this.update
         );
     }
 

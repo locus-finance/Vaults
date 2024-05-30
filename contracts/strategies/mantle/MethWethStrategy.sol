@@ -31,7 +31,6 @@ contract MethWethStrategy is
             _strategist,
             _strategist
         );
-        _updateOracle();
         _setWindowSize(1 weeks);
         slippageBps = 9000;
         agniTwapRangeSecs = 1 days;
@@ -68,8 +67,8 @@ contract MethWethStrategy is
     }
 
     function _updateOracle() internal {
-        _update(address(want), address(MethWethStrategyLib.METH));
-        _update(
+        this.update(address(want), address(MethWethStrategyLib.METH));
+        this.update(
             address(MethWethStrategyLib.METH),
             address(MethWethStrategyLib.WETH)
         );

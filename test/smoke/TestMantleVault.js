@@ -30,11 +30,11 @@ describe('TestMantleVaultDeposit', () => {
   const userAddress = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe";
   
   const initStrategyAddress = "0xB134814B4E95DbD76fbc12E1976C8f54CD7b8020";
-  const usdcUsdyStrategyAddress = "0xB6582a1Ab673C514d0311332E39F7f305a78aC4a";
-  const lendWmntStrategyAddress = "0x6667a54f0F3E9f6D97499b2404d6282b4a321f43";
-  const moeWmntStrategyAddress = "0x0Fe16A7Bc673B92014D6f1e4D88355499D40671D";
-  const methWethStrategyAddress = "0xFCE625E69Bd4952417Fe628bC63D9AA0e4012684";
-  const wmntMethStrategyAddress = "0x977b3A2E8022dd9B8aF97C72B71409171B5394A8";
+  const usdcUsdyStrategyAddress = "0xA56bA2045C04b41fe70065b5eBde9A71FD6c4e24";
+  const lendWmntStrategyAddress = "0xF085fA084E7c75d27474B816a01b4e1Ad95D8aAD";
+  const moeWmntStrategyAddress = "0x8b6efe3fcCF3310d79c5EBaC96B2Cba6F91822aD";
+  const methWethStrategyAddress = "0xE5bF1F62870b5971d674f86b24E8Dca36dCdC2e2";
+  const wmntMethStrategyAddress = "0xD091023d1DD8a254407F8483e14EE761bf1746c5";
 
   const usdcWhale = "0x588846213A30fd36244e0ae0eBB2374516dA836C";
   const userUsdcAllowance = hre.ethers.utils.parseUnits("50000", 6);
@@ -100,6 +100,7 @@ describe('TestMantleVaultDeposit', () => {
   it('should deposit and harvest', async () => {
     const time = 604800 + 3600;
     const day = 86400;
+    const slippage = 9000;
     const agniTwapRangeSecs = 3600;//day * 7;
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
     await helpers.time.increase(time);
@@ -116,6 +117,7 @@ describe('TestMantleVaultDeposit', () => {
     });
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await lendWmntStrategyInstance.connect(userSigner).setAgniTwapRangeSecs(agniTwapRangeSecs);
+      await lendWmntStrategyInstance.connect(userSigner).setSlippage(slippage);
       await lendWmntStrategyInstance.connect(userSigner).updateOracle();
       await lendWmntStrategyInstance.connect(userSigner).harvest();
     });

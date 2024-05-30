@@ -6,6 +6,7 @@ import "../../../integrations/merchantMoe/IMoeFactory.sol";
 import "../../../integrations/merchantMoe/IMoeRouter.sol";
 
 library MoeMerchantLib {
+    error MustBeGreaterThan(uint256 actual, uint256 expected);
     IMoeRouter public constant MOE_ROUTER =
         IMoeRouter(0xeaEE7EE68874218c3558b40063c42B82D3E7232a);
     IMoeFactory public constant MOE_FACTORY =
@@ -13,7 +14,7 @@ library MoeMerchantLib {
 
     uint256 private constant MAX_BPS = 10000;
 
-    function moeMerchantSwap(
+    function moeMerchantSwapSingle(
         address from,
         address to,
         uint256 amount,
@@ -33,6 +34,29 @@ library MoeMerchantLib {
         )[1];
     }
 
+    function moeMerchantSwapMulti(
+        address[] memory path,
+        uint256 amount,
+        uint256 slippageBps,
+        function(address, uint256, address) external view returns(uint256) consult
+    ) internal returns (uint256 result) {
+        uint256 pathLenMin = 2;
+        if (path.length <= pathLenMin) {
+            revert MustBeGreaterThan(path.length, pathLenMin);
+        }
+        uint256 amountOutMin = consult(path[0], amount, path[1]);
+        for (uint256 i = 1; i < path.length - 1; i++) {
+            amountOutMin = consult(path[i], amountOutMin, path[i + 1]);
+        }
+        result = MOE_ROUTER.swapExactTokensForTokens(
+            amount,
+            (amountOutMin * slippageBps) / MAX_BPS,
+            path,
+            address(this),
+            block.timestamp
+        )[1];
+    }
+
     function moeMerchantAddLiquiditySingle(
         address tokenA,
         address tokenB,
@@ -42,7 +66,7 @@ library MoeMerchantLib {
     ) internal returns (uint256 lpMinted, uint256 tokensALeft, uint256 tokensBLeft) {
         uint256 amountAToAdd = amountA / 2;
         uint256 amountAToSwapToB = amountA - amountAToAdd;
-        uint256 amountBToAdd = moeMerchantSwap(
+        uint256 amountBToAdd = moeMerchantSwapSingle(
             tokenA,
             tokenB,
             amountAToSwapToB,

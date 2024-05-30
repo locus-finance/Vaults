@@ -25,8 +25,8 @@ library WmntMethStrategyLib {
 
     uint24 public constant STANDARD_AGNI_FEE_USDC_METH = 100;
     uint24 public constant STANDARD_AGNI_FEE_USDC_USDT = 100;
-    uint24 public constant STANDARD_AGNI_FEE_USDT_WETH = 100;
-    uint24 public constant STANDARD_AGNI_FEE_WETH_WMNT = 100;
+    uint24 public constant STANDARD_AGNI_FEE_USDT_WETH = 500;
+    uint24 public constant STANDARD_AGNI_FEE_WETH_WMNT = 500;
 
     ICircuitVault public constant CIRCUIT_VAULT =
         ICircuitVault(0xc37c7dEBa5E7F5dE572C914D5c159EA08DE1fefF);
