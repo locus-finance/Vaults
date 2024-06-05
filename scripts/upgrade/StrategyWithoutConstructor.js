@@ -29,6 +29,9 @@ async function main() {
         const library = await hre.ethers.deployContract(libraryName);
         console.log(`Deployed library: ${libraryName} - ${library.address}`);
         libraries[libraryName] = library.address;
+        await hre.run("verify:verify", {
+          address: library.address
+      });
     }
     TargetContract = await hre.ethers.getContractFactory(TARGET_STRATEGY, {libraries});
   } else {

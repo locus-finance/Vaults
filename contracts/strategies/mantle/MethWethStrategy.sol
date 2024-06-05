@@ -11,10 +11,12 @@ import "./libraries/MethWethStrategyLib.sol";
 import "../../abstracts/BaseStrategyForSeparatedVault.sol";
 import "../../integrations/circuit/ICircuitVault.sol";
 import "../../abstracts/mantle/MoeMerchantWithOracleStrategyHelper.sol";
+import "../../abstracts/mantle/AgniMultihopOpsStrategyHelper.sol";
 
 contract MethWethStrategy is
     BaseStrategyForSeparatedVault,
-    MoeMerchantWithOracleStrategyHelper
+    MoeMerchantWithOracleStrategyHelper,
+    AgniMultihopOpsStrategyHelper
 {
     using SafeERC20 for IERC20;
     using Math for uint256;
@@ -34,6 +36,33 @@ contract MethWethStrategy is
         _setWindowSize(1 weeks);
         slippageBps = 9000;
         agniTwapRangeSecs = 1 days;
+
+        UsdcWmntSwapParams memory usdcWmntSwapParams;
+        address[] memory fromUsdcToWethChain = new address[](3);
+        fromUsdcToWethChain[0] = address(want); 
+        fromUsdcToWethChain[1] = address(MethWethStrategyLib.USDT);
+        fromUsdcToWethChain[2] = address(MethWethStrategyLib.WETH);
+        address[] memory fromWethToUsdcChain = new address[](3);
+        fromWethToUsdcChain[0] = address(MethWethStrategyLib.WETH); 
+        fromWethToUsdcChain[1] = address(MethWethStrategyLib.USDT);
+        fromWethToUsdcChain[2] = address(want);
+        uint24[] memory fromUsdcToWethFeesChain = new uint24[](2);
+        fromUsdcToWethFeesChain[0] = MethWethStrategyLib.STANDARD_AGNI_FEE_USDC_USDT;
+        fromUsdcToWethFeesChain[1] = MethWethStrategyLib.STANDARD_AGNI_FEE_USDT_WETH;
+        uint24[] memory fromWethToUsdcFeesChain = new uint24[](2);
+        fromWethToUsdcFeesChain[0] = MethWethStrategyLib.STANDARD_AGNI_FEE_USDT_WETH;
+        fromWethToUsdcFeesChain[1] = MethWethStrategyLib.STANDARD_AGNI_FEE_USDC_USDT;
+        UsdcWethSwapParams memory usdcWethSwapParams = UsdcWethSwapParams({
+            fromUsdcToWethChain: fromUsdcToWethChain,
+            fromWethToUsdcChain: fromWethToUsdcChain,
+            fromUsdcToWethFeesChain: fromUsdcToWethFeesChain,
+            fromWethToUsdcFeesChain: fromWethToUsdcFeesChain
+        });
+        _initializeAgniSwapStrategyHelper(
+            usdcWmntSwapParams,
+            usdcWethSwapParams
+        );
+
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -47,12 +76,18 @@ contract MethWethStrategy is
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
         );
+
         MethWethStrategyLib.WETH.forceApprove(
             address(AgniSwapLib.AGNI_SWAP_ROUTER),
             type(uint256).max
         );
         MethWethStrategyLib.WETH.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
+            type(uint256).max
+        );
+
+        MethWethStrategyLib.USDT.forceApprove(
+            address(AgniSwapLib.AGNI_SWAP_ROUTER),
             type(uint256).max
         );
 
@@ -101,7 +136,8 @@ contract MethWethStrategy is
             MethWethStrategyLib.wantToCircuitShares(
                 amount,
                 address(want),
-                agniTwapRangeSecs
+                agniTwapRangeSecs,
+                this.usdcToWethQuote
             );
     }
 
@@ -112,7 +148,8 @@ contract MethWethStrategy is
             MethWethStrategyLib.circuitSharesToWant(
                 amount,
                 address(want),
-                agniTwapRangeSecs
+                agniTwapRangeSecs,
+                this.wethToUsdcQuote
             );
     }
 
@@ -158,7 +195,8 @@ contract MethWethStrategy is
             agniTwapRangeSecs,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
-            this.consult
+            this.consult,
+            this.wethToUsdcSwap
         );
     }
 
@@ -230,7 +268,8 @@ contract MethWethStrategy is
                 agniTwapRangeSecs,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
-                this.consult
+                this.consult,
+                this.usdcToWethSwap
             );
         }
     }
@@ -243,7 +282,8 @@ contract MethWethStrategy is
             agniTwapRangeSecs,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
-            this.consult
+            this.consult,
+            this.wethToUsdcSwap
         );
         return want.balanceOf(address(this));
     }
@@ -282,7 +322,8 @@ contract MethWethStrategy is
                 agniTwapRangeSecs,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
-                this.consult
+                this.consult,
+                this.usdcToWethSwap
             );
         }
         if (methTokensToAddToMoeLiquidity > 0) {

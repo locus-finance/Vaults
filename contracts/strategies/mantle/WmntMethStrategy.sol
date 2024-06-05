@@ -36,15 +36,37 @@ contract WmntMethStrategy is
         _setWindowSize(1 weeks);
         slippageBps = 9000;
         agniTwapRangeSecs = 1 days;
+
+        address[] memory fromUsdcToWmntChain = new address[](4);
+        fromUsdcToWmntChain[0] = address(want);
+        fromUsdcToWmntChain[1] = address(WmntMethStrategyLib.USDT); 
+        fromUsdcToWmntChain[2] = address(WmntMethStrategyLib.WETH);
+        fromUsdcToWmntChain[3] = address(WmntMethStrategyLib.WMNT);
+        address[] memory fromWmntToUsdcChain = new address[](4);
+        fromWmntToUsdcChain[0] = address(WmntMethStrategyLib.WMNT);
+        fromWmntToUsdcChain[1] = address(WmntMethStrategyLib.WETH); 
+        fromWmntToUsdcChain[2] = address(WmntMethStrategyLib.USDT);
+        fromWmntToUsdcChain[3] = address(want);
+        uint24[] memory fromUsdcToWmntFeesChain = new uint24[](3);
+        fromUsdcToWmntFeesChain[0] = WmntMethStrategyLib.STANDARD_AGNI_FEE_USDC_USDT; 
+        fromUsdcToWmntFeesChain[1] = WmntMethStrategyLib.STANDARD_AGNI_FEE_USDT_WETH;
+        fromUsdcToWmntFeesChain[2] = WmntMethStrategyLib.STANDARD_AGNI_FEE_WETH_WMNT;
+        uint24[] memory fromWmntToUsdcFeesChain = new uint24[](3);
+        fromWmntToUsdcFeesChain[0] = WmntMethStrategyLib.STANDARD_AGNI_FEE_WETH_WMNT; 
+        fromWmntToUsdcFeesChain[1] = WmntMethStrategyLib.STANDARD_AGNI_FEE_USDT_WETH;
+        fromWmntToUsdcFeesChain[2] = WmntMethStrategyLib.STANDARD_AGNI_FEE_USDC_USDT;
+        UsdcWmntSwapParams memory usdcWmntSwapParams = UsdcWmntSwapParams({
+            fromUsdcToWmntChain: fromUsdcToWmntChain,
+            fromWmntToUsdcChain: fromWmntToUsdcChain,
+            fromUsdcToWmntFeesChain: fromUsdcToWmntFeesChain,
+            fromWmntToUsdcFeesChain: fromWmntToUsdcFeesChain
+        });
+        UsdcWethSwapParams memory usdcWethSwapParams; 
         _initializeAgniSwapStrategyHelper(
-            address(want),
-            address(WmntMethStrategyLib.USDT),
-            address(WmntMethStrategyLib.WETH),
-            address(WmntMethStrategyLib.WMNT),
-            WmntMethStrategyLib.STANDARD_AGNI_FEE_USDC_USDT,
-            WmntMethStrategyLib.STANDARD_AGNI_FEE_USDT_WETH,
-            WmntMethStrategyLib.STANDARD_AGNI_FEE_WETH_WMNT
+            usdcWmntSwapParams,
+            usdcWethSwapParams
         );
+
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max

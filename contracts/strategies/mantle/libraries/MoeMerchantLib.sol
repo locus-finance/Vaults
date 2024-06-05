@@ -34,27 +34,43 @@ library MoeMerchantLib {
         )[1];
     }
 
+    event Log(uint256 indexed what);
+
     function moeMerchantSwapMulti(
         address[] memory path,
         uint256 amount,
         uint256 slippageBps,
         function(address, uint256, address) external view returns(uint256) consult
-    ) internal returns (uint256 result) {
+    ) internal returns (uint256) {
+        emit Log(1);
         uint256 pathLenMin = 2;
         if (path.length <= pathLenMin) {
             revert MustBeGreaterThan(path.length, pathLenMin);
         }
+        emit Log(2);
+        
         uint256 amountOutMin = consult(path[0], amount, path[1]);
-        for (uint256 i = 1; i < path.length - 1; i++) {
+
+        emit Log(3);
+        
+        for (uint256 i = 1; i <= path.length - 2; i++) {
+            emit Log(4);
             amountOutMin = consult(path[i], amountOutMin, path[i + 1]);
+            emit Log(amountOutMin);
         }
-        result = MOE_ROUTER.swapExactTokensForTokens(
+        emit Log(7777);
+        emit Log(path.length);
+        emit Log(path.length - 2);
+        uint256[] memory swapResult = MOE_ROUTER.swapExactTokensForTokens(
             amount,
             (amountOutMin * slippageBps) / MAX_BPS,
             path,
             address(this),
             block.timestamp
-        )[1];
+        );
+        emit Log(swapResult.length - 1);
+        emit Log(swapResult[swapResult.length - 1]);
+        return swapResult[swapResult.length - 1];
     }
 
     function moeMerchantAddLiquiditySingle(

@@ -46,6 +46,8 @@ library AgniSwapLib {
         return AGNI_SWAP_ROUTER.exactInputSingle(params);
     }
 
+    event LogAgni(uint256 indexed what);
+
     function agniMultihopSwap(
         address[] memory tokensChain,
         uint24[] memory tokensFeesChain,
@@ -59,6 +61,10 @@ library AgniSwapLib {
             amountIn,
             twapRangeSecs
         ) * slippageBps) / MAX_BPS;
+
+        emit LogAgni(tokensChain.length);
+        emit LogAgni(tokensFeesChain.length);
+
         bytes memory path = abi.encodePacked(tokensChain[0]);
         for (uint256 i = 1; i < tokensChain.length; i++) {
             path = abi.encodePacked(
@@ -67,6 +73,10 @@ library AgniSwapLib {
                 tokensChain[i]
             );
         }
+
+        emit LogAgni(0);
+        emit LogAgni(0);
+
         IAgniSwapRouter.ExactInputParams memory params = IAgniSwapRouter
             .ExactInputParams({
                 path: path,
@@ -99,14 +109,16 @@ library AgniSwapLib {
         uint256 amountIn,
         uint32 twapRangeSecs
     ) internal view returns (uint256) {
+        uint256 tokensChainLen = tokensChain.length;
+        uint256 tokensFeesChainLen = tokensFeesChain.length;  
         if (
-            tokensChain.length <= tokensFeesChain.length ||
-            tokensChain.length - tokensFeesChain.length != 1
+            tokensChainLen <= tokensFeesChainLen ||
+            tokensChainLen - tokensFeesChainLen != 1
         ) {
-            revert MustBeLess(tokensFeesChain.length, tokensChain.length);
+            revert MustBeLess(tokensFeesChainLen, tokensChainLen);
         }
-        int24[] memory inBetweenTicks = new int24[](tokensFeesChain.length);
-        for (uint256 i; i < inBetweenTicks.length; i++) {
+        int24[] memory inBetweenTicks = new int24[](tokensFeesChainLen);
+        for (uint256 i; i < tokensFeesChainLen; i++) {
             (inBetweenTicks[i], ) = OracleLibrary.consult(
                 AGNI_SWAP_FACTORY.getPool(
                     tokensChain[i],

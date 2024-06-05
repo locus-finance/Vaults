@@ -5,52 +5,69 @@ import "../../strategies/mantle/libraries/AgniSwapLib.sol";
 import "./StrategyHelper.sol";
 
 abstract contract AgniMultihopOpsStrategyHelper is StrategyHelper {
-    address[] public fromUsdcToWmntChain;
-    address[] public fromWmntToUsdcChain;
-    uint24[] public fromUsdcToWmntFeesChain;
-    uint24[] public fromWmntToUsdcFeesChain;
+    error SwapTraceIsNotInitialized(address fromToken, address toToken);
+
+    struct UsdcWmntSwapParams {
+        address[] fromUsdcToWmntChain;
+        address[] fromWmntToUsdcChain;
+        uint24[] fromUsdcToWmntFeesChain;
+        uint24[] fromWmntToUsdcFeesChain;
+    }
+
+    struct UsdcWethSwapParams {
+        address[] fromUsdcToWethChain;
+        address[] fromWethToUsdcChain;
+        uint24[] fromUsdcToWethFeesChain;
+        uint24[] fromWethToUsdcFeesChain;
+    }
+
+    modifier onlyWhenUsdcWmntInitialized {
+        UsdcWmntSwapParams memory _usdcWmntSwapParams = usdcWmntSwapParams;
+        if (_usdcWmntSwapParams.fromUsdcToWmntChain[0] == address(0)) {
+            revert SwapTraceIsNotInitialized(
+                _usdcWmntSwapParams.fromUsdcToWmntChain[0],
+                _usdcWmntSwapParams.fromUsdcToWmntChain[
+                    _usdcWmntSwapParams.fromUsdcToWmntChain.length - 1
+                ]
+            );
+        }
+        _;
+    }
+
+    modifier onlyWhenUsdcWethInitialized {
+        UsdcWethSwapParams memory _usdcWethSwapParams = usdcWethSwapParams;
+        if (_usdcWethSwapParams.fromUsdcToWethChain[0] == address(0)) {
+            revert SwapTraceIsNotInitialized(
+                _usdcWethSwapParams.fromUsdcToWethChain[0],
+                _usdcWethSwapParams.fromUsdcToWethChain[
+                    _usdcWethSwapParams.fromUsdcToWethChain.length - 1
+                ]
+            );
+        }
+        _;
+    }
+
+    UsdcWmntSwapParams internal usdcWmntSwapParams;
+    UsdcWethSwapParams internal usdcWethSwapParams;
 
     function _initializeAgniSwapStrategyHelper(
-        address _usdcAddress,
-        address _usdtAddress,
-        address _wethAddress,
-        address _wmntAddress,
-        uint24 _usdcUsdtAgniFee,
-        uint24 _usdtWethAgniFee,
-        uint24 _wethWmntAgniFee
+        UsdcWmntSwapParams memory _usdcWmntSwapParams,
+        UsdcWethSwapParams memory _usdcWethSwapParams
     ) internal {
-        fromUsdcToWmntChain = new address[](4);
-        fromUsdcToWmntChain[0] = _usdcAddress;
-        fromUsdcToWmntChain[1] = _usdtAddress;
-        fromUsdcToWmntChain[2] = _wethAddress;
-        fromUsdcToWmntChain[3] = _wmntAddress;
-
-        fromUsdcToWmntFeesChain = new uint24[](3);
-        fromUsdcToWmntFeesChain[0] = _usdcUsdtAgniFee;
-        fromUsdcToWmntFeesChain[1] = _usdtWethAgniFee;
-        fromUsdcToWmntFeesChain[2] = _wethWmntAgniFee;
-
-        fromWmntToUsdcChain = new address[](4);
-        fromWmntToUsdcChain[0] = _wmntAddress;
-        fromWmntToUsdcChain[1] = _wethAddress;
-        fromWmntToUsdcChain[2] = _usdtAddress;
-        fromWmntToUsdcChain[3] = _usdcAddress;
-
-        fromWmntToUsdcFeesChain = new uint24[](3);
-        fromWmntToUsdcFeesChain[0] = _wethWmntAgniFee;
-        fromWmntToUsdcFeesChain[1] = _usdtWethAgniFee;
-        fromWmntToUsdcFeesChain[2] = _usdcUsdtAgniFee;
+        usdcWmntSwapParams = _usdcWmntSwapParams;
+        usdcWethSwapParams = _usdcWethSwapParams;
     }
 
     function usdcToWmntSwap(
         uint32 agniTwapRangeSecs,
         uint256 slippageBps,
         uint256 amountUsdc
-    ) external onlySelf returns (uint256) {
+    ) external onlySelf onlyWhenUsdcWmntInitialized returns (uint256) {
+        UsdcWmntSwapParams memory _usdcWmntSwapParams = usdcWmntSwapParams;
         return
             AgniSwapLib.agniMultihopSwap(
-                fromUsdcToWmntChain,
-                fromUsdcToWmntFeesChain,
+                _usdcWmntSwapParams.fromUsdcToWmntChain,
+                _usdcWmntSwapParams.fromUsdcToWmntFeesChain,
                 amountUsdc,
                 agniTwapRangeSecs,
                 slippageBps
@@ -61,11 +78,12 @@ abstract contract AgniMultihopOpsStrategyHelper is StrategyHelper {
         uint32 agniTwapRangeSecs,
         uint256 slippageBps,
         uint256 amountWmnt
-    ) external onlySelf returns (uint256) {
+    ) external onlySelf onlyWhenUsdcWmntInitialized returns (uint256) {
+        UsdcWmntSwapParams memory _usdcWmntSwapParams = usdcWmntSwapParams;
         return
             AgniSwapLib.agniMultihopSwap(
-                fromWmntToUsdcChain,
-                fromWmntToUsdcFeesChain,
+                _usdcWmntSwapParams.fromWmntToUsdcChain,
+                _usdcWmntSwapParams.fromWmntToUsdcFeesChain,
                 amountWmnt,
                 agniTwapRangeSecs,
                 slippageBps
@@ -75,10 +93,11 @@ abstract contract AgniMultihopOpsStrategyHelper is StrategyHelper {
     function usdcToWmntQuote(
         uint32 agniTwapRangeSecs,
         uint256 amountUsdc
-    ) public view returns (uint256 result) {
+    ) public view onlyWhenUsdcWmntInitialized returns (uint256 result) {
+        UsdcWmntSwapParams memory _usdcWmntSwapParams = usdcWmntSwapParams;
         result = AgniSwapLib.agniMultiswapQuote(
-            fromUsdcToWmntChain,
-            fromUsdcToWmntFeesChain,
+            _usdcWmntSwapParams.fromUsdcToWmntChain,
+            _usdcWmntSwapParams.fromUsdcToWmntFeesChain,
             amountUsdc,
             agniTwapRangeSecs
         );
@@ -87,13 +106,72 @@ abstract contract AgniMultihopOpsStrategyHelper is StrategyHelper {
     function wmntToUsdcQuote(
         uint32 agniTwapRangeSecs,
         uint256 amountWmnt
-    ) public view returns (uint256 result) {
+    ) public view onlyWhenUsdcWmntInitialized returns (uint256 result) {
+        UsdcWmntSwapParams memory _usdcWmntSwapParams = usdcWmntSwapParams;
         result = AgniSwapLib.agniMultiswapQuote(
-            fromWmntToUsdcChain,
-            fromWmntToUsdcFeesChain,
+            _usdcWmntSwapParams.fromWmntToUsdcChain,
+            _usdcWmntSwapParams.fromWmntToUsdcFeesChain,
             amountWmnt,
             agniTwapRangeSecs
         );
+    }
+
+    function wethToUsdcQuote(
+        uint32 agniTwapRangeSecs,
+        uint256 amountWeth
+    ) public view onlyWhenUsdcWethInitialized returns (uint256 result) {
+        UsdcWethSwapParams memory _usdcWethSwapParams = usdcWethSwapParams;
+        result = AgniSwapLib.agniMultiswapQuote(
+            _usdcWethSwapParams.fromWethToUsdcChain,
+            _usdcWethSwapParams.fromWethToUsdcFeesChain,
+            amountWeth,
+            agniTwapRangeSecs
+        );
+    }
+
+    function usdcToWethQuote(
+        uint32 agniTwapRangeSecs,
+        uint256 amountUsdc
+    ) public view onlyWhenUsdcWethInitialized returns (uint256 result) {
+        UsdcWethSwapParams memory _usdcWethSwapParams = usdcWethSwapParams;
+        result = AgniSwapLib.agniMultiswapQuote(
+            _usdcWethSwapParams.fromUsdcToWethChain,
+            _usdcWethSwapParams.fromUsdcToWethFeesChain,
+            amountUsdc,
+            agniTwapRangeSecs
+        );
+    }
+
+    function wethToUsdcSwap(
+        uint32 agniTwapRangeSecs,
+        uint256 slippageBps,
+        uint256 amountWeth
+    ) external onlySelf onlyWhenUsdcWethInitialized returns (uint256) {
+        UsdcWethSwapParams memory _usdcWethSwapParams = usdcWethSwapParams;
+        return
+            AgniSwapLib.agniMultihopSwap(
+                _usdcWethSwapParams.fromWethToUsdcChain,
+                _usdcWethSwapParams.fromWethToUsdcFeesChain,
+                amountWeth,
+                agniTwapRangeSecs,
+                slippageBps
+            );
+    }
+
+    function usdcToWethSwap(
+        uint32 agniTwapRangeSecs,
+        uint256 slippageBps,
+        uint256 amountUsdc
+    ) external onlySelf onlyWhenUsdcWethInitialized returns (uint256) {
+        UsdcWethSwapParams memory _usdcWethSwapParams = usdcWethSwapParams;
+        return
+            AgniSwapLib.agniMultihopSwap(
+                _usdcWethSwapParams.fromUsdcToWethChain,
+                _usdcWethSwapParams.fromUsdcToWethFeesChain,
+                amountUsdc,
+                agniTwapRangeSecs,
+                slippageBps
+            );
     }
 
     /**
