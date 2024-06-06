@@ -101,7 +101,7 @@ describe('TestMantleVaultDeposit', () => {
     const time = 604800 + 3600;
     const day = 86400;
     const slippage = 5000;
-    const agniTwapRangeSecs = 100; //day * 7;
+    const agniTwapRangeSecs = 3600; //day * 7;
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
     await helpers.time.increase(time);
     await withImpersonatedSigner(userAddress, async (userSigner) => {
