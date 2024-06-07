@@ -9,36 +9,30 @@ const vaultAddress = "0x877559B8D37E5a05dB12F289214c51D05856fcA0";
 const DEPLOY_SETTINGS = {
     vaultAddress: vaultAddress,
     InitStrategy: {
-        ratio: "1670",
+        ratio: "2000",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000"
     },
-    UsdcUsdyStrategy: {
-        ratio: "1666",
-        minDebtHarvestUsdc: "0",
-        maxDebtHarvestUsdc: "1000000000000",
-        libraryNames: ["UsdcUsdyStrategyLib"]
-    },
     LendWmntStrategy: {
-        ratio: "1666",
+        ratio: "2000",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
         libraryNames: ["LendWmntStrategyLib"]
     },
     MoeWmntStrategy: {
-        ratio: "1666",
+        ratio: "2000",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
         libraryNames: ["MoeWmntStrategyLib"]
     },
     MethWethStrategy: {
-        ratio: "1666",
+        ratio: "2000",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
         libraryNames: ["MethWethStrategyLib"]
     },
     WmntMethStrategy: {
-        ratio: "1666",
+        ratio: "2000",
         minDebtHarvestUsdc: "0",
         maxDebtHarvestUsdc: "1000000000000",
         libraryNames: ["WmntMethStrategyLib"]
