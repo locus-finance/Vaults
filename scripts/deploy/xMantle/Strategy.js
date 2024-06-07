@@ -2,7 +2,7 @@ const hre = require("hardhat");
 
 const { getEnv } = require("../../utils");
 
-const TARGET_STRATEGY = "MethWethStrategy";
+const TARGET_STRATEGY = "MoeWmntStrategy";
 const strategist = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe"
 const vaultAddress = "0x877559B8D37E5a05dB12F289214c51D05856fcA0";
 

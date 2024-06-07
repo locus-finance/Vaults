@@ -170,7 +170,7 @@ library MoeWmntStrategyLib {
         toMoePath[1] = address(USDT);
         toMoePath[2] = address(MOE);
         uint256 moeAmount = MoeMerchantLib.moeMerchantSwapMulti(
-            toWmntPath,
+            toMoePath,
             usdcForMoeSwapAmount,
             slippageBps,
             consult
