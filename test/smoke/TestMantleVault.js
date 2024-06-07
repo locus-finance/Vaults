@@ -39,7 +39,7 @@ describe('TestMantleVaultDeposit', () => {
   const usdcWhale = "0x588846213A30fd36244e0ae0eBB2374516dA836C";
   const userUsdcAllowance = hre.ethers.utils.parseUnits("50000", 6);
   const usdcAddress = "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9";
-  const usdcAmountToDeposit = hre.ethers.utils.parseUnits("10000", 6);
+  const usdcAmountToDeposit = hre.ethers.utils.parseUnits("100", 6);
 
   let xMantleInstance;
   let xMantleTokenInstance;
@@ -101,7 +101,7 @@ describe('TestMantleVaultDeposit', () => {
     const time = 604800 + 3600;
     const day = 86400;
     const slippage = 5000;
-    const agniTwapRangeSecs = 3600; //day * 7;
+    const agniTwapRangeSecs = 1; //day * 7;
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
     await helpers.time.increase(time);
     await withImpersonatedSigner(userAddress, async (userSigner) => {

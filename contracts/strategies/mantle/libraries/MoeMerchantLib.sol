@@ -19,7 +19,10 @@ library MoeMerchantLib {
         address to,
         uint256 amount,
         uint256 slippageBps,
-        function(address, uint256, address) external view returns(uint256) consult
+        function(address, uint256, address)
+            external
+            view
+            returns (uint256) consult
     ) internal returns (uint256 result) {
         address[] memory path = new address[](2);
         path[0] = from;
@@ -34,33 +37,25 @@ library MoeMerchantLib {
         )[1];
     }
 
-    event Log(uint256 indexed what);
-
     function moeMerchantSwapMulti(
         address[] memory path,
         uint256 amount,
         uint256 slippageBps,
-        function(address, uint256, address) external view returns(uint256) consult
+        function(address, uint256, address)
+            external
+            view
+            returns (uint256) consult
     ) internal returns (uint256) {
-        emit Log(1);
         uint256 pathLenMin = 2;
         if (path.length <= pathLenMin) {
             revert MustBeGreaterThan(path.length, pathLenMin);
         }
-        emit Log(2);
-        
+
         uint256 amountOutMin = consult(path[0], amount, path[1]);
 
-        emit Log(3);
-        
         for (uint256 i = 1; i <= path.length - 2; i++) {
-            emit Log(4);
             amountOutMin = consult(path[i], amountOutMin, path[i + 1]);
-            emit Log(amountOutMin);
         }
-        emit Log(7777);
-        emit Log(path.length);
-        emit Log(path.length - 2);
         uint256[] memory swapResult = MOE_ROUTER.swapExactTokensForTokens(
             amount,
             (amountOutMin * slippageBps) / MAX_BPS,
@@ -68,8 +63,6 @@ library MoeMerchantLib {
             address(this),
             block.timestamp
         );
-        emit Log(swapResult.length - 1);
-        emit Log(swapResult[swapResult.length - 1]);
         return swapResult[swapResult.length - 1];
     }
 
@@ -78,8 +71,14 @@ library MoeMerchantLib {
         address tokenB,
         uint256 amountA,
         uint256 slippageBps,
-        function(address, uint256, address) external view returns(uint256) consult
-    ) internal returns (uint256 lpMinted, uint256 tokensALeft, uint256 tokensBLeft) {
+        function(address, uint256, address)
+            external
+            view
+            returns (uint256) consult
+    )
+        internal
+        returns (uint256 lpMinted, uint256 tokensALeft, uint256 tokensBLeft)
+    {
         uint256 amountAToAdd = amountA / 2;
         uint256 amountAToSwapToB = amountA - amountAToAdd;
         uint256 amountBToAdd = moeMerchantSwapSingle(
@@ -89,22 +88,26 @@ library MoeMerchantLib {
             slippageBps,
             consult
         );
-        (uint256 amountASent, uint256 amountBSent, uint256 _lpMinted) = MOE_ROUTER.addLiquidity(
-            tokenA,
-            tokenB,
-            amountAToAdd,
-            amountBToAdd,
-            (amountAToAdd * slippageBps) / MAX_BPS,
-            (amountBToAdd * slippageBps) / MAX_BPS,
-            address(this),
-            block.timestamp
-        );
+        (
+            uint256 amountASent,
+            uint256 amountBSent,
+            uint256 _lpMinted
+        ) = MOE_ROUTER.addLiquidity(
+                tokenA,
+                tokenB,
+                amountAToAdd,
+                amountBToAdd,
+                (amountAToAdd * slippageBps) / MAX_BPS,
+                (amountBToAdd * slippageBps) / MAX_BPS,
+                address(this),
+                block.timestamp
+            );
         lpMinted = _lpMinted;
         if (amountAToAdd > amountASent) {
-            tokensALeft = amountAToAdd - amountASent; 
+            tokensALeft = amountAToAdd - amountASent;
         }
         if (amountBToAdd > amountBSent) {
-            tokensBLeft = amountBToAdd - amountBSent; 
+            tokensBLeft = amountBToAdd - amountBSent;
         }
     }
 
@@ -114,33 +117,38 @@ library MoeMerchantLib {
         uint256 amountA, // any amount (even violating the ratio in the reserves)
         uint256 amountB, // any amount (even violating the ratio in the reserves)
         uint256 slippageBps,
-        function(address, uint256, address) external view returns(uint256) consult
+        function(address, uint256, address)
+            external
+            view
+            returns (uint256) consult
     )
         internal
         returns (uint256 lpMinted, uint256 tokensALeft, uint256 tokensBLeft)
     {
-        uint256 amountBMin =
-            (consult(tokenA, amountA, tokenB) * slippageBps) /
+        uint256 amountBMin = (consult(tokenA, amountA, tokenB) * slippageBps) /
             MAX_BPS;
-        uint256 amountAMin =
-            (consult(tokenB, amountB, tokenA) * slippageBps) /
+        uint256 amountAMin = (consult(tokenB, amountB, tokenA) * slippageBps) /
             MAX_BPS;
-        (uint256 amountASent, uint256 amountBSent, uint256 _lpMinted) = MOE_ROUTER.addLiquidity(
-            tokenA,
-            tokenB,
-            amountA,
-            amountB,
-            amountAMin,
-            amountBMin,
-            address(this),
-            block.timestamp
-        );
+        (
+            uint256 amountASent,
+            uint256 amountBSent,
+            uint256 _lpMinted
+        ) = MOE_ROUTER.addLiquidity(
+                tokenA,
+                tokenB,
+                amountA,
+                amountB,
+                amountAMin,
+                amountBMin,
+                address(this),
+                block.timestamp
+            );
         lpMinted = _lpMinted;
         if (amountA > amountASent) {
-            tokensALeft = amountA - amountASent; 
+            tokensALeft = amountA - amountASent;
         }
         if (amountB > amountBSent) {
-            tokensBLeft = amountB - amountBSent; 
+            tokensBLeft = amountB - amountBSent;
         }
     }
 
@@ -153,15 +161,14 @@ library MoeMerchantLib {
             address(MOE_ROUTER),
             amountLp
         );
-        (amountAWithdrawn, amountBWithdrawn) = MOE_ROUTER
-            .removeLiquidity(
-                tokenA,
-                tokenB,
-                amountLp,
-                0, // any amount acceptible
-                0, // any amount acceptible
-                address(this),
-                block.timestamp
-            );
+        (amountAWithdrawn, amountBWithdrawn) = MOE_ROUTER.removeLiquidity(
+            tokenA,
+            tokenB,
+            amountLp,
+            0, // any amount acceptible
+            0, // any amount acceptible
+            address(this),
+            block.timestamp
+        );
     }
 }

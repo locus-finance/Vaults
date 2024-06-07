@@ -11,12 +11,10 @@ import "./libraries/MoeWmntStrategyLib.sol";
 import "../../abstracts/BaseStrategyForSeparatedVault.sol";
 import "../../integrations/circuit/ICircuitVault.sol";
 import "../../abstracts/mantle/MoeMerchantWithOracleStrategyHelper.sol";
-import "../../abstracts/mantle/AgniMultihopOpsStrategyHelper.sol";
 
 contract MoeWmntStrategy is
     BaseStrategyForSeparatedVault,
-    MoeMerchantWithOracleStrategyHelper,
-    AgniMultihopOpsStrategyHelper
+    MoeMerchantWithOracleStrategyHelper
 {
     using SafeERC20 for IERC20;
     using Math for uint256;
@@ -24,7 +22,6 @@ contract MoeWmntStrategy is
     uint256 public moeTokensToAddToMoeLiquidity;
     uint256 public wmntTokensToAddToMoeLiquidity;
     uint256 public slippageBps;
-    uint32 public agniTwapRangeSecs;
 
     function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(
@@ -35,37 +32,6 @@ contract MoeWmntStrategy is
         );
         _setWindowSize(1 weeks);
         slippageBps = 9000;
-        agniTwapRangeSecs = 1 days;
-
-        address[] memory fromUsdcToWmntChain = new address[](4);
-        fromUsdcToWmntChain[0] = address(want);
-        fromUsdcToWmntChain[1] = address(MoeWmntStrategyLib.USDT); 
-        fromUsdcToWmntChain[2] = address(MoeWmntStrategyLib.WETH);
-        fromUsdcToWmntChain[3] = address(MoeWmntStrategyLib.WMNT);
-        address[] memory fromWmntToUsdcChain = new address[](4);
-        fromWmntToUsdcChain[0] = address(MoeWmntStrategyLib.WMNT);
-        fromWmntToUsdcChain[1] = address(MoeWmntStrategyLib.WETH); 
-        fromWmntToUsdcChain[2] = address(MoeWmntStrategyLib.USDT);
-        fromWmntToUsdcChain[3] = address(want);
-        uint24[] memory fromUsdcToWmntFeesChain = new uint24[](3);
-        fromUsdcToWmntFeesChain[0] = MoeWmntStrategyLib.STANDARD_AGNI_FEE_USDC_USDT; 
-        fromUsdcToWmntFeesChain[1] = MoeWmntStrategyLib.STANDARD_AGNI_FEE_USDT_WETH;
-        fromUsdcToWmntFeesChain[2] = MoeWmntStrategyLib.STANDARD_AGNI_FEE_WETH_WMNT;
-        uint24[] memory fromWmntToUsdcFeesChain = new uint24[](3);
-        fromWmntToUsdcFeesChain[0] = MoeWmntStrategyLib.STANDARD_AGNI_FEE_WETH_WMNT; 
-        fromWmntToUsdcFeesChain[1] = MoeWmntStrategyLib.STANDARD_AGNI_FEE_USDT_WETH;
-        fromWmntToUsdcFeesChain[2] = MoeWmntStrategyLib.STANDARD_AGNI_FEE_USDC_USDT;
-        UsdcWmntSwapParams memory usdcWmntSwapParams = UsdcWmntSwapParams({
-            fromUsdcToWmntChain: fromUsdcToWmntChain,
-            fromWmntToUsdcChain: fromWmntToUsdcChain,
-            fromUsdcToWmntFeesChain: fromUsdcToWmntFeesChain,
-            fromWmntToUsdcFeesChain: fromWmntToUsdcFeesChain
-        });
-        UsdcWethSwapParams memory usdcWethSwapParams; 
-        _initializeAgniSwapStrategyHelper(
-            usdcWmntSwapParams,
-            usdcWethSwapParams
-        );
 
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
@@ -84,23 +50,6 @@ contract MoeWmntStrategy is
             type(uint256).max
         );
 
-        want.forceApprove(
-            address(AgniSwapLib.AGNI_SWAP_ROUTER),
-            type(uint256).max
-        );
-        MoeWmntStrategyLib.WMNT.forceApprove(
-            address(AgniSwapLib.AGNI_SWAP_ROUTER),
-            type(uint256).max
-        );
-        MoeWmntStrategyLib.USDT.forceApprove(
-            address(AgniSwapLib.AGNI_SWAP_ROUTER),
-            type(uint256).max
-        );
-        MoeWmntStrategyLib.WETH.forceApprove(
-            address(AgniSwapLib.AGNI_SWAP_ROUTER),
-            type(uint256).max
-        );
-
         MoeWmntStrategyLib.MOE_MERCHANT_MOE_WMNT_POOL.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -111,20 +60,11 @@ contract MoeWmntStrategy is
         );
     }
 
-    function _updateOracle() internal {
-        this.update(address(want), address(MoeWmntStrategyLib.USDT));
-        this.update(
-            address(MoeWmntStrategyLib.USDT),
-            address(MoeWmntStrategyLib.MOE)
-        );
-        this.update(
-            address(MoeWmntStrategyLib.MOE),
-            address(MoeWmntStrategyLib.WMNT)
-        );
-    }
-
     function updateOracle() external onlyAuthorized {
-        _updateOracle();
+        MoeWmntStrategyLib.updateTraces(
+            address(want),
+            this.update
+        );
     }
 
     function setOracleWindowSize(
@@ -135,12 +75,6 @@ contract MoeWmntStrategy is
 
     function setSlippage(uint256 newSlippage) external onlyAuthorized {
         slippageBps = newSlippage;
-    }
-
-    function setAgniTwapRangeSecs(
-        uint32 newAgniTwapRangeSecs
-    ) external onlyAuthorized {
-        agniTwapRangeSecs = newAgniTwapRangeSecs;
     }
 
     function name() external pure override returns (string memory) {
@@ -177,25 +111,13 @@ contract MoeWmntStrategy is
     function wantToCircuitShares(
         uint256 amount
     ) public view returns (uint256 result) {
-        return
-            MoeWmntStrategyLib.wantToCircuitShares(
-                amount,
-                address(want),
-                agniTwapRangeSecs,
-                this.usdcToWmntQuote
-            );
+        return MoeWmntStrategyLib.wantToCircuitShares(amount, address(want));
     }
 
     function circuitSharesToWant(
         uint256 amount
     ) public view returns (uint256 result) {
-        return
-            MoeWmntStrategyLib.circuitSharesToWant(
-                amount,
-                address(want),
-                agniTwapRangeSecs,
-                this.wmntToUsdcQuote
-            );
+        return MoeWmntStrategyLib.circuitSharesToWant(amount, address(want));
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {
@@ -210,11 +132,9 @@ contract MoeWmntStrategy is
             sharesToWithdraw,
             address(want),
             slippageBps,
-            agniTwapRangeSecs,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
-            this.consult,
-            this.wmntToUsdcSwap
+            this.consult
         );
     }
 
@@ -283,11 +203,9 @@ contract MoeWmntStrategy is
                 moeTokensToAddToMoeLiquidity,
                 wmntTokensToAddToMoeLiquidity,
                 slippageBps,
-                agniTwapRangeSecs,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
-                this.consult,
-                this.usdcToWmntSwap
+                this.consult
             );
         }
     }
@@ -297,11 +215,9 @@ contract MoeWmntStrategy is
             balanceOfCircuitShares(),
             address(want),
             slippageBps,
-            agniTwapRangeSecs,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
-            this.consult,
-            this.wmntToUsdcSwap
+            this.consult
         );
         return want.balanceOf(address(this));
     }
@@ -337,11 +253,9 @@ contract MoeWmntStrategy is
                 moeTokensToAddToMoeLiquidity,
                 wmntTokensToAddToMoeLiquidity,
                 slippageBps,
-                agniTwapRangeSecs,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
-                this.consult,
-                this.usdcToWmntSwap
+                this.consult
             );
         }
         if (moeTokensToAddToMoeLiquidity > 0) {

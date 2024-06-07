@@ -43,9 +43,10 @@ library UsdcUsdyStrategyLib {
             MoeMerchantLib.MOE_FACTORY.getPair(wantAddress, address(USDY))
         );
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
-        uint256 amountBToAdd = MoeMerchantLib.MOE_ROUTER.getAmountsOut(amountAToSwapToB, path)[
-            1
-        ];
+        uint256 amountBToAdd = MoeMerchantLib.MOE_ROUTER.getAmountsOut(
+            amountAToSwapToB,
+            path
+        )[1];
         uint256 lpTotalSupply = pair.totalSupply();
         uint256 liquidity = Math.min(
             (amountAToAdd * lpTotalSupply) / reserve0,
@@ -84,23 +85,31 @@ library UsdcUsdyStrategyLib {
         uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
-        function(address, uint256, address) external view returns(uint256) consult
-    ) 
+        function(address, uint256, address)
+            external
+            view
+            returns (uint256) consult
+    )
         external
         returns (
             uint256 resultingWantTokensToAddToMoeLiquidity,
             uint256 resultingUsdyTokensToAddToMoeLiquidity
         )
     {
-        if (amount == 0) return (wantTokensToAddToMoeLiquidity, usdyTokensToAddToMoeLiquidity);
+        if (amount == 0)
+            return (
+                wantTokensToAddToMoeLiquidity,
+                usdyTokensToAddToMoeLiquidity
+            );
         uint256 oldLpBalance = balanceOfMoeLp();
-        (uint256 lpMinted, uint256 wantLeft, uint256 usdyLeft) = MoeMerchantLib.moeMerchantAddLiquiditySingle(
-            wantAddress,
-            address(USDY),
-            amount,
-            slippageBps,
-            consult
-        );
+        (uint256 lpMinted, uint256 wantLeft, uint256 usdyLeft) = MoeMerchantLib
+            .moeMerchantAddLiquiditySingle(
+                wantAddress,
+                address(USDY),
+                amount,
+                slippageBps,
+                consult
+            );
         if (wantLeft > 0) {
             resultingWantTokensToAddToMoeLiquidity = wantLeft;
         }
@@ -119,7 +128,10 @@ library UsdcUsdyStrategyLib {
         uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
-        function(address, uint256, address) external view returns(uint256) consult
+        function(address, uint256, address)
+            external
+            view
+            returns (uint256) consult
     ) external {
         if (shares == 0) return;
         uint256 oldLpBalance = balanceOfMoeLp();
@@ -129,7 +141,8 @@ library UsdcUsdyStrategyLib {
             oldCircuitSharesBalance,
             balanceOfCircuitShares()
         );
-        (uint256 amountAWithdrawn, uint256 amountBWithdrawn) = MoeMerchantLib.moeMerchantRemoveLiquidity(
+        (uint256 amountAWithdrawn, uint256 amountBWithdrawn) = MoeMerchantLib
+            .moeMerchantRemoveLiquidity(
                 wantAddress,
                 address(USDY),
                 balanceOfMoeLp() - oldLpBalance
@@ -143,8 +156,6 @@ library UsdcUsdyStrategyLib {
             slippageBps,
             consult
         );
-        emit WantTokensGathered(
-            amountAWithdrawn + usdyToUsdcSwappedAmount
-        );
+        emit WantTokensGathered(amountAWithdrawn + usdyToUsdcSwappedAmount);
     }
 }

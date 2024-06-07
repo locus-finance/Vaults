@@ -46,8 +46,6 @@ library AgniSwapLib {
         return AGNI_SWAP_ROUTER.exactInputSingle(params);
     }
 
-    event LogAgni(uint256 indexed what);
-
     function agniMultihopSwap(
         address[] memory tokensChain,
         uint24[] memory tokensFeesChain,
@@ -62,9 +60,6 @@ library AgniSwapLib {
             twapRangeSecs
         ) * slippageBps) / MAX_BPS;
 
-        emit LogAgni(tokensChain.length);
-        emit LogAgni(tokensFeesChain.length);
-
         bytes memory path = abi.encodePacked(tokensChain[0]);
         for (uint256 i = 1; i < tokensChain.length; i++) {
             path = abi.encodePacked(
@@ -73,9 +68,6 @@ library AgniSwapLib {
                 tokensChain[i]
             );
         }
-
-        emit LogAgni(0);
-        emit LogAgni(0);
 
         IAgniSwapRouter.ExactInputParams memory params = IAgniSwapRouter
             .ExactInputParams({
@@ -110,7 +102,7 @@ library AgniSwapLib {
         uint32 twapRangeSecs
     ) internal view returns (uint256) {
         uint256 tokensChainLen = tokensChain.length;
-        uint256 tokensFeesChainLen = tokensFeesChain.length;  
+        uint256 tokensFeesChainLen = tokensFeesChain.length;
         if (
             tokensChainLen <= tokensFeesChainLen ||
             tokensChainLen - tokensFeesChainLen != 1

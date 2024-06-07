@@ -11,12 +11,10 @@ import "./libraries/MethWethStrategyLib.sol";
 import "../../abstracts/BaseStrategyForSeparatedVault.sol";
 import "../../integrations/circuit/ICircuitVault.sol";
 import "../../abstracts/mantle/MoeMerchantWithOracleStrategyHelper.sol";
-import "../../abstracts/mantle/AgniMultihopOpsStrategyHelper.sol";
 
 contract MethWethStrategy is
     BaseStrategyForSeparatedVault,
-    MoeMerchantWithOracleStrategyHelper,
-    AgniMultihopOpsStrategyHelper
+    MoeMerchantWithOracleStrategyHelper
 {
     using SafeERC20 for IERC20;
     using Math for uint256;
@@ -24,7 +22,6 @@ contract MethWethStrategy is
     uint256 public methTokensToAddToMoeLiquidity;
     uint256 public wethTokensToAddToMoeLiquidity;
     uint256 public slippageBps;
-    uint32 public agniTwapRangeSecs;
 
     function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(
@@ -35,59 +32,17 @@ contract MethWethStrategy is
         );
         _setWindowSize(1 weeks);
         slippageBps = 9000;
-        agniTwapRangeSecs = 1 days;
-
-        UsdcWmntSwapParams memory usdcWmntSwapParams;
-        address[] memory fromUsdcToWethChain = new address[](3);
-        fromUsdcToWethChain[0] = address(want); 
-        fromUsdcToWethChain[1] = address(MethWethStrategyLib.USDT);
-        fromUsdcToWethChain[2] = address(MethWethStrategyLib.WETH);
-        address[] memory fromWethToUsdcChain = new address[](3);
-        fromWethToUsdcChain[0] = address(MethWethStrategyLib.WETH); 
-        fromWethToUsdcChain[1] = address(MethWethStrategyLib.USDT);
-        fromWethToUsdcChain[2] = address(want);
-        uint24[] memory fromUsdcToWethFeesChain = new uint24[](2);
-        fromUsdcToWethFeesChain[0] = MethWethStrategyLib.STANDARD_AGNI_FEE_USDC_USDT;
-        fromUsdcToWethFeesChain[1] = MethWethStrategyLib.STANDARD_AGNI_FEE_USDT_WETH;
-        uint24[] memory fromWethToUsdcFeesChain = new uint24[](2);
-        fromWethToUsdcFeesChain[0] = MethWethStrategyLib.STANDARD_AGNI_FEE_USDT_WETH;
-        fromWethToUsdcFeesChain[1] = MethWethStrategyLib.STANDARD_AGNI_FEE_USDC_USDT;
-        UsdcWethSwapParams memory usdcWethSwapParams = UsdcWethSwapParams({
-            fromUsdcToWethChain: fromUsdcToWethChain,
-            fromWethToUsdcChain: fromWethToUsdcChain,
-            fromUsdcToWethFeesChain: fromUsdcToWethFeesChain,
-            fromWethToUsdcFeesChain: fromWethToUsdcFeesChain
-        });
-        _initializeAgniSwapStrategyHelper(
-            usdcWmntSwapParams,
-            usdcWethSwapParams
-        );
 
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
         );
-        want.forceApprove(
-            address(AgniSwapLib.AGNI_SWAP_ROUTER),
-            type(uint256).max
-        );
-
         MethWethStrategyLib.METH.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
         );
-
-        MethWethStrategyLib.WETH.forceApprove(
-            address(AgniSwapLib.AGNI_SWAP_ROUTER),
-            type(uint256).max
-        );
         MethWethStrategyLib.WETH.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
-            type(uint256).max
-        );
-
-        MethWethStrategyLib.USDT.forceApprove(
-            address(AgniSwapLib.AGNI_SWAP_ROUTER),
             type(uint256).max
         );
 
@@ -101,16 +56,11 @@ contract MethWethStrategy is
         );
     }
 
-    function _updateOracle() internal {
-        this.update(address(want), address(MethWethStrategyLib.METH));
-        this.update(
-            address(MethWethStrategyLib.METH),
-            address(MethWethStrategyLib.WETH)
-        );
-    }
-
     function updateOracle() external onlyAuthorized {
-        _updateOracle();
+        MethWethStrategyLib.updateTraces(
+            address(want),
+            this.update
+        );
     }
 
     function setOracleWindowSize(
@@ -123,34 +73,16 @@ contract MethWethStrategy is
         slippageBps = newSlippage;
     }
 
-    function setAgniTwapRangeSecs(
-        uint32 newAgniTwapRangeSecs
-    ) external onlyAuthorized {
-        agniTwapRangeSecs = newAgniTwapRangeSecs;
-    }
-
     function wantToCircuitShares(
         uint256 amount
     ) public view returns (uint256 result) {
-        return
-            MethWethStrategyLib.wantToCircuitShares(
-                amount,
-                address(want),
-                agniTwapRangeSecs,
-                this.usdcToWethQuote
-            );
+        return MethWethStrategyLib.wantToCircuitShares(amount, address(want));
     }
 
     function circuitSharesToWant(
         uint256 amount
     ) public view returns (uint256 result) {
-        return
-            MethWethStrategyLib.circuitSharesToWant(
-                amount,
-                address(want),
-                agniTwapRangeSecs,
-                this.wethToUsdcQuote
-            );
+        return MethWethStrategyLib.circuitSharesToWant(amount, address(want));
     }
 
     function name() external pure override returns (string memory) {
@@ -192,11 +124,9 @@ contract MethWethStrategy is
             sharesToWithdraw,
             address(want),
             slippageBps,
-            agniTwapRangeSecs,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
-            this.consult,
-            this.wethToUsdcSwap
+            this.consult
         );
     }
 
@@ -265,11 +195,9 @@ contract MethWethStrategy is
                 methTokensToAddToMoeLiquidity,
                 wethTokensToAddToMoeLiquidity,
                 slippageBps,
-                agniTwapRangeSecs,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
-                this.consult,
-                this.usdcToWethSwap
+                this.consult
             );
         }
     }
@@ -279,11 +207,9 @@ contract MethWethStrategy is
             balanceOfCircuitShares(),
             address(want),
             slippageBps,
-            agniTwapRangeSecs,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
-            this.consult,
-            this.wethToUsdcSwap
+            this.consult
         );
         return want.balanceOf(address(this));
     }
@@ -319,11 +245,9 @@ contract MethWethStrategy is
                 methTokensToAddToMoeLiquidity,
                 wethTokensToAddToMoeLiquidity,
                 slippageBps,
-                agniTwapRangeSecs,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
-                this.consult,
-                this.usdcToWethSwap
+                this.consult
             );
         }
         if (methTokensToAddToMoeLiquidity > 0) {
