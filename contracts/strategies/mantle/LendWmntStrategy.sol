@@ -143,6 +143,12 @@ contract LendWmntStrategy is
         returns (uint256 _wants)
     {
         _wants += want.balanceOf(address(this));
+        if (lendTokensToAddToMoeLiquidity > 0) {
+            _wants += LendWmntStrategyLib.lendToUsdcQuote(address(want), lendTokensToAddToMoeLiquidity);
+        }
+        if (wmntTokensToAddToMoeLiquidity > 0) {
+            _wants += LendWmntStrategyLib.wmntToUsdcQuote(address(want), wmntTokensToAddToMoeLiquidity);
+        }
         _wants += circuitSharesToWant(balanceOfCircuitShares());
     }
 

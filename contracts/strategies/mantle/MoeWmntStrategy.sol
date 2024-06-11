@@ -146,6 +146,12 @@ contract MoeWmntStrategy is
         returns (uint256 _wants)
     {
         _wants += want.balanceOf(address(this));
+        if (moeTokensToAddToMoeLiquidity > 0) {
+            _wants += MoeWmntStrategyLib.moeToUsdcQuote(address(want), moeTokensToAddToMoeLiquidity);
+        }
+        if (wmntTokensToAddToMoeLiquidity > 0) {
+            _wants += MoeWmntStrategyLib.wmntToUsdcQuote(address(want), wmntTokensToAddToMoeLiquidity);
+        }
         _wants += circuitSharesToWant(balanceOfCircuitShares());
     }
 

@@ -139,6 +139,12 @@ contract WmntMethStrategy is
         returns (uint256 _wants)
     {
         _wants += want.balanceOf(address(this));
+        if (wmntTokensToAddToMoeLiquidity > 0) {
+            _wants += WmntMethStrategyLib.wmntToUsdcQuote(address(this), wmntTokensToAddToMoeLiquidity);
+        }
+        if (methTokensToAddToMoeLiquidity > 0) {
+            _wants += WmntMethStrategyLib.methToUsdcQuote(address(this), methTokensToAddToMoeLiquidity);
+        }
         _wants += circuitSharesToWant(balanceOfCircuitShares());
     }
 

@@ -138,6 +138,12 @@ contract MethWethStrategy is
         returns (uint256 _wants)
     {
         _wants += want.balanceOf(address(this));
+        if (methTokensToAddToMoeLiquidity > 0) {
+            _wants += MethWethStrategyLib.methToUsdcQuote(address(want), methTokensToAddToMoeLiquidity);
+        }
+        if (wethTokensToAddToMoeLiquidity > 0) {
+            _wants += MethWethStrategyLib.wethToUsdcQuote(address(want), wethTokensToAddToMoeLiquidity);
+        }
         _wants += circuitSharesToWant(balanceOfCircuitShares());
     }
 

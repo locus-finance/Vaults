@@ -41,6 +41,48 @@ library MethWethStrategyLib {
         update(address(METH), address(WETH));
     }
 
+    function usdcToMethQuote(address wantAddress, uint256 amountUsdc) internal view returns (uint256) {
+        address[] memory toMethPath = new address[](2);
+        toMethPath[0] = wantAddress;
+        toMethPath[1] = address(METH);
+        return MoeMerchantLib.MOE_ROUTER.getAmountsOut(
+            amountUsdc,
+            toMethPath
+        )[1];
+    }
+
+    function usdcToWethQuote(address wantAddress, uint256 amountWeth) internal view returns (uint256) {
+        address[] memory toWethPath = new address[](3);
+        toWethPath[0] = wantAddress;
+        toWethPath[1] = address(METH);
+        toWethPath[2] = address(WETH);
+        uint256[] memory toWethSwapResults = MoeMerchantLib
+            .MOE_ROUTER
+            .getAmountsOut(amountWeth, toWethPath);
+        return toWethSwapResults[toWethSwapResults.length - 1];
+    }
+
+    function methToUsdcQuote(address wantAddress, uint256 amountMeth) internal view returns (uint256) {
+        address[] memory fromMethPath = new address[](2);
+        fromMethPath[0] = address(METH);
+        fromMethPath[1] = wantAddress;
+        return MoeMerchantLib.MOE_ROUTER.getAmountsOut(
+            amountMeth,
+            fromMethPath
+        )[1];
+    }
+
+    function wethToUsdcQuote(address wantAddress, uint256 amountWeth) internal view returns (uint256) {
+        address[] memory fromWethPath = new address[](3);
+        fromWethPath[0] = address(WETH);
+        fromWethPath[1] = address(METH);
+        fromWethPath[2] = wantAddress;
+        uint256[] memory fromWethSwapResult = MoeMerchantLib
+            .MOE_ROUTER
+            .getAmountsOut(amountWeth, fromWethPath);
+        return fromWethSwapResult[fromWethSwapResult.length - 1];
+    }
+
     function wantToCircuitShares(
         uint256 amount,
         address wantAddress
@@ -49,22 +91,8 @@ library MethWethStrategyLib {
         uint256 usdcForMethSwapAmount = amount / 2;
         uint256 usdcForWethSwapAmount = amount - usdcForMethSwapAmount;
 
-        address[] memory toWethPath = new address[](3);
-        toWethPath[0] = wantAddress;
-        toWethPath[1] = address(METH);
-        toWethPath[2] = address(WETH);
-        uint256[] memory toWethSwapResults = MoeMerchantLib
-            .MOE_ROUTER
-            .getAmountsOut(usdcForWethSwapAmount, toWethPath);
-        uint256 wethAmount = toWethSwapResults[toWethSwapResults.length - 1];
-
-        address[] memory toMethPath = new address[](2);
-        toMethPath[0] = wantAddress;
-        toMethPath[1] = address(METH);
-        uint256 methAmount = MoeMerchantLib.MOE_ROUTER.getAmountsOut(
-            usdcForMethSwapAmount,
-            toMethPath
-        )[1];
+        uint256 wethAmount = usdcToWethQuote(wantAddress, usdcForWethSwapAmount);
+        uint256 methAmount = usdcToMethQuote(wantAddress, usdcForMethSwapAmount);
 
         IMoePair pair = IMoePair(
             MoeMerchantLib.MOE_FACTORY.getPair(address(METH), address(WETH))
@@ -96,23 +124,8 @@ library MethWethStrategyLib {
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
         uint256 methAmount = (liquidity * reserve0) / lpTotalSupply;
         uint256 wethAmount = (liquidity * reserve1) / lpTotalSupply;
-
-        address[] memory fromWethPath = new address[](3);
-        fromWethPath[0] = address(WETH);
-        fromWethPath[1] = address(METH);
-        fromWethPath[2] = wantAddress;
-        uint256[] memory fromWethSwapResult = MoeMerchantLib
-            .MOE_ROUTER
-            .getAmountsOut(wethAmount, fromWethPath);
-        result = fromWethSwapResult[fromWethSwapResult.length - 1];
-
-        address[] memory fromMethPath = new address[](2);
-        fromMethPath[0] = address(METH);
-        fromMethPath[1] = wantAddress;
-        result += MoeMerchantLib.MOE_ROUTER.getAmountsOut(
-            methAmount,
-            fromMethPath
-        )[1];
+        result += wethToUsdcQuote(wantAddress, wethAmount);
+        result += methToUsdcQuote(wantAddress, methAmount);
     }
 
     function mintShares(

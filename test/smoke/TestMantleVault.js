@@ -102,27 +102,36 @@ describe('TestMantleVaultDeposit', () => {
     });
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await initStrategyInstance.connect(userSigner).harvest();
-    });
+      });
+    console.log('Post init');
+    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await lendWmntStrategyInstance.connect(userSigner).setSlippage(slippage);
       await lendWmntStrategyInstance.connect(userSigner).updateOracle();
       await lendWmntStrategyInstance.connect(userSigner).harvest();
     });
+    console.log('Post lend wmnt');
+    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await moeWmntStrategyInstance.connect(userSigner).setSlippage(slippage);
       await moeWmntStrategyInstance.connect(userSigner).updateOracle();
       await moeWmntStrategyInstance.connect(userSigner).harvest();
     });
+    console.log('Post moe wmnt');
+    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await methWethStrategyInstance.connect(userSigner).setSlippage(slippage);
       await methWethStrategyInstance.connect(userSigner).updateOracle();
       await methWethStrategyInstance.connect(userSigner).harvest();
     });
+    console.log('Post meth weth');
+    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await wmntMethStrategyInstance.connect(userSigner).setSlippage(slippage);
       await wmntMethStrategyInstance.connect(userSigner).updateOracle();
       await wmntMethStrategyInstance.connect(userSigner).harvest();
     });
+    console.log('Post wmnt meth');
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
   });
 });
