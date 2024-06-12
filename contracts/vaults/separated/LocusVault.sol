@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.19;
 
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
@@ -20,8 +19,16 @@ contract LocusVault is
     UUPSUpgradeable,
     AccessControlUpgradeable
 {
+    using EnumerableSet for EnumerableSet.AddressSet;
     using SafeERC20 for IERC20Metadata;
     using SafeERC20 for ILocusVaultToken;
+
+    modifier checkAmountOnDeposit(uint256 amount) {
+        if (amount + totalAssets() > depositLimit || amount == 0) {
+            revert AmountIsIncorrect(amount);
+        }
+        _;
+    }
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
@@ -46,21 +53,9 @@ contract LocusVault is
     bool public emergencyShutdown;
 
     mapping(address => StrategyParams) public strategies;
+    EnumerableSet.AddressSet strategiesSet;
 
-    address[] public strategiesList;
-    mapping(address strategy => uint256 position) public strategyPositionInArray;
     uint256 public lastPricePerShare;
-
-    function totalSupply() public view returns (uint256) {
-        return vaultToken.totalSupply();
-    }
-
-    modifier checkAmountOnDeposit(uint256 amount) {
-        if (amount + totalAssets() > depositLimit || amount == 0) {
-            revert AmountIsIncorrect(amount);
-        }
-        _;
-    }
 
     function initialize(
         IERC20Metadata _token,
@@ -76,6 +71,10 @@ contract LocusVault is
         _grantRole(DEFAULT_ADMIN_ROLE, sender);
         token = _token;
         treasury = _treasury;
+    }
+
+    function totalSupply() public view returns (uint256) {
+        return vaultToken.totalSupply();
     }
 
     function decimals() public view virtual returns (uint8) {
@@ -104,14 +103,13 @@ contract LocusVault is
         vaultToken = _newToken;
     }
 
-    //!Tests are not working with this implementation of PPS
     function totalAssets() public view returns (uint256 _assets) {
-        for (uint256 i = 0; i < strategiesList.length; i++) {
-            _assets += BaseStrategyForSeparatedVault(strategiesList[i])
+        uint256 strategiesLen = strategiesSet.length();
+        for (uint256 i = 0; i < strategiesLen; i++) {
+            _assets += BaseStrategyForSeparatedVault(strategiesSet.at(i))
                 .estimatedTotalAssets();
         }
         _assets += totalIdle();
-        // _assets += totalIdle() + totalDebt;
     }
 
     function setInitialPerformanceFee(uint256 fee) external onlyRole(ADMIN_ROLE) {
@@ -198,10 +196,10 @@ contract LocusVault is
             totalGain: 0,
             totalLoss: 0
         });
-
         totalDebtRatio += _debtRatio;
-        strategyPositionInArray[_strategy] = strategiesList.length;
-        strategiesList.push(_strategy);
+        if (!strategiesSet.add(_strategy)) {
+            revert AlreadyAdded(_strategy);
+        }
     }
 
     function debtOutstanding(
@@ -237,20 +235,21 @@ contract LocusVault is
         uint256 vaultBalance = totalIdle();
         if (value > vaultBalance) {
             uint256 totalLoss;
-            for (uint256 i = 0; i < strategiesList.length; i++) {
+            uint256 strategiesLen = strategiesSet.length();
+            for (uint256 i = 0; i < strategiesLen; i++) {
                 if (value <= vaultBalance) {
                     break;
                 }
                 uint256 amountNeeded = value - vaultBalance;
                 amountNeeded = Math.min(
                     amountNeeded,
-                    strategies[strategiesList[i]].totalDebt
+                    strategies[strategiesSet.at(i)].totalDebt
                 );
                 if (amountNeeded == 0) {
                     continue;
                 }
                 uint256 balanceBefore = token.balanceOf(address(this));
-                uint256 loss = BaseStrategyForSeparatedVault(strategiesList[i]).withdraw(
+                uint256 loss = BaseStrategyForSeparatedVault(strategiesSet.at(i)).withdraw(
                     amountNeeded
                 );
                 uint256 withdrawn = token.balanceOf(address(this)) -
@@ -259,13 +258,13 @@ contract LocusVault is
                 if (loss > 0) {
                     value -= loss;
                     totalLoss += loss;
-                    _reportLoss(strategiesList[i], loss);
+                    _reportLoss(strategiesSet.at(i), loss);
                 }
-                strategies[strategiesList[i]].totalDebt -= withdrawn;
+                strategies[strategiesSet.at(i)].totalDebt -= withdrawn;
                 totalDebt -= withdrawn;
                 emit StrategyWithdrawnSome(
-                    strategiesList[i],
-                    strategies[strategiesList[i]].totalDebt,
+                    strategiesSet.at(i),
+                    strategies[strategiesSet.at(i)].totalDebt,
                     loss
                 );
             }
@@ -297,7 +296,7 @@ contract LocusVault is
 
     function revokeStrategy() external {
         address sender = _msgSender();
-        if (!hasRole(ADMIN_ROLE, sender) && sender != strategiesList[strategyPositionInArray[sender]]) {
+        if (!hasRole(ADMIN_ROLE, sender) && !strategiesSet.contains(sender)) {
             revert OnlyAuthorizedOrStrategy();
         }
         _revokeStrategy(sender);
@@ -341,11 +340,6 @@ contract LocusVault is
         strategies[_oldStrategy].totalDebt = 0;
 
         BaseStrategyForSeparatedVault(_oldStrategy).migrate(_newStrategy);
-        strategiesList[strategyPositionInArray[_oldStrategy]] = _newStrategy;
-        strategyPositionInArray[_newStrategy] = strategyPositionInArray[
-            _oldStrategy
-        ];
-        strategyPositionInArray[_oldStrategy] = 0;
     }
 
     function _deposit(
@@ -481,9 +475,10 @@ contract LocusVault is
 
     function maxAvailableShares() external view returns (uint256) {
         uint256 shares = _sharesForAmount(totalIdle());
-        for (uint256 i = 0; i < strategiesList.length; i++) {
+        uint256 strategiesLen = strategiesSet.length();
+        for (uint256 i = 0; i < strategiesLen; i++) {
             shares += _sharesForAmount(
-                strategies[strategiesList[i]].totalDebt
+                strategies[strategiesSet.at(i)].totalDebt
             );
         }
         return shares;
@@ -506,6 +501,9 @@ contract LocusVault is
     }
 
     function _revokeStrategy(address _strategy) internal {
+        if (!strategiesSet.remove(_strategy)) {
+            revert AlreadyRemoved(_strategy);
+        }
         totalDebtRatio -= strategies[_strategy].debtRatio;
         strategies[_strategy].debtRatio = 0;
     }
@@ -567,7 +565,7 @@ contract LocusVault is
 
     function updateLastPricePerShare() external override {
         address sender = _msgSender();
-        if (!hasRole(ADMIN_ROLE, sender) && sender != strategiesList[strategyPositionInArray[sender]]) {
+        if (!hasRole(ADMIN_ROLE, sender) && !strategiesSet.contains(sender)) {
             revert OnlyAuthorizedOrStrategy();
         }
         lastPricePerShare = pricePerShare();

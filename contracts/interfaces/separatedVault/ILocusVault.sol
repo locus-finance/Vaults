@@ -30,6 +30,8 @@ interface ILocusVault {
     error CannotBurnMoreThanActualBalance();
     error OnlyAuthorizedOrStrategy();
     error DurationCannotBeZero();
+    error AlreadyAdded(address strategy);
+    error AlreadyRemoved(address strategy);
 
     event StrategyWithdrawnSome(
         address indexed strategy,

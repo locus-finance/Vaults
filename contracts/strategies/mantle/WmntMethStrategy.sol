@@ -140,10 +140,10 @@ contract WmntMethStrategy is
     {
         _wants += want.balanceOf(address(this));
         if (wmntTokensToAddToMoeLiquidity > 0) {
-            _wants += WmntMethStrategyLib.wmntToUsdcQuote(address(this), wmntTokensToAddToMoeLiquidity);
+            _wants += WmntMethStrategyLib.wmntToUsdcQuote(address(want), wmntTokensToAddToMoeLiquidity);
         }
         if (methTokensToAddToMoeLiquidity > 0) {
-            _wants += WmntMethStrategyLib.methToUsdcQuote(address(this), methTokensToAddToMoeLiquidity);
+            _wants += WmntMethStrategyLib.methToUsdcQuote(address(want), methTokensToAddToMoeLiquidity);
         }
         _wants += circuitSharesToWant(balanceOfCircuitShares());
     }
