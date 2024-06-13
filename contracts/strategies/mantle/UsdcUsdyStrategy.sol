@@ -12,6 +12,7 @@ import "../../abstracts/BaseStrategyForSeparatedVault.sol";
 import "../../integrations/circuit/ICircuitVault.sol";
 import "../../abstracts/mantle/MoeMerchantWithOracleStrategyHelper.sol";
 
+/// @dev HAS NOT BEEN UTILIZED IN ANY VAULT
 contract UsdcUsdyStrategy is
     BaseStrategyForSeparatedVault,
     MoeMerchantWithOracleStrategyHelper

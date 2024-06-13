@@ -186,8 +186,8 @@ library WmntMethStrategyLib {
             .moeMerchantAddLiquidity(
                 address(WMNT),
                 address(METH),
-                methAmount + methTokensToAddToMoeLiquidity,
                 wmntAmount + wmntTokensToAddToMoeLiquidity,
+                methAmount + methTokensToAddToMoeLiquidity,
                 slippageBps,
                 consult
             );

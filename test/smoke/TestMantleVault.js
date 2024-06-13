@@ -132,6 +132,8 @@ describe('TestMantleVaultDeposit', () => {
       await wmntMethStrategyInstance.connect(userSigner).setSlippage(slippage);
       await wmntMethStrategyInstance.connect(userSigner).updateOracle();
       await wmntMethStrategyInstance.connect(userSigner).harvest();
+      console.log((await wmntMethStrategyInstance.wmntTokensToAddToMoeLiquidity()).toString());
+      console.log((await wmntMethStrategyInstance.methTokensToAddToMoeLiquidity()).toString());
     });
     console.log('Post wmnt meth');
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));

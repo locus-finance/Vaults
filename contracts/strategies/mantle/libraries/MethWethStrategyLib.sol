@@ -180,8 +180,8 @@ library MethWethStrategyLib {
             .moeMerchantAddLiquidity(
                 address(METH),
                 address(WETH),
-                wethAmount + wethTokensToAddToMoeLiquidity,
                 methAmount + methTokensToAddToMoeLiquidity,
+                wethAmount + wethTokensToAddToMoeLiquidity,
                 slippageBps,
                 consult
             );
