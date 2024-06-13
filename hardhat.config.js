@@ -208,8 +208,7 @@ module.exports = {
     strict: false,
   },
   tracer: {
-    gasCost: false,
-    nameTags: {}
+    gasCost: false
   },
   abiExporter: {
     path: "./abi",

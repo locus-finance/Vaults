@@ -92,8 +92,8 @@ describe('TestMantleVaultDeposit', () => {
   });
 
   it('should deposit and harvest', async () => {
-    // const t = await hre.ethers.getContractAt("IERC20Metadata", "0xc37c7dEBa5E7F5dE572C914D5c159EA08DE1fefF");
-    // console.log(await t.decimals());
+    // const t = await hre.ethers.getContractAt("ICircuitVault", "0xc37c7dEBa5E7F5dE572C914D5c159EA08DE1fefF");
+    // console.log((await t.getPricePerFullShare()).toString());
 
     const time = 604800 + 3600;
     const slippage = 5000;
