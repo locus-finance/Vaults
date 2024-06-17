@@ -1956,6 +1956,517 @@
           }
         }
       }
+    },
+    "5ccaeddec3e2ba4ceef8918619c534e5b157a96e60935299b28d3839d3b54935": {
+      "address": "0xAE2993F685A85c1CcfDA2Aa8D72Bd02e8Db6D390",
+      "txHash": "0xa5d854c60832ae824419c3ca7f92238a02126de9d3631994635b278acf5af4f6",
+      "layout": {
+        "solcVersion": "0.8.23",
+        "storage": [
+          {
+            "label": "metadataURI",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_string_storage",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:194"
+          },
+          {
+            "label": "doHealthCheck",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_bool",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:197"
+          },
+          {
+            "label": "healthCheck",
+            "offset": 1,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:198"
+          },
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(VaultAPI)5739",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:240"
+          },
+          {
+            "label": "strategist",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:241"
+          },
+          {
+            "label": "rewards",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:242"
+          },
+          {
+            "label": "keeper",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:243"
+          },
+          {
+            "label": "want",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_contract(IERC20)664",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:245"
+          },
+          {
+            "label": "minReportDelay",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_uint256",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:275"
+          },
+          {
+            "label": "maxReportDelay",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_uint256",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:279"
+          },
+          {
+            "label": "emergencyExit",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_bool",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:282"
+          },
+          {
+            "label": "baseFeeOracle",
+            "offset": 1,
+            "slot": "9",
+            "type": "t_address",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:285"
+          },
+          {
+            "label": "creditThreshold",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_uint256",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:288"
+          },
+          {
+            "label": "forceHarvestTriggerOnce",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_bool",
+            "contract": "BaseStrategy",
+            "src": "lib\\yearn-vaults\\contracts\\BaseStrategy.sol:291"
+          },
+          {
+            "label": "slippage",
+            "offset": 0,
+            "slot": "12",
+            "type": "t_uint256",
+            "contract": "GNSStrategy",
+            "src": "contracts\\strategies\\arbitrum\\GNSStrategy.sol:39"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)664": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(VaultAPI)5739": {
+            "label": "contract VaultAPI",
+            "numberOfBytes": "20"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "2160199dd55f68285785c46f448c3405a4300926d5d1670ed35a8552b16d909d": {
+      "address": "0x7057E7E6874a7b46096D6e59e6Ef25dc7F9e5D3d",
+      "txHash": "0xf35499f88489bab003eee5bf4b54a3467aa82323b2d5ba8fb5a7ec7ead10cd90",
+      "layout": {
+        "solcVersion": "0.8.23",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_balances",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC20\\ERC20Upgradeable.sol:40"
+          },
+          {
+            "label": "_allowances",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC20\\ERC20Upgradeable.sol:42"
+          },
+          {
+            "label": "_totalSupply",
+            "offset": 0,
+            "slot": "53",
+            "type": "t_uint256",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC20\\ERC20Upgradeable.sol:44"
+          },
+          {
+            "label": "_name",
+            "offset": 0,
+            "slot": "54",
+            "type": "t_string_storage",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC20\\ERC20Upgradeable.sol:46"
+          },
+          {
+            "label": "_symbol",
+            "offset": 0,
+            "slot": "55",
+            "type": "t_string_storage",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC20\\ERC20Upgradeable.sol:47"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "56",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "ERC20Upgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC20\\ERC20Upgradeable.sol:376"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "lockedProfit",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_uint256",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:27"
+          },
+          {
+            "label": "lastReport",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_uint256",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:28"
+          },
+          {
+            "label": "governance",
+            "offset": 0,
+            "slot": "153",
+            "type": "t_address",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:29"
+          },
+          {
+            "label": "treasury",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_address",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:30"
+          },
+          {
+            "label": "token",
+            "offset": 0,
+            "slot": "155",
+            "type": "t_contract(IERC20)3009",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:31"
+          },
+          {
+            "label": "depositLimit",
+            "offset": 0,
+            "slot": "156",
+            "type": "t_uint256",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:32"
+          },
+          {
+            "label": "totalDebtRatio",
+            "offset": 0,
+            "slot": "157",
+            "type": "t_uint256",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:33"
+          },
+          {
+            "label": "totalDebt",
+            "offset": 0,
+            "slot": "158",
+            "type": "t_uint256",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:34"
+          },
+          {
+            "label": "managementFee",
+            "offset": 0,
+            "slot": "159",
+            "type": "t_uint256",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:35"
+          },
+          {
+            "label": "performanceFee",
+            "offset": 0,
+            "slot": "160",
+            "type": "t_uint256",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:36"
+          },
+          {
+            "label": "management",
+            "offset": 0,
+            "slot": "161",
+            "type": "t_address",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:37"
+          },
+          {
+            "label": "emergencyShutdown",
+            "offset": 20,
+            "slot": "161",
+            "type": "t_bool",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:38"
+          },
+          {
+            "label": "isInjectedOnce",
+            "offset": 21,
+            "slot": "161",
+            "type": "t_bool",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:40"
+          },
+          {
+            "label": "injectedTotalSupply",
+            "offset": 0,
+            "slot": "162",
+            "type": "t_uint256",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:41"
+          },
+          {
+            "label": "injectedFreeFunds",
+            "offset": 0,
+            "slot": "163",
+            "type": "t_uint256",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:42"
+          },
+          {
+            "label": "strategies",
+            "offset": 0,
+            "slot": "164",
+            "type": "t_mapping(t_address,t_struct(StrategyParams)12206_storage)",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:44"
+          },
+          {
+            "label": "strategyPositionInArray",
+            "offset": 0,
+            "slot": "165",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:45"
+          },
+          {
+            "label": "OnChainStrategies",
+            "offset": 0,
+            "slot": "166",
+            "type": "t_array(t_address)dyn_storage",
+            "contract": "OnChainVault",
+            "src": "contracts\\OnChainVault.sol:48"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)3009": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_struct(StrategyParams)12206_storage)": {
+            "label": "mapping(address => struct StrategyParams)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(StrategyParams)12206_storage": {
+            "label": "struct StrategyParams",
+            "members": [
+              {
+                "label": "performanceFee",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "activation",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "debtRatio",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "minDebtPerHarvest",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "maxDebtPerHarvest",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "lastReport",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "totalDebt",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "totalGain",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "totalLoss",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "8"
+              }
+            ],
+            "numberOfBytes": "288"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
     }
   }
 }

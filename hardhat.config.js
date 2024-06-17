@@ -95,70 +95,70 @@ module.exports = {
     },
   },
   networks: {
-    localhost: {},
     hardhat: {
-      forking: {
-        url: ETH_NODE || "",
-      },
-      allowUnlimitedContractSize: true,
+      // forking: {
+      //   url: ETH_NODE || "",
+      // },
+      maxPriorityFeePerGas: 2000000000,
+      // allowUnlimitedContractSize: true,
     },
     mainnet: {
       url: ETH_NODE || "",
       chainId: 1,
-      accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
+      accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY || ""}`],
     },
     optimismgoerli: {
       url: `https://rpc.ankr.com/optimism_testnet`,
-      accounts: [`0x${DEPLOYER_PRIVATE_KEY}`],
+      accounts: [`0x${DEPLOYER_PRIVATE_KEY || ""}`],
     },
     sepolia: {
       url: `https://rpc.ankr.com/eth_sepolia`,
-      accounts: [`0x${DEPLOYER_PRIVATE_KEY}`],
+      accounts: [`0x${DEPLOYER_PRIVATE_KEY || ""}`],
     },
     optimism: {
       url: `https://rpc.ankr.com/optimism`,
-      accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
+      accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY || ""}`],
     },
     bsctestnet: {
       url: `https://rpc.ankr.com/bsc_testnet_chapel`,
       chainId: 97,
-      accounts: [`${DEPLOYER_PRIVATE_KEY}`],
+      accounts: [`${DEPLOYER_PRIVATE_KEY || ""}`],
     },
     polygonmumbai: {
       url: `https://rpc.ankr.com/polygon_mumbai`,
-      accounts: [`${DEPLOYER_PRIVATE_KEY}`],
+      accounts: [`${DEPLOYER_PRIVATE_KEY || ""}`],
     },
     bsc_mainnet: {
       url: `https://bsc-dataseed.binance.org/`,
       chainId: 56,
-      accounts: [`0x${DEPLOYER_PRIVATE_KEY}`],
+      accounts: [`0x${DEPLOYER_PRIVATE_KEY || ""}`],
     },
     fujiavax: {
       url: `https://rpc.ankr.com/avalanche_fuji`,
       chainId: 43113,
-      accounts: [`0x${DEPLOYER_PRIVATE_KEY}`],
+      accounts: [`0x${DEPLOYER_PRIVATE_KEY || ""}`],
     },
     avalanche: {
       url: `https://api.avax.network/ext/bc/C/rpc`,
       chainId: 43114,
-      accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
+      accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY || ""}`],
     },
     polygon: {
       url: `https://rpc.ankr.com/polygon`,
       chainId: 137,
-      accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
+      accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY || ""}`],
     },
     arbitrumOne: {
       url: ARBITRUM_NODE || "",
       chainId: 42161,
-      accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
+      accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY || ""}`],
     },
   },
   etherscan: {
     apiKey: {
-      mainnet: process.env.ETHERSCAN_API_KEY,
-      sepolia: process.env.ETHERSCAN_API_KEY,
-      arbitrumOne: process.env.ARBISCAN_API_KEY,
+      mainnet: process.env.ETHERSCAN_API_KEY || "",
+      sepolia: process.env.ETHERSCAN_API_KEY || "",
+      arbitrumOne: process.env.ARBISCAN_API_KEY || "",
     },
   },
   gasReporter: {

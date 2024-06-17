@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const {
-  impersonateAccount
+  impersonateAccount,
 } = require("@nomicfoundation/hardhat-network-helpers");
 const ABI = [
   "function harvest() external",
@@ -13,21 +13,17 @@ const ABI = [
   "function withdraw(uint256,address,uint256) external",
   "function depositLimit() external view returns(uint256)",
   "function transferOwnership(address) external",
-  "function CONVEX() external view returns(address)"
+  "function CONVEX() external view returns(address)",
 ];
 
 require("dotenv").config();
 
-const {
-  DEPLOYER_PRIVATE_KEY,
-  ARBITRUM_NODE,
-  ETH_NODE
-} = process.env;
+const { DEPLOYER_PRIVATE_KEY, ARBITRUM_NODE, ETH_NODE } = process.env;
 
 async function main() {
   // const sigs = await hre.ethers.getSigners();
   const provider = new hre.ethers.providers.JsonRpcProvider(
-    ETH_NODE || ""
+    ARBITRUM_NODE || ""
   );
   // await impersonateAccount("0xc0496fe72226e6463a30cf0e0f0b5be525262b4e")
   // const signer = await ethers.provider.getSigner(
@@ -39,6 +35,16 @@ async function main() {
   let wallet = new hre.ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY).connect(
     provider
   );
+  // const VAULT_ADDRESS = "0xF8F045583580C4Ba954CD911a8b161FafD89A9EF";
+  // const GNS_STRATEGY_ADDRESS = "0xa7eb4efe088A3618C9BA21e1520E0c8460b42D37";
+
+  // const gnsFactory = await ethers.getContractFactory("OnChainVault", wallet);
+  // const upgraded = await upgrades.upgradeProxy(VAULT_ADDRESS, gnsFactory);
+  console.log("Strategy upgraded");
+
+  await hre.run("verify:verify", {
+    address: "0xF8F045583580C4Ba954CD911a8b161FafD89A9EF",
+  });
   //   console.log(signer._address);
   // const tx2 = await sigs[0].sendTransaction({
   //   to: wallet.address,
@@ -48,13 +54,13 @@ async function main() {
 
   // await upgradeVault();
 
-  const targetContract = await hre.ethers.getContractAt(
-    ABI,
-    "0x8A82566BB321873701191878cEbbC27Ee984AA6b",
-    wallet
-  );
-  console.log(await targetContract.name());
-  console.log(await targetContract.CONVEX());
+  // const targetContract = await hre.ethers.getContractAt(
+  //   ABI,
+  //   "0x8A82566BB321873701191878cEbbC27Ee984AA6b",
+  //   wallet
+  // );
+  // console.log(await targetContract.name());
+  // console.log(await targetContract.CONVEX());
 
   // const want = await hre.ethers.getContractAt(
   //   ABI,
@@ -80,22 +86,21 @@ async function main() {
   //       constructorArguments: [vaultAddress],
   //   });
   // await want.connect(wallet).approve(targetContract.address, ethers.utils.parseEther("100000000000"))
-// console.log(await want.balanceOf(wallet.address));
-//   console.log(await targetContract.name())
-//   console.log(await targetContract.depositLimit())
+  // console.log(await want.balanceOf(wallet.address));
+  //   console.log(await targetContract.name())
+  //   console.log(await targetContract.depositLimit())
   // console.log("DEPOSIT");
   // console.log("Before", await want.balanceOf(targetContract.address));
 
   // await targetContract.deposit(ethers.utils.parseEther("0.000000000001"),{gasLimit: 30000000});
-  
-    // await targetContract.connect(buyer).approve(targetContract.address, ethers.utils.parseEther("100000000000"))
+
+  // await targetContract.connect(buyer).approve(targetContract.address, ethers.utils.parseEther("100000000000"))
 
   // await targetContract.withdraw(await targetContract.balanceOf(buyer._address), buyer._address, 9000)
   // console.log("After", await want.balanceOf(buyer._address));
 
   // console.log("ETA a ", await strategyB.estimatedTotalAssets())
   // console.log("ETA a ", await strategyA.estimatedTotalAssets())
-
 
   // console.log(await targetContract.connect(signer).name());
   // console.log(
