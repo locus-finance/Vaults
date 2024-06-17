@@ -214,6 +214,8 @@ library MoeWmntStrategyLib {
     function burnShares(
         uint256 shares,
         address wantAddress,
+        uint256 moeTokensToAddToMoeLiquidity,
+        uint256 wmntTokensToAddToMoeLiquidity,
         uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
@@ -221,8 +223,19 @@ library MoeWmntStrategyLib {
             external
             view
             returns (uint256) consult
-    ) external {
-        if (shares == 0) return;
+    ) 
+        external
+        returns (
+            uint256 resultingMoeTokensToAddToMoeLiquidity,
+            uint256 resultingWmntTokensToAddToMoeLiquidity
+        )
+    {
+        if (shares == 0) {
+            return (
+                moeTokensToAddToMoeLiquidity,
+                wmntTokensToAddToMoeLiquidity
+            );
+        }
         uint256 oldLpBalance = balanceOfMoeLp();
         uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
         CIRCUIT_VAULT.withdraw(shares);
@@ -242,9 +255,10 @@ library MoeWmntStrategyLib {
         fromMoePath[0] = address(MOE);
         fromMoePath[1] = address(USDT);
         fromMoePath[2] = wantAddress;
+        uint256 moeToBeSwappedToUsdc = amountAWithdrawn + moeTokensToAddToMoeLiquidity;
         uint256 swappedFromMoeUsdcAmount = MoeMerchantLib.moeMerchantSwapMulti(
             fromMoePath,
-            amountAWithdrawn,
+            moeToBeSwappedToUsdc,
             slippageBps,
             consult
         );
@@ -252,14 +266,17 @@ library MoeWmntStrategyLib {
         fromWmntPath[0] = address(WMNT);
         fromWmntPath[1] = address(USDT);
         fromWmntPath[2] = wantAddress;
+        uint256 wmntToBeSwappedToUsdc = amountBWithdrawn + wmntTokensToAddToMoeLiquidity;
         uint256 swappedFromWmntUsdcAmount = MoeMerchantLib.moeMerchantSwapMulti(
             fromWmntPath,
-            amountBWithdrawn,
+            wmntToBeSwappedToUsdc,
             slippageBps,
             consult
         );
         emit WantTokensGathered(
             swappedFromWmntUsdcAmount + swappedFromMoeUsdcAmount
         );
+        // Explicitly zeroify the buffered numbers to not forget that they are cleared.
+        return (0, 0);
     }
 }

@@ -32,7 +32,10 @@ contract MoeWmntStrategy is
         );
         _setWindowSize(1 weeks);
         slippageBps = 9000;
+        _resetAllowances();
+    }
 
+    function _resetAllowances() internal {
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -50,6 +53,15 @@ contract MoeWmntStrategy is
             type(uint256).max
         );
 
+        MoeWmntStrategyLib.MOE.forceApprove(
+            address(MoeWmntStrategyLib.MOE_MERCHANT_MOE_WMNT_POOL),
+            type(uint256).max
+        );
+        MoeWmntStrategyLib.WMNT.forceApprove(
+            address(MoeWmntStrategyLib.MOE_MERCHANT_MOE_WMNT_POOL),
+            type(uint256).max
+        );
+
         MoeWmntStrategyLib.MOE_MERCHANT_MOE_WMNT_POOL.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -58,6 +70,10 @@ contract MoeWmntStrategy is
             address(MoeWmntStrategyLib.CIRCUIT_VAULT),
             type(uint256).max
         );
+    }
+
+    function resetAllowances() external onlyAuthorized {
+        _resetAllowances();
     }
 
     function updateOracle() external onlyAuthorized {
@@ -128,9 +144,14 @@ contract MoeWmntStrategy is
             wantToCircuitShares(_amountNeeded),
             balanceOfCircuitShares()
         );
-        MoeWmntStrategyLib.burnShares(
+        (
+            moeTokensToAddToMoeLiquidity,
+            wmntTokensToAddToMoeLiquidity
+        ) = MoeWmntStrategyLib.burnShares(
             sharesToWithdraw,
             address(want),
+            moeTokensToAddToMoeLiquidity,
+            wmntTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
@@ -217,9 +238,14 @@ contract MoeWmntStrategy is
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        MoeWmntStrategyLib.burnShares(
+        (
+            moeTokensToAddToMoeLiquidity,
+            wmntTokensToAddToMoeLiquidity
+        ) = MoeWmntStrategyLib.burnShares(
             balanceOfCircuitShares(),
             address(want),
+            moeTokensToAddToMoeLiquidity,
+            wmntTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,

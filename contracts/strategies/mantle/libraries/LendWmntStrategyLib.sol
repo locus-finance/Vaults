@@ -216,6 +216,8 @@ library LendWmntStrategyLib {
     function burnShares(
         uint256 shares,
         address wantAddress,
+        uint256 lendTokensToAddToMoeLiquidity,
+        uint256 wmntTokensToAddToMoeLiquidity,
         uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
@@ -223,8 +225,19 @@ library LendWmntStrategyLib {
             external
             view
             returns (uint256) consult
-    ) external {
-        if (shares == 0) return;
+    ) 
+        external
+        returns (
+            uint256 resultingLendTokensToAddToMoeLiquidity,
+            uint256 resultingWmntTokensToAddToMoeLiquidity
+        )
+    {
+        if (shares == 0) {
+            return (
+                lendTokensToAddToMoeLiquidity,
+                wmntTokensToAddToMoeLiquidity
+            );
+        }
         uint256 oldLpBalance = balanceOfMoeLp();
         uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
         CIRCUIT_VAULT.withdraw(shares);
@@ -245,9 +258,10 @@ library LendWmntStrategyLib {
         fromLendPath[1] = address(WMNT);
         fromLendPath[2] = address(USDT);
         fromLendPath[3] = wantAddress;
+        uint256 lendToBeSwappedToUsdc = amountAWithdrawn + lendTokensToAddToMoeLiquidity;
         uint256 swappedFromLendUsdcAmount = MoeMerchantLib.moeMerchantSwapMulti(
             fromLendPath,
-            amountAWithdrawn,
+            lendToBeSwappedToUsdc,
             slippageBps,
             consult
         );
@@ -256,9 +270,10 @@ library LendWmntStrategyLib {
         fromWmntPath[0] = address(WMNT);
         fromWmntPath[1] = address(USDT);
         fromWmntPath[2] = wantAddress;
+        uint256 wmntToBeSwappedToUsdc = amountBWithdrawn + wmntTokensToAddToMoeLiquidity; 
         uint256 swappedFromWmntUsdcAmount = MoeMerchantLib.moeMerchantSwapMulti(
             fromWmntPath,
-            amountBWithdrawn,
+            wmntToBeSwappedToUsdc,
             slippageBps,
             consult
         );
@@ -266,5 +281,8 @@ library LendWmntStrategyLib {
         emit WantTokensGathered(
             swappedFromLendUsdcAmount + swappedFromWmntUsdcAmount
         );
+
+        // Explicitly zeroify the buffered numbers to not forget that they are cleared.
+        return (0, 0);
     }
 }

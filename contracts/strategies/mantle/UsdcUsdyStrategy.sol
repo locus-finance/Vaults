@@ -33,6 +33,10 @@ contract UsdcUsdyStrategy is
         );
         _setWindowSize(1 weeks);
         slippageBps = 9000;
+        _resetAllowances();
+    }
+
+    function _resetAllowances() internal {
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -41,6 +45,16 @@ contract UsdcUsdyStrategy is
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
         );
+
+        want.forceApprove(
+            address(UsdcUsdyStrategyLib.MOE_MERCHANT_USDC_USDY_POOL),
+            type(uint256).max
+        );
+        UsdcUsdyStrategyLib.USDY.forceApprove(
+            address(UsdcUsdyStrategyLib.MOE_MERCHANT_USDC_USDY_POOL),
+            type(uint256).max
+        );
+
         UsdcUsdyStrategyLib.MOE_MERCHANT_USDC_USDY_POOL.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -49,6 +63,10 @@ contract UsdcUsdyStrategy is
             address(UsdcUsdyStrategyLib.CIRCUIT_VAULT),
             type(uint256).max
         );
+    }
+
+    function resetAllowances() external onlyAuthorized {
+        _resetAllowances();
     }
 
     function _updateOracle() internal {
@@ -112,9 +130,14 @@ contract UsdcUsdyStrategy is
             wantToCircuitShares(_amountNeeded),
             balanceOfCircuitShares()
         );
-        UsdcUsdyStrategyLib.burnShares(
+        (
+            wantTokensToAddToMoeLiquidity,
+            usdyTokensToAddToMoeLiquidity
+        ) = UsdcUsdyStrategyLib.burnShares(
             sharesToWithdraw,
             address(want),
+            wantTokensToAddToMoeLiquidity,
+            usdyTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
@@ -195,9 +218,14 @@ contract UsdcUsdyStrategy is
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        UsdcUsdyStrategyLib.burnShares(
+        (
+            wantTokensToAddToMoeLiquidity,
+            usdyTokensToAddToMoeLiquidity
+        ) = UsdcUsdyStrategyLib.burnShares(
             balanceOfCircuitShares(),
             address(want),
+            wantTokensToAddToMoeLiquidity,
+            usdyTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,

@@ -125,6 +125,8 @@ library UsdcUsdyStrategyLib {
     function burnShares(
         uint256 shares,
         address wantAddress,
+        uint256 wantTokensToAddToMoeLiquidity,
+        uint256 usdyTokensToAddToMoeLiquidity,
         uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
@@ -132,8 +134,19 @@ library UsdcUsdyStrategyLib {
             external
             view
             returns (uint256) consult
-    ) external {
-        if (shares == 0) return;
+    ) 
+        external
+        returns (
+            uint256 resultingWantTokensToAddToMoeLiquidity,
+            uint256 resultingUsdyTokensToAddToMoeLiquidity
+        )
+    {
+        if (shares == 0) {
+            return (
+                wantTokensToAddToMoeLiquidity,
+                usdyTokensToAddToMoeLiquidity
+            );
+        }
         uint256 oldLpBalance = balanceOfMoeLp();
         uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
         CIRCUIT_VAULT.withdraw(shares);
@@ -149,13 +162,18 @@ library UsdcUsdyStrategyLib {
             );
         emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
 
+        uint256 usdyToBeSwappedToUsdc = amountBWithdrawn + usdyTokensToAddToMoeLiquidity;
         uint256 usdyToUsdcSwappedAmount = MoeMerchantLib.moeMerchantSwapSingle(
             address(USDY),
             wantAddress,
-            amountBWithdrawn,
+            usdyToBeSwappedToUsdc,
             slippageBps,
             consult
         );
-        emit WantTokensGathered(amountAWithdrawn + usdyToUsdcSwappedAmount);
+
+        uint256 gatheredWantTokens = amountAWithdrawn + wantTokensToAddToMoeLiquidity;
+        emit WantTokensGathered(gatheredWantTokens + usdyToUsdcSwappedAmount);
+        // Explicitly zeroify the buffered numbers to not forget that they are cleared.
+        return (0, 0);
     }
 }

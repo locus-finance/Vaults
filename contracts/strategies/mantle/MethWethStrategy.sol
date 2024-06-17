@@ -33,6 +33,10 @@ contract MethWethStrategy is
         _setWindowSize(1 weeks);
         slippageBps = 9000;
 
+        _resetAllowances();
+    }
+
+    function _resetAllowances() internal {
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -43,6 +47,14 @@ contract MethWethStrategy is
         );
         MethWethStrategyLib.WETH.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
+            type(uint256).max
+        );
+        MethWethStrategyLib.METH.forceApprove(
+            address(MethWethStrategyLib.MOE_MERCHANT_METH_WETH_POOL),
+            type(uint256).max
+        );
+        MethWethStrategyLib.WETH.forceApprove(
+            address(MethWethStrategyLib.MOE_MERCHANT_METH_WETH_POOL),
             type(uint256).max
         );
 
@@ -56,11 +68,12 @@ contract MethWethStrategy is
         );
     }
 
+    function resetAllowances() external onlyAuthorized {
+        _resetAllowances();
+    }
+
     function updateOracle() external onlyAuthorized {
-        MethWethStrategyLib.updateTraces(
-            address(want),
-            this.update
-        );
+        MethWethStrategyLib.updateTraces(address(want), this.update);
     }
 
     function setOracleWindowSize(
@@ -120,9 +133,14 @@ contract MethWethStrategy is
             wantToCircuitShares(_amountNeeded),
             balanceOfCircuitShares()
         );
-        MethWethStrategyLib.burnShares(
+        (
+            methTokensToAddToMoeLiquidity,
+            wethTokensToAddToMoeLiquidity
+        ) = MethWethStrategyLib.burnShares(
             sharesToWithdraw,
             address(want),
+            methTokensToAddToMoeLiquidity,
+            wethTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
@@ -139,10 +157,16 @@ contract MethWethStrategy is
     {
         _wants += want.balanceOf(address(this));
         if (methTokensToAddToMoeLiquidity > 0) {
-            _wants += MethWethStrategyLib.methToUsdcQuote(address(want), methTokensToAddToMoeLiquidity);
+            _wants += MethWethStrategyLib.methToUsdcQuote(
+                address(want),
+                methTokensToAddToMoeLiquidity
+            );
         }
         if (wethTokensToAddToMoeLiquidity > 0) {
-            _wants += MethWethStrategyLib.wethToUsdcQuote(address(want), wethTokensToAddToMoeLiquidity);
+            _wants += MethWethStrategyLib.wethToUsdcQuote(
+                address(want),
+                wethTokensToAddToMoeLiquidity
+            );
         }
         _wants += circuitSharesToWant(balanceOfCircuitShares());
     }
@@ -209,9 +233,14 @@ contract MethWethStrategy is
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        MethWethStrategyLib.burnShares(
+        (
+            methTokensToAddToMoeLiquidity,
+            wethTokensToAddToMoeLiquidity
+        ) = MethWethStrategyLib.burnShares(
             balanceOfCircuitShares(),
             address(want),
+            methTokensToAddToMoeLiquidity,
+            wethTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,

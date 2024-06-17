@@ -33,6 +33,10 @@ contract LendWmntStrategy is
         _setWindowSize(1 weeks);
         slippageBps = 9000;
 
+        _resetAllowances();
+    }
+
+    function _resetAllowances() internal {
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -50,6 +54,15 @@ contract LendWmntStrategy is
             type(uint256).max
         );
 
+        LendWmntStrategyLib.WMNT.forceApprove(
+            address(LendWmntStrategyLib.MOE_MERCHANT_LEND_WMNT_POOL),
+            type(uint256).max
+        );
+        LendWmntStrategyLib.LEND.forceApprove(
+            address(LendWmntStrategyLib.MOE_MERCHANT_LEND_WMNT_POOL),
+            type(uint256).max
+        );
+
         LendWmntStrategyLib.MOE_MERCHANT_LEND_WMNT_POOL.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -58,6 +71,10 @@ contract LendWmntStrategy is
             address(LendWmntStrategyLib.CIRCUIT_VAULT),
             type(uint256).max
         );
+    }
+
+    function resetAllowances() external onlyAuthorized {
+        _resetAllowances();
     }
 
     function _updateOracle() internal {
@@ -125,9 +142,14 @@ contract LendWmntStrategy is
             wantToCircuitShares(_amountNeeded),
             balanceOfCircuitShares()
         );
-        LendWmntStrategyLib.burnShares(
+        (
+            lendTokensToAddToMoeLiquidity,
+            wmntTokensToAddToMoeLiquidity
+        ) = LendWmntStrategyLib.burnShares(
             sharesToWithdraw,
             address(want),
+            lendTokensToAddToMoeLiquidity,
+            wmntTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
@@ -214,9 +236,14 @@ contract LendWmntStrategy is
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        LendWmntStrategyLib.burnShares(
+        (
+            lendTokensToAddToMoeLiquidity,
+            wmntTokensToAddToMoeLiquidity
+        ) = LendWmntStrategyLib.burnShares(
             balanceOfCircuitShares(),
             address(want),
+            lendTokensToAddToMoeLiquidity,
+            wmntTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,

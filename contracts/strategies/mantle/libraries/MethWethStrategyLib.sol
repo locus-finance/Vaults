@@ -200,6 +200,8 @@ library MethWethStrategyLib {
     function burnShares(
         uint256 shares,
         address wantAddress,
+        uint256 methTokensToAddToMoeLiquidity,
+        uint256 wethTokensToAddToMoeLiquidity,
         uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
@@ -207,8 +209,19 @@ library MethWethStrategyLib {
             external
             view
             returns (uint256) consult
-    ) external {
-        if (shares == 0) return;
+    ) 
+        external
+        returns (
+            uint256 resultingMethTokensToAddToMoeLiquidity,
+            uint256 resultingWethTokensToAddToMoeLiquidity
+        )
+    {
+        if (shares == 0) {
+            return (
+                methTokensToAddToMoeLiquidity,
+                wethTokensToAddToMoeLiquidity
+            );
+        }
         uint256 oldLpBalance = balanceOfMoeLp();
         uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
         CIRCUIT_VAULT.withdraw(shares);
@@ -228,23 +241,28 @@ library MethWethStrategyLib {
         fromWethPath[0] = address(WETH);
         fromWethPath[1] = address(METH);
         fromWethPath[2] = wantAddress;
+        uint256 wethToBeSwappedToUsdc = amountBWithdrawn + wethTokensToAddToMoeLiquidity;
         uint256 swappedFromWethUsdcAmount = MoeMerchantLib.moeMerchantSwapMulti(
             fromWethPath,
-            amountBWithdrawn,
+            wethToBeSwappedToUsdc,
             slippageBps,
             consult
         );
 
+        uint256 methToBeSwappedToUsdc = amountAWithdrawn + methTokensToAddToMoeLiquidity;
         uint256 swappedFromMethUsdcAmount = MoeMerchantLib
             .moeMerchantSwapSingle(
                 address(METH),
                 wantAddress,
-                amountAWithdrawn,
+                methToBeSwappedToUsdc,
                 slippageBps,
                 consult
             );
         emit WantTokensGathered(
             swappedFromWethUsdcAmount + swappedFromMethUsdcAmount
         );
+
+        // Explicitly zeroify the buffered numbers to not forget that they are cleared.
+        return (0, 0);
     }
 }

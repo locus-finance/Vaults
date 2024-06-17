@@ -33,7 +33,10 @@ contract WmntMethStrategy is
         );
         _setWindowSize(1 weeks);
         slippageBps = 9000;
+        _resetAllowances();
+    }
 
+    function _resetAllowances() internal {
         want.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -51,6 +54,15 @@ contract WmntMethStrategy is
             type(uint256).max
         );
 
+        WmntMethStrategyLib.WMNT.forceApprove(
+            address(WmntMethStrategyLib.MOE_MERCHANT_WMNT_METH_POOL),
+            type(uint256).max
+        );
+        WmntMethStrategyLib.METH.forceApprove(
+            address(WmntMethStrategyLib.MOE_MERCHANT_WMNT_METH_POOL),
+            type(uint256).max
+        );
+
         WmntMethStrategyLib.MOE_MERCHANT_WMNT_METH_POOL.forceApprove(
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
@@ -59,6 +71,10 @@ contract WmntMethStrategy is
             address(WmntMethStrategyLib.CIRCUIT_VAULT),
             type(uint256).max
         );
+    }
+
+    function resetAllowances() external onlyAuthorized {
+        _resetAllowances();
     }
 
     function updateOracle() external onlyAuthorized {
@@ -121,9 +137,14 @@ contract WmntMethStrategy is
             wantToCircuitShares(_amountNeeded),
             balanceOfCircuitShares()
         );
-        WmntMethStrategyLib.burnShares(
+        (
+            wmntTokensToAddToMoeLiquidity,
+            methTokensToAddToMoeLiquidity
+        ) = WmntMethStrategyLib.burnShares(
             sharesToWithdraw,
             address(want),
+            wmntTokensToAddToMoeLiquidity,
+            methTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfWant,
             this.balanceOfCircuitShares,
@@ -210,9 +231,14 @@ contract WmntMethStrategy is
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        WmntMethStrategyLib.burnShares(
+        (
+            wmntTokensToAddToMoeLiquidity,
+            methTokensToAddToMoeLiquidity
+        ) = WmntMethStrategyLib.burnShares(
             balanceOfCircuitShares(),
             address(want),
+            wmntTokensToAddToMoeLiquidity,
+            methTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,

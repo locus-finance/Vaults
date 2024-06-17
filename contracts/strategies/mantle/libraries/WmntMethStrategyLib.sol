@@ -206,6 +206,8 @@ library WmntMethStrategyLib {
     function burnShares(
         uint256 shares,
         address wantAddress,
+        uint256 wmntTokensToAddToMoeLiquidity,
+        uint256 methTokensToAddToMoeLiquidity,
         uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
@@ -213,8 +215,19 @@ library WmntMethStrategyLib {
             external
             view
             returns (uint256) consult
-    ) external {
-        if (shares == 0) return;
+    ) 
+        external
+        returns (
+            uint256 resultingWmntTokensToAddToMoeLiquidity,
+            uint256 resultingMethTokensToAddToMoeLiquidity
+        )
+    {
+        if (shares == 0) {
+            return (
+                wmntTokensToAddToMoeLiquidity,
+                methTokensToAddToMoeLiquidity
+            );
+        }
         uint256 oldLpBalance = balanceOfMoeLp();
         uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
         CIRCUIT_VAULT.withdraw(shares);
@@ -234,9 +247,10 @@ library WmntMethStrategyLib {
         fromWmntPath[0] = address(WMNT);
         fromWmntPath[1] = address(USDT);
         fromWmntPath[2] = wantAddress;
+        uint256 wmntToBeSwappedToUsdc = amountAWithdrawn + wmntTokensToAddToMoeLiquidity;
         uint256 swappedFromWmntUsdcAmount = MoeMerchantLib.moeMerchantSwapMulti(
             fromWmntPath,
-            amountAWithdrawn,
+            wmntToBeSwappedToUsdc,
             slippageBps,
             consult
         );
@@ -245,9 +259,10 @@ library WmntMethStrategyLib {
         fromMethPath[0] = address(METH);
         fromMethPath[1] = address(USDT);
         fromMethPath[2] = wantAddress;
+        uint256 methToBeSwappedToUsdc = amountBWithdrawn + methTokensToAddToMoeLiquidity;
         uint256 swappedFromMethUsdcAmount = MoeMerchantLib.moeMerchantSwapMulti(
             fromMethPath,
-            amountBWithdrawn,
+            methToBeSwappedToUsdc,
             slippageBps,
             consult
         );
@@ -255,5 +270,7 @@ library WmntMethStrategyLib {
         emit WantTokensGathered(
             swappedFromWmntUsdcAmount + swappedFromMethUsdcAmount
         );
+        // Explicitly zeroify the buffered numbers to not forget that they are cleared.
+        return (0, 0);
     }
 }
