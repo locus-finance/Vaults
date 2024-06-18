@@ -96,10 +96,11 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      // forking: {
-      //   url: ETH_NODE || "",
-      // },
-      maxPriorityFeePerGas: 2000000000,
+      chainId: 42161,
+      forking: {
+        url: ARBITRUM_NODE || "",
+      },
+      // maxPriorityFeePerGas: 2000000000,
       // allowUnlimitedContractSize: true,
     },
     mainnet: {

@@ -25,7 +25,7 @@ async function main() {
   const provider = new hre.ethers.providers.JsonRpcProvider(
     ARBITRUM_NODE || ""
   );
-  // await impersonateAccount("0xc0496fe72226e6463a30cf0e0f0b5be525262b4e")
+  // await impersonateAccount("0xc0496fe72226e6463a30cf0e0f0b5be525262b4e");
   // const signer = await ethers.provider.getSigner(
   //   "0xc0496fe72226e6463a30cf0e0f0b5be525262b4e"
   // );
@@ -35,16 +35,26 @@ async function main() {
   let wallet = new hre.ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY).connect(
     provider
   );
-  // const VAULT_ADDRESS = "0xF8F045583580C4Ba954CD911a8b161FafD89A9EF";
-  // const GNS_STRATEGY_ADDRESS = "0xa7eb4efe088A3618C9BA21e1520E0c8460b42D37";
+  const VAULT_ADDRESS = "0xF8F045583580C4Ba954CD911a8b161FafD89A9EF";
+  const GNS_STRATEGY_ADDRESS = "0xBf8181f3b5E71fa0CbBE1e067f408a9a0558C60f";
 
-  // const gnsFactory = await ethers.getContractFactory("OnChainVault", wallet);
-  // const upgraded = await upgrades.upgradeProxy(VAULT_ADDRESS, gnsFactory);
-  console.log("Strategy upgraded");
-
+  const gnsFactory = await ethers.getContractFactory("GMXStrategy", wallet);
+  const upgraded = await upgrades.upgradeProxy(
+    GNS_STRATEGY_ADDRESS,
+    gnsFactory,
+    {
+      unsafeAllow: ["constructor"],
+      constructorArgs: ["0xF8F045583580C4Ba954CD911a8b161FafD89A9EF"],
+      kind: "transparent",
+    }
+  );
   await hre.run("verify:verify", {
-    address: "0xF8F045583580C4Ba954CD911a8b161FafD89A9EF",
+    address: upgraded.address,
+    constructorArguments: [VAULT_ADDRESS],
   });
+
+  console.log(await upgraded.estimatedTotalAssets());
+
   //   console.log(signer._address);
   // const tx2 = await sigs[0].sendTransaction({
   //   to: wallet.address,
