@@ -19,8 +19,12 @@ contract LendWmntStrategy is
     using SafeERC20 for IERC20;
     using Math for uint256;
 
+    /// @dev DEPRECATED - DO NOT USE AND DO NOT DELETE TO PREVENT THE STORAGE RIFF-RAFF.
     uint256 public lendTokensToAddToMoeLiquidity;
+    
+    /// @dev DEPRECATED - DO NOT USE AND DO NOT DELETE TO PREVENT THE STORAGE RIFF-RAFF.
     uint256 public wmntTokensToAddToMoeLiquidity;
+
     uint256 public slippageBps;
 
     function initialize(address _vault, address _strategist) external {
@@ -142,14 +146,9 @@ contract LendWmntStrategy is
             wantToCircuitShares(_amountNeeded),
             balanceOfCircuitShares()
         );
-        (
-            lendTokensToAddToMoeLiquidity,
-            wmntTokensToAddToMoeLiquidity
-        ) = LendWmntStrategyLib.burnShares(
+        LendWmntStrategyLib.burnShares(
             sharesToWithdraw,
             address(want),
-            lendTokensToAddToMoeLiquidity,
-            wmntTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
@@ -219,14 +218,9 @@ contract LendWmntStrategy is
         }
 
         if (_excessWant > 0) {
-            (
-                lendTokensToAddToMoeLiquidity,
-                wmntTokensToAddToMoeLiquidity
-            ) = LendWmntStrategyLib.mintShares(
+            LendWmntStrategyLib.mintShares(
                 _excessWant,
                 address(want),
-                lendTokensToAddToMoeLiquidity,
-                wmntTokensToAddToMoeLiquidity,
                 slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
@@ -236,14 +230,9 @@ contract LendWmntStrategy is
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        (
-            lendTokensToAddToMoeLiquidity,
-            wmntTokensToAddToMoeLiquidity
-        ) = LendWmntStrategyLib.burnShares(
+        LendWmntStrategyLib.burnShares(
             balanceOfCircuitShares(),
             address(want),
-            lendTokensToAddToMoeLiquidity,
-            wmntTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
@@ -274,14 +263,9 @@ contract LendWmntStrategy is
     function prepareMigration(address _newStrategy) internal override {
         uint256 wantBalance = balanceOfWant();
         if (wantBalance > 0) {
-            (
-                lendTokensToAddToMoeLiquidity,
-                wmntTokensToAddToMoeLiquidity
-            ) = LendWmntStrategyLib.mintShares(
+            LendWmntStrategyLib.mintShares(
                 wantBalance,
                 address(want),
-                lendTokensToAddToMoeLiquidity,
-                wmntTokensToAddToMoeLiquidity,
                 slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,

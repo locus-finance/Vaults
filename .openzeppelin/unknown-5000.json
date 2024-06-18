@@ -22840,6 +22840,1359 @@
           }
         }
       }
+    },
+    "04eeea6afa441cfc7170d9b09c13f8cb0e097785f6424bd1cbd4cb4657adfac9": {
+      "address": "0xf18e9a4c4547eeDD57873Ad0AE89Bd617F82CF4d",
+      "txHash": "0xc89b78231f496ece83d3b395e5715df9231ae0d5e70e078ac60b4c35046ccff3",
+      "layout": {
+        "solcVersion": "0.8.23",
+        "storage": [
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(ILocusVault)4356",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:81"
+          },
+          {
+            "label": "strategist",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:82"
+          },
+          {
+            "label": "keeper",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:83"
+          },
+          {
+            "label": "want",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IERC20)664",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:84"
+          },
+          {
+            "label": "emergencyExit",
+            "offset": 20,
+            "slot": "3",
+            "type": "t_bool",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:97"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "StrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\StrategyHelper.sol:19"
+          },
+          {
+            "label": "getPairObservations",
+            "offset": 0,
+            "slot": "49",
+            "type": "t_mapping(t_address,t_struct(Observations)3084_storage)",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:32"
+          },
+          {
+            "label": "windowSize",
+            "offset": 0,
+            "slot": "50",
+            "type": "t_uint256",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:35"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:158"
+          },
+          {
+            "label": "lendTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "96",
+            "type": "t_uint256",
+            "contract": "LendWmntStrategy",
+            "src": "contracts\\strategies\\mantle\\LendWmntStrategy.sol:22"
+          },
+          {
+            "label": "wmntTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "97",
+            "type": "t_uint256",
+            "contract": "LendWmntStrategy",
+            "src": "contracts\\strategies\\mantle\\LendWmntStrategy.sol:23"
+          },
+          {
+            "label": "slippageBps",
+            "offset": 0,
+            "slot": "98",
+            "type": "t_uint256",
+            "contract": "LendWmntStrategy",
+            "src": "contracts\\strategies\\mantle\\LendWmntStrategy.sol:24"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)664": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ILocusVault)4356": {
+            "label": "contract ILocusVault",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_struct(Observations)3084_storage)": {
+            "label": "mapping(address => struct MoeMerchantWithOracleStrategyHelper.Observations)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Observations)3084_storage": {
+            "label": "struct MoeMerchantWithOracleStrategyHelper.Observations",
+            "members": [
+              {
+                "label": "lastPrice0Cumulative",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "lastPrice1Cumulative",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "lastBlockTimestamp",
+                "type": "t_uint32",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "price0Average",
+                "type": "t_struct(uq112x112)2324_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "price1Average",
+                "type": "t_struct(uq112x112)2324_storage",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(uq112x112)2324_storage": {
+            "label": "struct FixedPoint.uq112x112",
+            "members": [
+              {
+                "label": "_x",
+                "type": "t_uint224",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint224": {
+            "label": "uint224",
+            "numberOfBytes": "28"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint32": {
+            "label": "uint32",
+            "numberOfBytes": "4"
+          }
+        }
+      }
+    },
+    "da3e780717ed3cb5cad2a55cf386e0c72799da13928ef10027d0faed8cdd5407": {
+      "address": "0x890c1f563dA9954f57B9fD883A1D9Ade6b455069",
+      "txHash": "0xa9b381646489e614973e8841ecaaaa8b2745e5c18e490ba17a7deee6b0361d54",
+      "layout": {
+        "solcVersion": "0.8.23",
+        "storage": [
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(ILocusVault)22110",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:81"
+          },
+          {
+            "label": "strategist",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:82"
+          },
+          {
+            "label": "keeper",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:83"
+          },
+          {
+            "label": "want",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IERC20)6604",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:84"
+          },
+          {
+            "label": "emergencyExit",
+            "offset": 20,
+            "slot": "3",
+            "type": "t_bool",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:97"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "StrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\StrategyHelper.sol:19"
+          },
+          {
+            "label": "getPairObservations",
+            "offset": 0,
+            "slot": "49",
+            "type": "t_mapping(t_address,t_struct(Observations)17185_storage)",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:32"
+          },
+          {
+            "label": "windowSize",
+            "offset": 0,
+            "slot": "50",
+            "type": "t_uint256",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:35"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:158"
+          },
+          {
+            "label": "moeTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "96",
+            "type": "t_uint256",
+            "contract": "MoeWmntStrategy",
+            "src": "contracts\\strategies\\mantle\\MoeWmntStrategy.sol:22"
+          },
+          {
+            "label": "wmntTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "97",
+            "type": "t_uint256",
+            "contract": "MoeWmntStrategy",
+            "src": "contracts\\strategies\\mantle\\MoeWmntStrategy.sol:23"
+          },
+          {
+            "label": "slippageBps",
+            "offset": 0,
+            "slot": "98",
+            "type": "t_uint256",
+            "contract": "MoeWmntStrategy",
+            "src": "contracts\\strategies\\mantle\\MoeWmntStrategy.sol:24"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)6604": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ILocusVault)22110": {
+            "label": "contract ILocusVault",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_struct(Observations)17185_storage)": {
+            "label": "mapping(address => struct MoeMerchantWithOracleStrategyHelper.Observations)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Observations)17185_storage": {
+            "label": "struct MoeMerchantWithOracleStrategyHelper.Observations",
+            "members": [
+              {
+                "label": "lastPrice0Cumulative",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "lastPrice1Cumulative",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "lastBlockTimestamp",
+                "type": "t_uint32",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "price0Average",
+                "type": "t_struct(uq112x112)12985_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "price1Average",
+                "type": "t_struct(uq112x112)12985_storage",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(uq112x112)12985_storage": {
+            "label": "struct FixedPoint.uq112x112",
+            "members": [
+              {
+                "label": "_x",
+                "type": "t_uint224",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint224": {
+            "label": "uint224",
+            "numberOfBytes": "28"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint32": {
+            "label": "uint32",
+            "numberOfBytes": "4"
+          }
+        }
+      }
+    },
+    "6ad819a050abe7fa2ba722b9b09c908965ee2feb2590e5bdf6bede8921e6c102": {
+      "address": "0x2b6b44af9979A901629dd4587bb929218C274384",
+      "txHash": "0x3e1f1de01293c603c70b0b406dd90adcb25d4d9950e9ba50f9431643e275957e",
+      "layout": {
+        "solcVersion": "0.8.23",
+        "storage": [
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(ILocusVault)22110",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:81"
+          },
+          {
+            "label": "strategist",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:82"
+          },
+          {
+            "label": "keeper",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:83"
+          },
+          {
+            "label": "want",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IERC20)6604",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:84"
+          },
+          {
+            "label": "emergencyExit",
+            "offset": 20,
+            "slot": "3",
+            "type": "t_bool",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:97"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "StrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\StrategyHelper.sol:19"
+          },
+          {
+            "label": "getPairObservations",
+            "offset": 0,
+            "slot": "49",
+            "type": "t_mapping(t_address,t_struct(Observations)17185_storage)",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:32"
+          },
+          {
+            "label": "windowSize",
+            "offset": 0,
+            "slot": "50",
+            "type": "t_uint256",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:35"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:158"
+          },
+          {
+            "label": "methTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "96",
+            "type": "t_uint256",
+            "contract": "MethWethStrategy",
+            "src": "contracts\\strategies\\mantle\\MethWethStrategy.sol:22"
+          },
+          {
+            "label": "wethTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "97",
+            "type": "t_uint256",
+            "contract": "MethWethStrategy",
+            "src": "contracts\\strategies\\mantle\\MethWethStrategy.sol:23"
+          },
+          {
+            "label": "slippageBps",
+            "offset": 0,
+            "slot": "98",
+            "type": "t_uint256",
+            "contract": "MethWethStrategy",
+            "src": "contracts\\strategies\\mantle\\MethWethStrategy.sol:24"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)6604": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ILocusVault)22110": {
+            "label": "contract ILocusVault",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_struct(Observations)17185_storage)": {
+            "label": "mapping(address => struct MoeMerchantWithOracleStrategyHelper.Observations)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Observations)17185_storage": {
+            "label": "struct MoeMerchantWithOracleStrategyHelper.Observations",
+            "members": [
+              {
+                "label": "lastPrice0Cumulative",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "lastPrice1Cumulative",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "lastBlockTimestamp",
+                "type": "t_uint32",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "price0Average",
+                "type": "t_struct(uq112x112)12985_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "price1Average",
+                "type": "t_struct(uq112x112)12985_storage",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(uq112x112)12985_storage": {
+            "label": "struct FixedPoint.uq112x112",
+            "members": [
+              {
+                "label": "_x",
+                "type": "t_uint224",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint224": {
+            "label": "uint224",
+            "numberOfBytes": "28"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint32": {
+            "label": "uint32",
+            "numberOfBytes": "4"
+          }
+        }
+      }
+    },
+    "d71f245da4aabd855d9823538448801c4c11f3f736c4fecde785ab70c6f52df2": {
+      "address": "0xcBb6f7776C13BDDFa943d4C4eae1dCF94529Cf40",
+      "txHash": "0x44113fdd317336e133c743b81e01722fad95ae7ea7cf2b2cc8f6359fee9d5944",
+      "layout": {
+        "solcVersion": "0.8.23",
+        "storage": [
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(ILocusVault)22110",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:81"
+          },
+          {
+            "label": "strategist",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:82"
+          },
+          {
+            "label": "keeper",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:83"
+          },
+          {
+            "label": "want",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IERC20)6604",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:84"
+          },
+          {
+            "label": "emergencyExit",
+            "offset": 20,
+            "slot": "3",
+            "type": "t_bool",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:97"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "StrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\StrategyHelper.sol:19"
+          },
+          {
+            "label": "getPairObservations",
+            "offset": 0,
+            "slot": "49",
+            "type": "t_mapping(t_address,t_struct(Observations)17185_storage)",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:32"
+          },
+          {
+            "label": "windowSize",
+            "offset": 0,
+            "slot": "50",
+            "type": "t_uint256",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:35"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:158"
+          },
+          {
+            "label": "wmntTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "96",
+            "type": "t_uint256",
+            "contract": "WmntMethStrategy",
+            "src": "contracts\\strategies\\mantle\\WmntMethStrategy.sol:22"
+          },
+          {
+            "label": "methTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "97",
+            "type": "t_uint256",
+            "contract": "WmntMethStrategy",
+            "src": "contracts\\strategies\\mantle\\WmntMethStrategy.sol:23"
+          },
+          {
+            "label": "slippageBps",
+            "offset": 0,
+            "slot": "98",
+            "type": "t_uint256",
+            "contract": "WmntMethStrategy",
+            "src": "contracts\\strategies\\mantle\\WmntMethStrategy.sol:24"
+          },
+          {
+            "label": "agniTwapRangeSecs",
+            "offset": 0,
+            "slot": "99",
+            "type": "t_uint32",
+            "contract": "WmntMethStrategy",
+            "src": "contracts\\strategies\\mantle\\WmntMethStrategy.sol:25"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)6604": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ILocusVault)22110": {
+            "label": "contract ILocusVault",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_struct(Observations)17185_storage)": {
+            "label": "mapping(address => struct MoeMerchantWithOracleStrategyHelper.Observations)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Observations)17185_storage": {
+            "label": "struct MoeMerchantWithOracleStrategyHelper.Observations",
+            "members": [
+              {
+                "label": "lastPrice0Cumulative",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "lastPrice1Cumulative",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "lastBlockTimestamp",
+                "type": "t_uint32",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "price0Average",
+                "type": "t_struct(uq112x112)12985_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "price1Average",
+                "type": "t_struct(uq112x112)12985_storage",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(uq112x112)12985_storage": {
+            "label": "struct FixedPoint.uq112x112",
+            "members": [
+              {
+                "label": "_x",
+                "type": "t_uint224",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint224": {
+            "label": "uint224",
+            "numberOfBytes": "28"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint32": {
+            "label": "uint32",
+            "numberOfBytes": "4"
+          }
+        }
+      }
+    },
+    "a703fb5fa390f30223e73a72c0e4036a1516b16e398bef801f957601fbeb5c65": {
+      "address": "0x020a2cAb65f9C36Efa59EBD4Bf802C20CC7fbd3B",
+      "txHash": "0xe87b7b7ff48fbc6cd9c39653a0bdfa261c112291114bce2edd33241e5fb70268",
+      "layout": {
+        "solcVersion": "0.8.23",
+        "storage": [
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(ILocusVault)4356",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:81"
+          },
+          {
+            "label": "strategist",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:82"
+          },
+          {
+            "label": "keeper",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:83"
+          },
+          {
+            "label": "want",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IERC20)664",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:84"
+          },
+          {
+            "label": "emergencyExit",
+            "offset": 20,
+            "slot": "3",
+            "type": "t_bool",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:97"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "StrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\StrategyHelper.sol:19"
+          },
+          {
+            "label": "getPairObservations",
+            "offset": 0,
+            "slot": "49",
+            "type": "t_mapping(t_address,t_struct(Observations)3084_storage)",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:32"
+          },
+          {
+            "label": "windowSize",
+            "offset": 0,
+            "slot": "50",
+            "type": "t_uint256",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:35"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:158"
+          },
+          {
+            "label": "methTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "96",
+            "type": "t_uint256",
+            "contract": "MethWethStrategy",
+            "src": "contracts\\strategies\\mantle\\MethWethStrategy.sol:23"
+          },
+          {
+            "label": "wethTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "97",
+            "type": "t_uint256",
+            "contract": "MethWethStrategy",
+            "src": "contracts\\strategies\\mantle\\MethWethStrategy.sol:26"
+          },
+          {
+            "label": "slippageBps",
+            "offset": 0,
+            "slot": "98",
+            "type": "t_uint256",
+            "contract": "MethWethStrategy",
+            "src": "contracts\\strategies\\mantle\\MethWethStrategy.sol:28"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)664": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ILocusVault)4356": {
+            "label": "contract ILocusVault",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_struct(Observations)3084_storage)": {
+            "label": "mapping(address => struct MoeMerchantWithOracleStrategyHelper.Observations)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Observations)3084_storage": {
+            "label": "struct MoeMerchantWithOracleStrategyHelper.Observations",
+            "members": [
+              {
+                "label": "lastPrice0Cumulative",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "lastPrice1Cumulative",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "lastBlockTimestamp",
+                "type": "t_uint32",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "price0Average",
+                "type": "t_struct(uq112x112)2324_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "price1Average",
+                "type": "t_struct(uq112x112)2324_storage",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(uq112x112)2324_storage": {
+            "label": "struct FixedPoint.uq112x112",
+            "members": [
+              {
+                "label": "_x",
+                "type": "t_uint224",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint224": {
+            "label": "uint224",
+            "numberOfBytes": "28"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint32": {
+            "label": "uint32",
+            "numberOfBytes": "4"
+          }
+        }
+      }
+    },
+    "15669734e8ded9b7c3f49b4d69f437cdc69e3cce26780c41f6b42de814d8721f": {
+      "address": "0x2dD19a6764983C499648C9578F9827E27A896E7A",
+      "txHash": "0x45946a256914215d5cf5da512fae35c145e490188a16e687e5eb6220cd90ce03",
+      "layout": {
+        "solcVersion": "0.8.23",
+        "storage": [
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(ILocusVault)22110",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:81"
+          },
+          {
+            "label": "strategist",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:82"
+          },
+          {
+            "label": "keeper",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:83"
+          },
+          {
+            "label": "want",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IERC20)6604",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:84"
+          },
+          {
+            "label": "emergencyExit",
+            "offset": 20,
+            "slot": "3",
+            "type": "t_bool",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:97"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "StrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\StrategyHelper.sol:19"
+          },
+          {
+            "label": "getPairObservations",
+            "offset": 0,
+            "slot": "49",
+            "type": "t_mapping(t_address,t_struct(Observations)17185_storage)",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:32"
+          },
+          {
+            "label": "windowSize",
+            "offset": 0,
+            "slot": "50",
+            "type": "t_uint256",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:35"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:158"
+          },
+          {
+            "label": "moeTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "96",
+            "type": "t_uint256",
+            "contract": "MoeWmntStrategy",
+            "src": "contracts\\strategies\\mantle\\MoeWmntStrategy.sol:23"
+          },
+          {
+            "label": "wmntTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "97",
+            "type": "t_uint256",
+            "contract": "MoeWmntStrategy",
+            "src": "contracts\\strategies\\mantle\\MoeWmntStrategy.sol:26"
+          },
+          {
+            "label": "slippageBps",
+            "offset": 0,
+            "slot": "98",
+            "type": "t_uint256",
+            "contract": "MoeWmntStrategy",
+            "src": "contracts\\strategies\\mantle\\MoeWmntStrategy.sol:28"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)6604": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ILocusVault)22110": {
+            "label": "contract ILocusVault",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_struct(Observations)17185_storage)": {
+            "label": "mapping(address => struct MoeMerchantWithOracleStrategyHelper.Observations)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Observations)17185_storage": {
+            "label": "struct MoeMerchantWithOracleStrategyHelper.Observations",
+            "members": [
+              {
+                "label": "lastPrice0Cumulative",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "lastPrice1Cumulative",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "lastBlockTimestamp",
+                "type": "t_uint32",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "price0Average",
+                "type": "t_struct(uq112x112)12985_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "price1Average",
+                "type": "t_struct(uq112x112)12985_storage",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(uq112x112)12985_storage": {
+            "label": "struct FixedPoint.uq112x112",
+            "members": [
+              {
+                "label": "_x",
+                "type": "t_uint224",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint224": {
+            "label": "uint224",
+            "numberOfBytes": "28"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint32": {
+            "label": "uint32",
+            "numberOfBytes": "4"
+          }
+        }
+      }
+    },
+    "433775502fdf0ad16524c50ecce4b262531a5218663a2ca447023c5f83a531fb": {
+      "address": "0x9Ad97c60F3F69Ac34Db155C45e921ec8f13D3E2D",
+      "txHash": "0xa646c383ca180ce40ff7d739469ccc29f03cf848768eaee23cc95fdf1875b250",
+      "layout": {
+        "solcVersion": "0.8.23",
+        "storage": [
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(ILocusVault)22110",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:81"
+          },
+          {
+            "label": "strategist",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:82"
+          },
+          {
+            "label": "keeper",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_address",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:83"
+          },
+          {
+            "label": "want",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IERC20)6604",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:84"
+          },
+          {
+            "label": "emergencyExit",
+            "offset": 20,
+            "slot": "3",
+            "type": "t_bool",
+            "contract": "BaseStrategyForSeparatedVault",
+            "src": "contracts\\abstracts\\BaseStrategyForSeparatedVault.sol:97"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "StrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\StrategyHelper.sol:19"
+          },
+          {
+            "label": "getPairObservations",
+            "offset": 0,
+            "slot": "49",
+            "type": "t_mapping(t_address,t_struct(Observations)17185_storage)",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:32"
+          },
+          {
+            "label": "windowSize",
+            "offset": 0,
+            "slot": "50",
+            "type": "t_uint256",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:35"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "MoeMerchantWithOracleStrategyHelper",
+            "src": "contracts\\abstracts\\mantle\\MoeMerchantWithOracleStrategyHelper.sol:158"
+          },
+          {
+            "label": "wmntTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "96",
+            "type": "t_uint256",
+            "contract": "WmntMethStrategy",
+            "src": "contracts\\strategies\\mantle\\WmntMethStrategy.sol:22"
+          },
+          {
+            "label": "methTokensToAddToMoeLiquidity",
+            "offset": 0,
+            "slot": "97",
+            "type": "t_uint256",
+            "contract": "WmntMethStrategy",
+            "src": "contracts\\strategies\\mantle\\WmntMethStrategy.sol:23"
+          },
+          {
+            "label": "slippageBps",
+            "offset": 0,
+            "slot": "98",
+            "type": "t_uint256",
+            "contract": "WmntMethStrategy",
+            "src": "contracts\\strategies\\mantle\\WmntMethStrategy.sol:24"
+          },
+          {
+            "label": "agniTwapRangeSecs",
+            "offset": 0,
+            "slot": "99",
+            "type": "t_uint32",
+            "contract": "WmntMethStrategy",
+            "src": "contracts\\strategies\\mantle\\WmntMethStrategy.sol:25"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)6604": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ILocusVault)22110": {
+            "label": "contract ILocusVault",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_struct(Observations)17185_storage)": {
+            "label": "mapping(address => struct MoeMerchantWithOracleStrategyHelper.Observations)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Observations)17185_storage": {
+            "label": "struct MoeMerchantWithOracleStrategyHelper.Observations",
+            "members": [
+              {
+                "label": "lastPrice0Cumulative",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "lastPrice1Cumulative",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "lastBlockTimestamp",
+                "type": "t_uint32",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "price0Average",
+                "type": "t_struct(uq112x112)12985_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "price1Average",
+                "type": "t_struct(uq112x112)12985_storage",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(uq112x112)12985_storage": {
+            "label": "struct FixedPoint.uq112x112",
+            "members": [
+              {
+                "label": "_x",
+                "type": "t_uint224",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint224": {
+            "label": "uint224",
+            "numberOfBytes": "28"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint32": {
+            "label": "uint32",
+            "numberOfBytes": "4"
+          }
+        }
+      }
     }
   }
 }

@@ -10,6 +10,10 @@ import "../../../integrations/circuit/ICircuitVault.sol";
 import "../../../integrations/merchantMoe/IMoePair.sol";
 
 library MethWethStrategyLib {
+    event MoePoolUnderlyingTokensRemains(
+        uint256 indexed methAmountRemain,
+        uint256 indexed wethAmountRemain
+    );
     event MintedCircuitShares(
         uint256 indexed oldBalance,
         uint256 indexed newBalance
@@ -131,8 +135,6 @@ library MethWethStrategyLib {
     function mintShares(
         uint256 amount,
         address wantAddress,
-        uint256 methTokensToAddToMoeLiquidity,
-        uint256 wethTokensToAddToMoeLiquidity,
         uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
@@ -142,20 +144,15 @@ library MethWethStrategyLib {
             returns (uint256) consult
     )
         external
-        returns (
-            uint256 resultingMethTokensToAddToMoeLiquidity,
-            uint256 resultingWethTokensToAddToMoeLiquidity
-        )
     {
-        if (amount == 0)
-            return (
-                methTokensToAddToMoeLiquidity,
-                wethTokensToAddToMoeLiquidity
-            );
+        if (amount == 0) return;
         uint256 oldLpBalance = balanceOfMoeLp();
 
         uint256 usdcForWethSwapAmount = amount / 2;
         uint256 usdcForMethSwapAmount = amount - usdcForWethSwapAmount;
+
+        uint256 oldMethBalance = METH.balanceOf(address(this));
+        uint256 oldWethBalance = WETH.balanceOf(address(this));
 
         address[] memory toWethPath = new address[](3);
         toWethPath[0] = wantAddress;
@@ -180,17 +177,12 @@ library MethWethStrategyLib {
             .moeMerchantAddLiquidity(
                 address(METH),
                 address(WETH),
-                methAmount + methTokensToAddToMoeLiquidity,
-                wethAmount + wethTokensToAddToMoeLiquidity,
+                methAmount + oldMethBalance,
+                wethAmount + oldWethBalance,
                 slippageBps,
                 consult
             );
-        if (wethLeft > 0) {
-            resultingWethTokensToAddToMoeLiquidity = wethLeft;
-        }
-        if (methLeft > 0) {
-            resultingMethTokensToAddToMoeLiquidity = methLeft;
-        }
+        emit MoePoolUnderlyingTokensRemains(methLeft, wethLeft);
         emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
         uint256 circuitShares = balanceOfCircuitShares();
         CIRCUIT_VAULT.deposit(lpMinted);
@@ -200,8 +192,6 @@ library MethWethStrategyLib {
     function burnShares(
         uint256 shares,
         address wantAddress,
-        uint256 methTokensToAddToMoeLiquidity,
-        uint256 wethTokensToAddToMoeLiquidity,
         uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
@@ -211,19 +201,14 @@ library MethWethStrategyLib {
             returns (uint256) consult
     ) 
         external
-        returns (
-            uint256 resultingMethTokensToAddToMoeLiquidity,
-            uint256 resultingWethTokensToAddToMoeLiquidity
-        )
     {
-        if (shares == 0) {
-            return (
-                methTokensToAddToMoeLiquidity,
-                wethTokensToAddToMoeLiquidity
-            );
-        }
+        if (shares == 0) return;
         uint256 oldLpBalance = balanceOfMoeLp();
         uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
+
+        uint256 oldMethBalance = METH.balanceOf(address(this));
+        uint256 oldWethBalance = WETH.balanceOf(address(this));
+
         CIRCUIT_VAULT.withdraw(shares);
         emit BurnedCircuitShares(
             oldCircuitSharesBalance,
@@ -241,7 +226,7 @@ library MethWethStrategyLib {
         fromWethPath[0] = address(WETH);
         fromWethPath[1] = address(METH);
         fromWethPath[2] = wantAddress;
-        uint256 wethToBeSwappedToUsdc = amountBWithdrawn + wethTokensToAddToMoeLiquidity;
+        uint256 wethToBeSwappedToUsdc = amountBWithdrawn + oldWethBalance;
         uint256 swappedFromWethUsdcAmount = MoeMerchantLib.moeMerchantSwapMulti(
             fromWethPath,
             wethToBeSwappedToUsdc,
@@ -249,7 +234,7 @@ library MethWethStrategyLib {
             consult
         );
 
-        uint256 methToBeSwappedToUsdc = amountAWithdrawn + methTokensToAddToMoeLiquidity;
+        uint256 methToBeSwappedToUsdc = amountAWithdrawn + oldMethBalance;
         uint256 swappedFromMethUsdcAmount = MoeMerchantLib
             .moeMerchantSwapSingle(
                 address(METH),
@@ -261,8 +246,5 @@ library MethWethStrategyLib {
         emit WantTokensGathered(
             swappedFromWethUsdcAmount + swappedFromMethUsdcAmount
         );
-
-        // Explicitly zeroify the buffered numbers to not forget that they are cleared.
-        return (0, 0);
     }
 }

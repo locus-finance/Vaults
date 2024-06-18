@@ -137,14 +137,9 @@ contract WmntMethStrategy is
             wantToCircuitShares(_amountNeeded),
             balanceOfCircuitShares()
         );
-        (
-            wmntTokensToAddToMoeLiquidity,
-            methTokensToAddToMoeLiquidity
-        ) = WmntMethStrategyLib.burnShares(
+        WmntMethStrategyLib.burnShares(
             sharesToWithdraw,
             address(want),
-            wmntTokensToAddToMoeLiquidity,
-            methTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfWant,
             this.balanceOfCircuitShares,
@@ -214,14 +209,9 @@ contract WmntMethStrategy is
         }
 
         if (_excessWant > 0) {
-            (
-                methTokensToAddToMoeLiquidity,
-                wmntTokensToAddToMoeLiquidity
-            ) = WmntMethStrategyLib.mintShares(
+            WmntMethStrategyLib.mintShares(
                 _excessWant,
                 address(want),
-                methTokensToAddToMoeLiquidity,
-                wmntTokensToAddToMoeLiquidity,
                 slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
@@ -231,14 +221,9 @@ contract WmntMethStrategy is
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        (
-            wmntTokensToAddToMoeLiquidity,
-            methTokensToAddToMoeLiquidity
-        ) = WmntMethStrategyLib.burnShares(
+        WmntMethStrategyLib.burnShares(
             balanceOfCircuitShares(),
             address(want),
-            wmntTokensToAddToMoeLiquidity,
-            methTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
@@ -269,14 +254,9 @@ contract WmntMethStrategy is
     function prepareMigration(address _newStrategy) internal override {
         uint256 wantBalance = balanceOfWant();
         if (wantBalance > 0) {
-            (
-                methTokensToAddToMoeLiquidity,
-                wmntTokensToAddToMoeLiquidity
-            ) = WmntMethStrategyLib.mintShares(
+            WmntMethStrategyLib.mintShares(
                 wantBalance,
                 address(want),
-                methTokensToAddToMoeLiquidity,
-                wmntTokensToAddToMoeLiquidity,
                 slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,

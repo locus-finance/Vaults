@@ -10,6 +10,10 @@ import "../../../integrations/circuit/ICircuitVault.sol";
 import "../../../integrations/merchantMoe/IMoePair.sol";
 
 library MoeWmntStrategyLib {
+    event MoePoolUnderlyingTokensRemains(
+        uint256 indexed moeAmountRemain,
+        uint256 indexed wmntAmountRemain
+    );
     event MintedCircuitShares(
         uint256 indexed oldBalance,
         uint256 indexed newBalance
@@ -142,8 +146,6 @@ library MoeWmntStrategyLib {
     function mintShares(
         uint256 amount,
         address wantAddress,
-        uint256 moeTokensToAddToMoeLiquidity,
-        uint256 wmntTokensToAddToMoeLiquidity,
         uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
@@ -153,20 +155,15 @@ library MoeWmntStrategyLib {
             returns (uint256) consult
     )
         external
-        returns (
-            uint256 resultingMoeTokensToAddToMoeLiquidity,
-            uint256 resultingWmntTokensToAddToMoeLiquidity
-        )
     {
-        if (amount == 0)
-            return (
-                moeTokensToAddToMoeLiquidity,
-                wmntTokensToAddToMoeLiquidity
-            );
+        if (amount == 0) return;
         uint256 oldLpBalance = balanceOfMoeLp();
 
         uint256 usdcForMoeSwapAmount = amount / 2;
         uint256 usdcForWmntSwapAmount = amount - usdcForMoeSwapAmount;
+
+        uint256 oldMoeBalance = MOE.balanceOf(address(this));
+        uint256 oldWmntBalance = WMNT.balanceOf(address(this));
 
         address[] memory toWmntPath = new address[](3);
         toWmntPath[0] = wantAddress;
@@ -194,17 +191,12 @@ library MoeWmntStrategyLib {
             .moeMerchantAddLiquidity(
                 address(MOE),
                 address(WMNT),
-                moeAmount + moeTokensToAddToMoeLiquidity,
-                wmntAmount + wmntTokensToAddToMoeLiquidity,
+                moeAmount + oldMoeBalance,
+                wmntAmount + oldWmntBalance,
                 slippageBps,
                 consult
             );
-        if (moeLeft > 0) {
-            resultingMoeTokensToAddToMoeLiquidity = moeLeft;
-        }
-        if (wmntLeft > 0) {
-            resultingWmntTokensToAddToMoeLiquidity = wmntLeft;
-        }
+        emit MoePoolUnderlyingTokensRemains(moeLeft, wmntLeft);
         emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
         uint256 circuitShares = balanceOfCircuitShares();
         CIRCUIT_VAULT.deposit(lpMinted);
@@ -214,8 +206,6 @@ library MoeWmntStrategyLib {
     function burnShares(
         uint256 shares,
         address wantAddress,
-        uint256 moeTokensToAddToMoeLiquidity,
-        uint256 wmntTokensToAddToMoeLiquidity,
         uint256 slippageBps,
         function() external view returns (uint256) balanceOfMoeLp,
         function() external view returns (uint256) balanceOfCircuitShares,
@@ -225,19 +215,14 @@ library MoeWmntStrategyLib {
             returns (uint256) consult
     ) 
         external
-        returns (
-            uint256 resultingMoeTokensToAddToMoeLiquidity,
-            uint256 resultingWmntTokensToAddToMoeLiquidity
-        )
     {
-        if (shares == 0) {
-            return (
-                moeTokensToAddToMoeLiquidity,
-                wmntTokensToAddToMoeLiquidity
-            );
-        }
+        if (shares == 0) return;
         uint256 oldLpBalance = balanceOfMoeLp();
         uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
+
+        uint256 oldMoeBalance = MOE.balanceOf(address(this));
+        uint256 oldWmntBalance = WMNT.balanceOf(address(this));
+
         CIRCUIT_VAULT.withdraw(shares);
         emit BurnedCircuitShares(
             oldCircuitSharesBalance,
@@ -255,7 +240,7 @@ library MoeWmntStrategyLib {
         fromMoePath[0] = address(MOE);
         fromMoePath[1] = address(USDT);
         fromMoePath[2] = wantAddress;
-        uint256 moeToBeSwappedToUsdc = amountAWithdrawn + moeTokensToAddToMoeLiquidity;
+        uint256 moeToBeSwappedToUsdc = amountAWithdrawn + oldMoeBalance;
         uint256 swappedFromMoeUsdcAmount = MoeMerchantLib.moeMerchantSwapMulti(
             fromMoePath,
             moeToBeSwappedToUsdc,
@@ -266,7 +251,7 @@ library MoeWmntStrategyLib {
         fromWmntPath[0] = address(WMNT);
         fromWmntPath[1] = address(USDT);
         fromWmntPath[2] = wantAddress;
-        uint256 wmntToBeSwappedToUsdc = amountBWithdrawn + wmntTokensToAddToMoeLiquidity;
+        uint256 wmntToBeSwappedToUsdc = amountBWithdrawn + oldWmntBalance;
         uint256 swappedFromWmntUsdcAmount = MoeMerchantLib.moeMerchantSwapMulti(
             fromWmntPath,
             wmntToBeSwappedToUsdc,
@@ -276,7 +261,5 @@ library MoeWmntStrategyLib {
         emit WantTokensGathered(
             swappedFromWmntUsdcAmount + swappedFromMoeUsdcAmount
         );
-        // Explicitly zeroify the buffered numbers to not forget that they are cleared.
-        return (0, 0);
     }
 }

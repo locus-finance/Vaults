@@ -19,8 +19,12 @@ contract MethWethStrategy is
     using SafeERC20 for IERC20;
     using Math for uint256;
 
+    /// @dev DEPRECATED - DO NOT USE AND DO NOT DELETE TO PREVENT THE STORAGE RIFF-RAFF.
     uint256 public methTokensToAddToMoeLiquidity;
+    
+    /// @dev DEPRECATED - DO NOT USE AND DO NOT DELETE TO PREVENT THE STORAGE RIFF-RAFF.
     uint256 public wethTokensToAddToMoeLiquidity;
+
     uint256 public slippageBps;
 
     function initialize(address _vault, address _strategist) external {
@@ -49,6 +53,7 @@ contract MethWethStrategy is
             address(MoeMerchantLib.MOE_ROUTER),
             type(uint256).max
         );
+
         MethWethStrategyLib.METH.forceApprove(
             address(MethWethStrategyLib.MOE_MERCHANT_METH_WETH_POOL),
             type(uint256).max
@@ -133,14 +138,9 @@ contract MethWethStrategy is
             wantToCircuitShares(_amountNeeded),
             balanceOfCircuitShares()
         );
-        (
-            methTokensToAddToMoeLiquidity,
-            wethTokensToAddToMoeLiquidity
-        ) = MethWethStrategyLib.burnShares(
+        MethWethStrategyLib.burnShares(
             sharesToWithdraw,
             address(want),
-            methTokensToAddToMoeLiquidity,
-            wethTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
@@ -216,14 +216,9 @@ contract MethWethStrategy is
         }
 
         if (_excessWant > 0) {
-            (
-                methTokensToAddToMoeLiquidity,
-                wethTokensToAddToMoeLiquidity
-            ) = MethWethStrategyLib.mintShares(
+            MethWethStrategyLib.mintShares(
                 _excessWant,
                 address(want),
-                methTokensToAddToMoeLiquidity,
-                wethTokensToAddToMoeLiquidity,
                 slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
@@ -233,14 +228,9 @@ contract MethWethStrategy is
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        (
-            methTokensToAddToMoeLiquidity,
-            wethTokensToAddToMoeLiquidity
-        ) = MethWethStrategyLib.burnShares(
+        MethWethStrategyLib.burnShares(
             balanceOfCircuitShares(),
             address(want),
-            methTokensToAddToMoeLiquidity,
-            wethTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
@@ -271,14 +261,9 @@ contract MethWethStrategy is
     function prepareMigration(address _newStrategy) internal override {
         uint256 wantBalance = balanceOfWant();
         if (wantBalance > 0) {
-            (
-                methTokensToAddToMoeLiquidity,
-                wethTokensToAddToMoeLiquidity
-            ) = MethWethStrategyLib.mintShares(
+            MethWethStrategyLib.mintShares(
                 wantBalance,
                 address(want),
-                methTokensToAddToMoeLiquidity,
-                wethTokensToAddToMoeLiquidity,
                 slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,

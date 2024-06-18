@@ -19,8 +19,12 @@ contract MoeWmntStrategy is
     using SafeERC20 for IERC20;
     using Math for uint256;
 
+    /// @dev DEPRECATED - DO NOT USE AND DO NOT DELETE TO PREVENT THE STORAGE RIFF-RAFF.
     uint256 public moeTokensToAddToMoeLiquidity;
+
+    /// @dev DEPRECATED - DO NOT USE AND DO NOT DELETE TO PREVENT THE STORAGE RIFF-RAFF.
     uint256 public wmntTokensToAddToMoeLiquidity;
+
     uint256 public slippageBps;
 
     function initialize(address _vault, address _strategist) external {
@@ -144,14 +148,9 @@ contract MoeWmntStrategy is
             wantToCircuitShares(_amountNeeded),
             balanceOfCircuitShares()
         );
-        (
-            moeTokensToAddToMoeLiquidity,
-            wmntTokensToAddToMoeLiquidity
-        ) = MoeWmntStrategyLib.burnShares(
+        MoeWmntStrategyLib.burnShares(
             sharesToWithdraw,
             address(want),
-            moeTokensToAddToMoeLiquidity,
-            wmntTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
@@ -221,14 +220,9 @@ contract MoeWmntStrategy is
         }
 
         if (_excessWant > 0) {
-            (
-                moeTokensToAddToMoeLiquidity,
-                wmntTokensToAddToMoeLiquidity
-            ) = MoeWmntStrategyLib.mintShares(
+            MoeWmntStrategyLib.mintShares(
                 _excessWant,
                 address(want),
-                moeTokensToAddToMoeLiquidity,
-                wmntTokensToAddToMoeLiquidity,
                 slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
@@ -238,14 +232,9 @@ contract MoeWmntStrategy is
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        (
-            moeTokensToAddToMoeLiquidity,
-            wmntTokensToAddToMoeLiquidity
-        ) = MoeWmntStrategyLib.burnShares(
+        MoeWmntStrategyLib.burnShares(
             balanceOfCircuitShares(),
             address(want),
-            moeTokensToAddToMoeLiquidity,
-            wmntTokensToAddToMoeLiquidity,
             slippageBps,
             this.balanceOfMoeLp,
             this.balanceOfCircuitShares,
@@ -276,14 +265,9 @@ contract MoeWmntStrategy is
     function prepareMigration(address _newStrategy) internal override {
         uint256 wantBalance = balanceOfWant();
         if (wantBalance > 0) {
-            (
-                moeTokensToAddToMoeLiquidity,
-                wmntTokensToAddToMoeLiquidity
-            ) = MoeWmntStrategyLib.mintShares(
+            MoeWmntStrategyLib.mintShares(
                 wantBalance,
                 address(want),
-                moeTokensToAddToMoeLiquidity,
-                wmntTokensToAddToMoeLiquidity,
                 slippageBps,
                 this.balanceOfMoeLp,
                 this.balanceOfCircuitShares,
