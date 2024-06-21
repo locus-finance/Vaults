@@ -36,9 +36,9 @@ describe('TestMantleVaultDeposit', () => {
   const wmntMethStrategyAddress = "0x0bE36BCF77f39360Ac47a697929C3ec907e5a99f";
 
   const usdcWhale = "0x588846213A30fd36244e0ae0eBB2374516dA836C";
-  const userUsdcAllowance = hre.ethers.utils.parseUnits("100000", 6);
+  const userUsdcAllowance = hre.ethers.utils.parseUnits("900000", 6);
   const usdcAddress = "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9";
-  const usdcAmountToDeposit = hre.ethers.utils.parseUnits("30000", 6);
+  const usdcAmountToDeposit = hre.ethers.utils.parseUnits("300000", 6);
 
   let xMantleInstance;
   let xMantleTokenInstance;
@@ -93,10 +93,12 @@ describe('TestMantleVaultDeposit', () => {
 
   it('should deposit and harvest', async () => {
     // const t = await hre.ethers.getContractAt("ICircuitVault", "0xc37c7dEBa5E7F5dE572C914D5c159EA08DE1fefF");
+    // const t1 = await hre.ethers.getContractAt("IERC20", "0xa375ea3e1f92d62e3A71B668bAb09f7155267fa3")
     // console.log((await t.getPricePerFullShare()).toString());
-
+    // console.log(hre.ethers.utils.formatEther(await t1.balanceOf(t.address)));
+    // console.log(hre.ethers.utils.formatEther(await t1.balanceOf("0x95d270e8ea896a6e14d5b49cd06053f97ee579ef")));
     const time = 604800 + 3600;
-    const slippage = 5000;
+    const slippage = 1000;
     await helpers.time.increase(time);
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await usdcInstance.connect(userSigner).approve(xMantleInstance.address, usdcAmountToDeposit);

@@ -150,8 +150,6 @@ contract LendWmntStrategy is
             sharesToWithdraw,
             address(want),
             slippageBps,
-            this.balanceOfMoeLp,
-            this.balanceOfCircuitShares,
             this.consult
         );
     }
@@ -222,8 +220,6 @@ contract LendWmntStrategy is
                 _excessWant,
                 address(want),
                 slippageBps,
-                this.balanceOfMoeLp,
-                this.balanceOfCircuitShares,
                 this.consult
             );
         }
@@ -234,8 +230,6 @@ contract LendWmntStrategy is
             balanceOfCircuitShares(),
             address(want),
             slippageBps,
-            this.balanceOfMoeLp,
-            this.balanceOfCircuitShares,
             this.consult
         );
         return want.balanceOf(address(this));
@@ -267,8 +261,6 @@ contract LendWmntStrategy is
                 wantBalance,
                 address(want),
                 slippageBps,
-                this.balanceOfMoeLp,
-                this.balanceOfCircuitShares,
                 this.consult
             );
         }

@@ -141,8 +141,6 @@ contract WmntMethStrategy is
             sharesToWithdraw,
             address(want),
             slippageBps,
-            this.balanceOfWant,
-            this.balanceOfCircuitShares,
             this.consult
         );
     }
@@ -213,8 +211,6 @@ contract WmntMethStrategy is
                 _excessWant,
                 address(want),
                 slippageBps,
-                this.balanceOfMoeLp,
-                this.balanceOfCircuitShares,
                 this.consult
             );
         }
@@ -225,8 +221,6 @@ contract WmntMethStrategy is
             balanceOfCircuitShares(),
             address(want),
             slippageBps,
-            this.balanceOfMoeLp,
-            this.balanceOfCircuitShares,
             this.consult
         );
         return want.balanceOf(address(this));
@@ -258,8 +252,6 @@ contract WmntMethStrategy is
                 wantBalance,
                 address(want),
                 slippageBps,
-                this.balanceOfMoeLp,
-                this.balanceOfCircuitShares,
                 this.consult
             );
         }

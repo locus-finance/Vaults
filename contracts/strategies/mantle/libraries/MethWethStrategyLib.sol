@@ -45,17 +45,21 @@ library MethWethStrategyLib {
         update(address(METH), address(WETH));
     }
 
-    function usdcToMethQuote(address wantAddress, uint256 amountUsdc) internal view returns (uint256) {
+    function usdcToMethQuote(
+        address wantAddress,
+        uint256 amountUsdc
+    ) internal view returns (uint256) {
         address[] memory toMethPath = new address[](2);
         toMethPath[0] = wantAddress;
         toMethPath[1] = address(METH);
-        return MoeMerchantLib.MOE_ROUTER.getAmountsOut(
-            amountUsdc,
-            toMethPath
-        )[1];
+        return
+            MoeMerchantLib.MOE_ROUTER.getAmountsOut(amountUsdc, toMethPath)[1];
     }
 
-    function usdcToWethQuote(address wantAddress, uint256 amountWeth) internal view returns (uint256) {
+    function usdcToWethQuote(
+        address wantAddress,
+        uint256 amountWeth
+    ) internal view returns (uint256) {
         address[] memory toWethPath = new address[](3);
         toWethPath[0] = wantAddress;
         toWethPath[1] = address(METH);
@@ -66,17 +70,23 @@ library MethWethStrategyLib {
         return toWethSwapResults[toWethSwapResults.length - 1];
     }
 
-    function methToUsdcQuote(address wantAddress, uint256 amountMeth) internal view returns (uint256) {
+    function methToUsdcQuote(
+        address wantAddress,
+        uint256 amountMeth
+    ) internal view returns (uint256) {
         address[] memory fromMethPath = new address[](2);
         fromMethPath[0] = address(METH);
         fromMethPath[1] = wantAddress;
-        return MoeMerchantLib.MOE_ROUTER.getAmountsOut(
-            amountMeth,
-            fromMethPath
-        )[1];
+        return
+            MoeMerchantLib.MOE_ROUTER.getAmountsOut(amountMeth, fromMethPath)[
+                1
+            ];
     }
 
-    function wethToUsdcQuote(address wantAddress, uint256 amountWeth) internal view returns (uint256) {
+    function wethToUsdcQuote(
+        address wantAddress,
+        uint256 amountWeth
+    ) internal view returns (uint256) {
         address[] memory fromWethPath = new address[](3);
         fromWethPath[0] = address(WETH);
         fromWethPath[1] = address(METH);
@@ -95,8 +105,14 @@ library MethWethStrategyLib {
         uint256 usdcForMethSwapAmount = amount / 2;
         uint256 usdcForWethSwapAmount = amount - usdcForMethSwapAmount;
 
-        uint256 wethAmount = usdcToWethQuote(wantAddress, usdcForWethSwapAmount);
-        uint256 methAmount = usdcToMethQuote(wantAddress, usdcForMethSwapAmount);
+        uint256 wethAmount = usdcToWethQuote(
+            wantAddress,
+            usdcForWethSwapAmount
+        );
+        uint256 methAmount = usdcToMethQuote(
+            wantAddress,
+            usdcForMethSwapAmount
+        );
 
         IMoePair pair = IMoePair(
             MoeMerchantLib.MOE_FACTORY.getPair(address(METH), address(WETH))
@@ -136,17 +152,15 @@ library MethWethStrategyLib {
         uint256 amount,
         address wantAddress,
         uint256 slippageBps,
-        function() external view returns (uint256) balanceOfMoeLp,
-        function() external view returns (uint256) balanceOfCircuitShares,
         function(address, uint256, address)
             external
             view
             returns (uint256) consult
-    )
-        external
-    {
+    ) external {
         if (amount == 0) return;
-        uint256 oldLpBalance = balanceOfMoeLp();
+        uint256 oldLpBalance = MOE_MERCHANT_METH_WETH_POOL.balanceOf(
+            address(this)
+        );
 
         uint256 usdcForWethSwapAmount = amount / 2;
         uint256 usdcForMethSwapAmount = amount - usdcForWethSwapAmount;
@@ -183,28 +197,34 @@ library MethWethStrategyLib {
                 consult
             );
         emit MoePoolUnderlyingTokensRemains(methLeft, wethLeft);
-        emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
-        uint256 circuitShares = balanceOfCircuitShares();
+        emit MintedMoeLp(
+            oldLpBalance,
+            MOE_MERCHANT_METH_WETH_POOL.balanceOf(address(this))
+        );
+        uint256 circuitShares = CIRCUIT_VAULT.balanceOf(address(this));
         CIRCUIT_VAULT.deposit(lpMinted);
-        emit MintedCircuitShares(circuitShares, balanceOfCircuitShares());
+        emit MintedCircuitShares(
+            circuitShares,
+            CIRCUIT_VAULT.balanceOf(address(this))
+        );
     }
 
     function burnShares(
         uint256 shares,
         address wantAddress,
         uint256 slippageBps,
-        function() external view returns (uint256) balanceOfMoeLp,
-        function() external view returns (uint256) balanceOfCircuitShares,
         function(address, uint256, address)
             external
             view
             returns (uint256) consult
-    ) 
-        external
-    {
+    ) external {
         if (shares == 0) return;
-        uint256 oldLpBalance = balanceOfMoeLp();
-        uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
+        uint256 oldLpBalance = MOE_MERCHANT_METH_WETH_POOL.balanceOf(
+            address(this)
+        );
+        uint256 oldCircuitSharesBalance = CIRCUIT_VAULT.balanceOf(
+            address(this)
+        );
 
         uint256 oldMethBalance = METH.balanceOf(address(this));
         uint256 oldWethBalance = WETH.balanceOf(address(this));
@@ -212,15 +232,19 @@ library MethWethStrategyLib {
         CIRCUIT_VAULT.withdraw(shares);
         emit BurnedCircuitShares(
             oldCircuitSharesBalance,
-            balanceOfCircuitShares()
+            CIRCUIT_VAULT.balanceOf(address(this))
         );
         (uint256 amountAWithdrawn, uint256 amountBWithdrawn) = MoeMerchantLib
             .moeMerchantRemoveLiquidity(
                 address(METH),
                 address(WETH),
-                balanceOfMoeLp() - oldLpBalance
+                MOE_MERCHANT_METH_WETH_POOL.balanceOf(address(this)) -
+                    oldLpBalance
             );
-        emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
+        emit BurnedMoeLp(
+            oldLpBalance,
+            MOE_MERCHANT_METH_WETH_POOL.balanceOf(address(this))
+        );
 
         address[] memory fromWethPath = new address[](3);
         fromWethPath[0] = address(WETH);

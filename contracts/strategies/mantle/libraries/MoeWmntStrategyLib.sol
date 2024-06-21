@@ -147,8 +147,6 @@ library MoeWmntStrategyLib {
         uint256 amount,
         address wantAddress,
         uint256 slippageBps,
-        function() external view returns (uint256) balanceOfMoeLp,
-        function() external view returns (uint256) balanceOfCircuitShares,
         function(address, uint256, address)
             external
             view
@@ -157,7 +155,7 @@ library MoeWmntStrategyLib {
         external
     {
         if (amount == 0) return;
-        uint256 oldLpBalance = balanceOfMoeLp();
+        uint256 oldLpBalance = MOE_MERCHANT_MOE_WMNT_POOL.balanceOf(address(this));
 
         uint256 usdcForMoeSwapAmount = amount / 2;
         uint256 usdcForWmntSwapAmount = amount - usdcForMoeSwapAmount;
@@ -197,18 +195,16 @@ library MoeWmntStrategyLib {
                 consult
             );
         emit MoePoolUnderlyingTokensRemains(moeLeft, wmntLeft);
-        emit MintedMoeLp(oldLpBalance, balanceOfMoeLp());
-        uint256 circuitShares = balanceOfCircuitShares();
+        emit MintedMoeLp(oldLpBalance, MOE_MERCHANT_MOE_WMNT_POOL.balanceOf(address(this)));
+        uint256 circuitShares = CIRCUIT_VAULT.balanceOf(address(this));
         CIRCUIT_VAULT.deposit(lpMinted);
-        emit MintedCircuitShares(circuitShares, balanceOfCircuitShares());
+        emit MintedCircuitShares(circuitShares, CIRCUIT_VAULT.balanceOf(address(this)));
     }
 
     function burnShares(
         uint256 shares,
         address wantAddress,
         uint256 slippageBps,
-        function() external view returns (uint256) balanceOfMoeLp,
-        function() external view returns (uint256) balanceOfCircuitShares,
         function(address, uint256, address)
             external
             view
@@ -217,8 +213,8 @@ library MoeWmntStrategyLib {
         external
     {
         if (shares == 0) return;
-        uint256 oldLpBalance = balanceOfMoeLp();
-        uint256 oldCircuitSharesBalance = balanceOfCircuitShares();
+        uint256 oldLpBalance = MOE_MERCHANT_MOE_WMNT_POOL.balanceOf(address(this));
+        uint256 oldCircuitSharesBalance = CIRCUIT_VAULT.balanceOf(address(this));
 
         uint256 oldMoeBalance = MOE.balanceOf(address(this));
         uint256 oldWmntBalance = WMNT.balanceOf(address(this));
@@ -226,15 +222,15 @@ library MoeWmntStrategyLib {
         CIRCUIT_VAULT.withdraw(shares);
         emit BurnedCircuitShares(
             oldCircuitSharesBalance,
-            balanceOfCircuitShares()
+            CIRCUIT_VAULT.balanceOf(address(this))
         );
         (uint256 amountAWithdrawn, uint256 amountBWithdrawn) = MoeMerchantLib
             .moeMerchantRemoveLiquidity(
                 address(MOE),
                 address(WMNT),
-                balanceOfMoeLp() - oldLpBalance
+                MOE_MERCHANT_MOE_WMNT_POOL.balanceOf(address(this)) - oldLpBalance
             );
-        emit BurnedMoeLp(oldLpBalance, balanceOfMoeLp());
+        emit BurnedMoeLp(oldLpBalance, MOE_MERCHANT_MOE_WMNT_POOL.balanceOf(address(this)));
 
         address[] memory fromMoePath = new address[](3);
         fromMoePath[0] = address(MOE);

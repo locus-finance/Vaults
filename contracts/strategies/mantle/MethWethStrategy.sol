@@ -142,8 +142,6 @@ contract MethWethStrategy is
             sharesToWithdraw,
             address(want),
             slippageBps,
-            this.balanceOfMoeLp,
-            this.balanceOfCircuitShares,
             this.consult
         );
     }
@@ -220,8 +218,6 @@ contract MethWethStrategy is
                 _excessWant,
                 address(want),
                 slippageBps,
-                this.balanceOfMoeLp,
-                this.balanceOfCircuitShares,
                 this.consult
             );
         }
@@ -232,8 +228,6 @@ contract MethWethStrategy is
             balanceOfCircuitShares(),
             address(want),
             slippageBps,
-            this.balanceOfMoeLp,
-            this.balanceOfCircuitShares,
             this.consult
         );
         return want.balanceOf(address(this));
@@ -265,8 +259,6 @@ contract MethWethStrategy is
                 wantBalance,
                 address(want),
                 slippageBps,
-                this.balanceOfMoeLp,
-                this.balanceOfCircuitShares,
                 this.consult
             );
         }

@@ -152,8 +152,6 @@ contract MoeWmntStrategy is
             sharesToWithdraw,
             address(want),
             slippageBps,
-            this.balanceOfMoeLp,
-            this.balanceOfCircuitShares,
             this.consult
         );
     }
@@ -224,8 +222,6 @@ contract MoeWmntStrategy is
                 _excessWant,
                 address(want),
                 slippageBps,
-                this.balanceOfMoeLp,
-                this.balanceOfCircuitShares,
                 this.consult
             );
         }
@@ -236,8 +232,6 @@ contract MoeWmntStrategy is
             balanceOfCircuitShares(),
             address(want),
             slippageBps,
-            this.balanceOfMoeLp,
-            this.balanceOfCircuitShares,
             this.consult
         );
         return want.balanceOf(address(this));
@@ -269,8 +263,6 @@ contract MoeWmntStrategy is
                 wantBalance,
                 address(want),
                 slippageBps,
-                this.balanceOfMoeLp,
-                this.balanceOfCircuitShares,
                 this.consult
             );
         }
