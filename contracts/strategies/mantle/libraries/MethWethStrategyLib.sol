@@ -114,15 +114,13 @@ library MethWethStrategyLib {
             usdcForMethSwapAmount
         );
 
-        IMoePair pair = IMoePair(
-            MoeMerchantLib.MOE_FACTORY.getPair(address(METH), address(WETH))
-        );
+        IMoePair pair = IMoePair(address(MOE_MERCHANT_METH_WETH_POOL));
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
         uint256 lpTotalSupply = pair.totalSupply();
 
         uint256 liquidity = Math.min(
-            (wethAmount * lpTotalSupply) / reserve0,
-            (methAmount * lpTotalSupply) / reserve1
+            (methAmount * lpTotalSupply) / reserve0,
+            (wethAmount * lpTotalSupply) / reserve1
         );
 
         result =
@@ -137,9 +135,7 @@ library MethWethStrategyLib {
         if (amount == 0) return 0;
         uint256 liquidity = (amount * CIRCUIT_VAULT.balance()) /
             CIRCUIT_VAULT.totalSupply();
-        IMoePair pair = IMoePair(
-            MoeMerchantLib.MOE_FACTORY.getPair(address(METH), address(WETH))
-        );
+        IMoePair pair = IMoePair(address(MOE_MERCHANT_METH_WETH_POOL));
         uint256 lpTotalSupply = pair.totalSupply();
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
         uint256 methAmount = (liquidity * reserve0) / lpTotalSupply;

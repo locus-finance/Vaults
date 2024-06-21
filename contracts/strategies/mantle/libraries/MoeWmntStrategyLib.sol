@@ -106,15 +106,13 @@ library MoeWmntStrategyLib {
         uint256 wmntAmount = usdcToWmntQuote(wantAddress, usdcForWmntSwapAmount);
         uint256 moeAmount = usdcToMoeQuote(wantAddress, usdcForMoeSwapAmount);
 
-        IMoePair pair = IMoePair(
-            MoeMerchantLib.MOE_FACTORY.getPair(address(MOE), address(WMNT))
-        );
+        IMoePair pair = IMoePair(address(MOE_MERCHANT_MOE_WMNT_POOL));
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
         uint256 lpTotalSupply = pair.totalSupply();
 
         uint256 liquidity = Math.min(
-            (wmntAmount * lpTotalSupply) / reserve0,
-            (moeAmount * lpTotalSupply) / reserve1
+            (moeAmount * lpTotalSupply) / reserve0,
+            (wmntAmount * lpTotalSupply) / reserve1
         );
 
         result =
@@ -130,9 +128,7 @@ library MoeWmntStrategyLib {
         uint256 liquidity = (amount * CIRCUIT_VAULT.balance()) /
             CIRCUIT_VAULT.totalSupply();
 
-        IMoePair pair = IMoePair(
-            MoeMerchantLib.MOE_FACTORY.getPair(address(MOE), address(WMNT))
-        );
+        IMoePair pair = IMoePair(address(MOE_MERCHANT_MOE_WMNT_POOL));
         uint256 lpTotalSupply = pair.totalSupply();
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
 

@@ -110,8 +110,8 @@ library WmntMethStrategyLib {
         uint256 lpTotalSupply = pair.totalSupply();
 
         uint256 liquidity = Math.min(
-            (methAmount * lpTotalSupply) / reserve0,
-            (wmntAmount * lpTotalSupply) / reserve1
+            (wmntAmount * lpTotalSupply) / reserve0,
+            (methAmount * lpTotalSupply) / reserve1
         );
         result =
             (liquidity * CIRCUIT_VAULT.totalSupply()) /

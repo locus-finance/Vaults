@@ -91,12 +91,20 @@ describe('TestMantleVaultDeposit', () => {
     });
   });
 
-  it('should deposit and harvest', async () => {
+  xit('should show something', async () => {
+    const p = await hre.ethers.getContractAt("IMoePair", "0xa375ea3e1f92d62e3A71B668bAb09f7155267fa3");
+    console.log(await p.token0());
+    console.log(await p.token1());
+
+
     // const t = await hre.ethers.getContractAt("ICircuitVault", "0xc37c7dEBa5E7F5dE572C914D5c159EA08DE1fefF");
     // const t1 = await hre.ethers.getContractAt("IERC20", "0xa375ea3e1f92d62e3A71B668bAb09f7155267fa3")
     // console.log((await t.getPricePerFullShare()).toString());
     // console.log(hre.ethers.utils.formatEther(await t1.balanceOf(t.address)));
     // console.log(hre.ethers.utils.formatEther(await t1.balanceOf("0x95d270e8ea896a6e14d5b49cd06053f97ee579ef")));
+  });
+
+  xit('should deposit and harvest', async () => {
     const time = 604800 + 3600;
     const slippage = 1000;
     await helpers.time.increase(time);
@@ -141,6 +149,65 @@ describe('TestMantleVaultDeposit', () => {
     });
     console.log('Post wmnt meth');
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
+  });
+
+  it('should deposit and harvest', async () => {
+    const time = 604800 + 3600;
+    const slippage = 1000;
+    await helpers.time.increase(time);
+    let oldBalanceUsdc;
+    await withImpersonatedSigner(userAddress, async (userSigner) => {
+      await usdcInstance.connect(userSigner).approve(xMantleInstance.address, usdcAmountToDeposit);
+      await xMantleInstance.connect(userSigner)["deposit(uint256)"](usdcAmountToDeposit);
+      oldBalanceUsdc = await usdcInstance.balanceOf(userAddress);
+      console.log(`Start usdc balance after deposit: ${hre.ethers.utils.formatUnits(oldBalanceUsdc, 6)}`);
+      console.log(`Deposit usdc amount: ${hre.ethers.utils.formatUnits(usdcAmountToDeposit, 6)}`);
+    });
+    await withImpersonatedSigner(userAddress, async (userSigner) => {
+      await initStrategyInstance.connect(userSigner).harvest();
+    });
+    console.log('Post init');
+    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
+    await withImpersonatedSigner(userAddress, async (userSigner) => {
+      await lendWmntStrategyInstance.connect(userSigner).resetAllowances();
+      await lendWmntStrategyInstance.connect(userSigner).setSlippage(slippage);
+      await lendWmntStrategyInstance.connect(userSigner).updateOracle();
+      await lendWmntStrategyInstance.connect(userSigner).harvest();
+    });
+    console.log('Post lend wmnt');
+    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
+    await withImpersonatedSigner(userAddress, async (userSigner) => {
+      await moeWmntStrategyInstance.connect(userSigner).resetAllowances();
+      await moeWmntStrategyInstance.connect(userSigner).setSlippage(slippage);
+      await moeWmntStrategyInstance.connect(userSigner).updateOracle();
+      await moeWmntStrategyInstance.connect(userSigner).harvest();
+    });
+    console.log('Post moe wmnt');
+    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
+    await withImpersonatedSigner(userAddress, async (userSigner) => {
+      await methWethStrategyInstance.connect(userSigner).resetAllowances();
+      await methWethStrategyInstance.connect(userSigner).setSlippage(slippage);
+      await methWethStrategyInstance.connect(userSigner).updateOracle();
+      await methWethStrategyInstance.connect(userSigner).harvest();
+    });
+    console.log('Post meth weth');
+    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
+    await withImpersonatedSigner(userAddress, async (userSigner) => {
+      await wmntMethStrategyInstance.connect(userSigner).resetAllowances();
+      await wmntMethStrategyInstance.connect(userSigner).setSlippage(slippage);
+      await wmntMethStrategyInstance.connect(userSigner).updateOracle();
+      await wmntMethStrategyInstance.connect(userSigner).harvest();
+    });
+    console.log('Post wmnt meth');
+    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
+    await withImpersonatedSigner(userAddress, async (userSigner) => {
+      await usdcInstance.connect(userSigner).approve(xMantleInstance.address, usdcAmountToDeposit);
+      await xMantleInstance.connect(userSigner).withdraw(usdcAmountToDeposit, userAddress, 5000);
+      const newBalanceUsdc = await usdcInstance.balanceOf(userAddress);
+      console.log(`End usdc balance: ${hre.ethers.utils.formatUnits(newBalanceUsdc, 6)}`);
+      console.log(`Usdc withdrawn: ${hre.ethers.utils.formatUnits(newBalanceUsdc.sub(oldBalanceUsdc), 6)}`);
+      console.log(`Deposited - withdrawn = ${hre.ethers.utils.formatUnits(usdcAmountToDeposit.sub(newBalanceUsdc.sub(oldBalanceUsdc)), 6)}`);
+    });
   });
 });
 
