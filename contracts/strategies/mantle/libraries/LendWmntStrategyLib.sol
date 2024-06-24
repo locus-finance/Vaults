@@ -41,6 +41,8 @@ library LendWmntStrategyLib {
     IERC20 public constant MOE_MERCHANT_LEND_WMNT_POOL =
         IERC20(0x30ac02b4c99D140CDE2a212ca807CBdA35D4f6b5);
 
+    uint256 public constant PRECISION = 1 ether;
+
     function updateTraces(
         address wantAddress,
         function(address, address) external update
@@ -108,6 +110,14 @@ library LendWmntStrategyLib {
         return swapResultsFromLend[swapResultsFromLend.length - 1];
     }
 
+    function _fromCircuitShares(uint256 shares) internal view returns (uint256 liquidity) {
+        liquidity = (shares * CIRCUIT_VAULT.getPricePerFullShare()) / PRECISION;
+    }
+
+    function _toCircuitShares(uint256 liquidity) internal view returns (uint256 shares) {
+        shares = (liquidity * PRECISION) / CIRCUIT_VAULT.getPricePerFullShare();
+    }
+
     function wantToCircuitShares(
         uint256 amount,
         address wantAddress
@@ -132,9 +142,8 @@ library LendWmntStrategyLib {
             (lendAmount * lpTotalSupply) / reserve0,
             (wmntAmount * lpTotalSupply) / reserve1
         );
-        result =
-            (liquidity * CIRCUIT_VAULT.totalSupply()) /
-            CIRCUIT_VAULT.balance();
+
+        result = _toCircuitShares(liquidity);
     }
 
     function circuitSharesToWant(
@@ -142,8 +151,8 @@ library LendWmntStrategyLib {
         address wantAddress
     ) external view returns (uint256 result) {
         if (amount == 0) return 0;
-        uint256 liquidity = (amount * CIRCUIT_VAULT.balance()) /
-            CIRCUIT_VAULT.totalSupply();
+        uint256 liquidity = _fromCircuitShares(amount);
+
         IMoePair pair = IMoePair(address(MOE_MERCHANT_LEND_WMNT_POOL));
         uint256 lpTotalSupply = pair.totalSupply();
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();

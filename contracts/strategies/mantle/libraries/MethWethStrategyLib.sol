@@ -37,6 +37,8 @@ library MethWethStrategyLib {
     IERC20 public constant MOE_MERCHANT_METH_WETH_POOL =
         IERC20(0x86e3a987187feD135D6d9C114f1857D8144F01e1);
 
+    uint256 public constant PRECISION = 1 ether;
+
     function updateTraces(
         address wantAddress,
         function(address, address) external update
@@ -97,6 +99,14 @@ library MethWethStrategyLib {
         return fromWethSwapResult[fromWethSwapResult.length - 1];
     }
 
+    function _fromCircuitShares(uint256 shares) internal view returns (uint256 liquidity) {
+        liquidity = (shares * CIRCUIT_VAULT.getPricePerFullShare()) / PRECISION;
+    }
+
+    function _toCircuitShares(uint256 liquidity) internal view returns (uint256 shares) {
+        shares = (liquidity * PRECISION) / CIRCUIT_VAULT.getPricePerFullShare();
+    }
+
     function wantToCircuitShares(
         uint256 amount,
         address wantAddress
@@ -122,10 +132,7 @@ library MethWethStrategyLib {
             (methAmount * lpTotalSupply) / reserve0,
             (wethAmount * lpTotalSupply) / reserve1
         );
-
-        result =
-            (liquidity * CIRCUIT_VAULT.totalSupply()) /
-            CIRCUIT_VAULT.balance();
+        result = _toCircuitShares(liquidity);
     }
 
     function circuitSharesToWant(
@@ -133,8 +140,7 @@ library MethWethStrategyLib {
         address wantAddress
     ) public view returns (uint256 result) {
         if (amount == 0) return 0;
-        uint256 liquidity = (amount * CIRCUIT_VAULT.balance()) /
-            CIRCUIT_VAULT.totalSupply();
+        uint256 liquidity = _fromCircuitShares(amount);
         IMoePair pair = IMoePair(address(MOE_MERCHANT_METH_WETH_POOL));
         uint256 lpTotalSupply = pair.totalSupply();
         (uint112 reserve0, uint112 reserve1, ) = pair.getReserves();
