@@ -240,18 +240,23 @@ contract WmntMethStrategy is
                 wantAmountFromMeth
             );
         } else {
-            wantAmountFromWmnt = WmntMethStrategyLib.wmntToUsdcSwap(
-                wantAddress,
-                wmntBalanceLeft,
-                slippageBps,
-                this.consult
-            );
-            wantAmountFromMeth = WmntMethStrategyLib.methToUsdcSwap(
-                wantAddress,
-                methBalanceLeft,
-                slippageBps,
-                this.consult
-            );
+            if (wmntBalanceLeft > 0) {
+                wantAmountFromWmnt = WmntMethStrategyLib.wmntToUsdcSwap(
+                    wantAddress,
+                    wmntBalanceLeft,
+                    slippageBps,
+                    this.consult
+                );
+            }
+            if (methBalanceLeft > 0) {
+                wantAmountFromMeth = WmntMethStrategyLib.methToUsdcSwap(
+                    wantAddress,
+                    methBalanceLeft,
+                    slippageBps,
+                    this.consult
+                );
+            }
+
             uint256 sharesToWithdraw = Math.min(
                 wantToCircuitShares(
                     _amountNeeded - (wantAmountFromWmnt + wantAmountFromMeth)

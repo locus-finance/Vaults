@@ -251,18 +251,23 @@ contract LendWmntStrategy is
                 wantAmountFromWmnt
             );
         } else {
-            wantAmountFromLend = LendWmntStrategyLib.lendToUsdcSwap(
-                wantAddress,
-                lendBalanceLeft,
-                slippageBps,
-                this.consult
-            );
-            wantAmountFromWmnt = LendWmntStrategyLib.wmntToUsdcSwap(
-                wantAddress,
-                wmntBalanceLeft,
-                slippageBps,
-                this.consult
-            );
+            if (lendBalanceLeft > 0) {
+                wantAmountFromLend = LendWmntStrategyLib.lendToUsdcSwap(
+                    wantAddress,
+                    lendBalanceLeft,
+                    slippageBps,
+                    this.consult
+                );
+            }
+            if (wmntBalanceLeft > 0) {
+                wantAmountFromWmnt = LendWmntStrategyLib.wmntToUsdcSwap(
+                    wantAddress,
+                    wmntBalanceLeft,
+                    slippageBps,
+                    this.consult
+                );
+            }
+            
             uint256 sharesToWithdraw = Math.min(
                 wantToCircuitShares(
                     _amountNeeded - (wantAmountFromLend + wantAmountFromWmnt)

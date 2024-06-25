@@ -253,18 +253,23 @@ contract MoeWmntStrategy is
                 wantAmountFromWmnt
             );
         } else {
-            wantAmountFromMoe = MoeWmntStrategyLib.moeToUsdcSwap(
-                wantAddress,
-                moeBalanceLeft,
-                slippageBps,
-                this.consult
-            );
-            wantAmountFromWmnt = MoeWmntStrategyLib.wmntToUsdcSwap(
-                wantAddress,
-                wmntBalanceLeft,
-                slippageBps,
-                this.consult
-            );
+            if (moeBalanceLeft > 0) {
+                wantAmountFromMoe = MoeWmntStrategyLib.moeToUsdcSwap(
+                    wantAddress,
+                    moeBalanceLeft,
+                    slippageBps,
+                    this.consult
+                );
+            }
+            if (wmntBalanceLeft > 0) {
+                wantAmountFromWmnt = MoeWmntStrategyLib.wmntToUsdcSwap(
+                    wantAddress,
+                    wmntBalanceLeft,
+                    slippageBps,
+                    this.consult
+                );
+            }
+            
             uint256 sharesToWithdraw = Math.min(
                 wantToCircuitShares(
                     _amountNeeded - (wantAmountFromMoe + wantAmountFromWmnt)

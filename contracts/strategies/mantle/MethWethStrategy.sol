@@ -245,19 +245,24 @@ contract MethWethStrategy is
                 wantAmountFromWeth
             );
         } else {
-            wantAmountFromMeth = MoeMerchantLib.moeMerchantSwapSingle(
-                wantAddress,
-                address(MethWethStrategyLib.METH),
-                methBalanceLeft,
-                slippageBps,
-                this.consult
-            );
-            wantAmountFromWeth = MethWethStrategyLib.wethToUsdcSwap(
-                wantAddress,
-                wethBalanceLeft,
-                slippageBps,
-                this.consult
-            );
+            if (methBalanceLeft > 0) {
+                wantAmountFromMeth = MoeMerchantLib.moeMerchantSwapSingle(
+                    wantAddress,
+                    address(MethWethStrategyLib.METH),
+                    methBalanceLeft,
+                    slippageBps,
+                    this.consult
+                );
+            }
+            if (wethBalanceLeft > 0) {
+                wantAmountFromWeth = MethWethStrategyLib.wethToUsdcSwap(
+                    wantAddress,
+                    wethBalanceLeft,
+                    slippageBps,
+                    this.consult
+                );
+            }
+            
             uint256 sharesToWithdraw = Math.min(
                 wantToCircuitShares(_amountNeeded - (wantAmountFromMeth + wantAmountFromWeth)),
                 balanceOfCircuitShares()
