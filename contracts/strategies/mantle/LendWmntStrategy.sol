@@ -21,11 +21,34 @@ contract LendWmntStrategy is
 
     /// @dev DEPRECATED - DO NOT USE AND DO NOT DELETE TO PREVENT THE STORAGE RIFF-RAFF.
     uint256 public lendTokensToAddToMoeLiquidity;
-    
+
     /// @dev DEPRECATED - DO NOT USE AND DO NOT DELETE TO PREVENT THE STORAGE RIFF-RAFF.
     uint256 public wmntTokensToAddToMoeLiquidity;
 
     uint256 public slippageBps;
+
+    event WithdrawnWithLend(
+        uint256 indexed amountLendSwapped,
+        uint256 indexed amountUsdcSwappedTo
+    );
+    event WithdrawnWithWmnt(
+        uint256 indexed amountWmntSwapped,
+        uint256 indexed amountUsdcSwappedTo
+    );
+    event WithdrawnWithLendAndWmnt(
+        uint256 indexed amountLendSwapped,
+        uint256 indexed amountWmntSwapped,
+        uint256 indexed wantTokensLeft,
+        uint256 amountUsdcSwappedFromLend,
+        uint256 amountUsdcSwappedFromWmnt
+    );
+    event WithdrawnWithSharesBurnAndSwaps(
+        uint256 indexed amountLendSwapped,
+        uint256 indexed amountWmntSwapped,
+        uint256 indexed sharesBurnt,
+        uint256 amountUsdcSwappedFromLend,
+        uint256 amountUsdcSwappedFromWmnt
+    );
 
     function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(
@@ -142,16 +165,124 @@ contract LendWmntStrategy is
         if (_amountNeeded == 0) {
             return;
         }
-        uint256 sharesToWithdraw = Math.min(
-            wantToCircuitShares(_amountNeeded),
-            balanceOfCircuitShares()
+        address wantAddress = address(want);
+
+        uint256 lendBalanceLeft = LendWmntStrategyLib.LEND.balanceOf(
+            address(this)
         );
-        LendWmntStrategyLib.burnShares(
-            sharesToWithdraw,
-            address(want),
-            slippageBps,
-            this.consult
+        uint256 wmntBalanceLeft = LendWmntStrategyLib.WMNT.balanceOf(
+            address(this)
         );
+
+        uint256 lendBalanceLeftInWant = LendWmntStrategyLib.lendToUsdcQuote(
+            wantAddress,
+            lendBalanceLeft
+        );
+        uint256 wmntBalanceLeftInWant = LendWmntStrategyLib.wmntToUsdcQuote(
+            wantAddress,
+            wmntBalanceLeft
+        );
+
+        uint256 wantAmountFromLend;
+        uint256 wantAmountFromWmnt;
+        uint256 wantLeft;
+
+        if (lendBalanceLeftInWant >= _amountNeeded) {
+            wantLeft = lendBalanceLeftInWant - _amountNeeded;
+            uint256 lendTokensToPreventFromSwap;
+            if (wantLeft > 0) {
+                lendTokensToPreventFromSwap = LendWmntStrategyLib
+                    .usdcToLendQuote(wantAddress, wantLeft);
+            }
+            uint256 lendToSwap = lendBalanceLeft - lendTokensToPreventFromSwap;
+            wantAmountFromLend = LendWmntStrategyLib.lendToUsdcSwap(
+                address(want),
+                lendToSwap,
+                slippageBps,
+                this.consult
+            );
+            emit WithdrawnWithLend(lendToSwap, wantAmountFromLend);
+        } else if (wmntBalanceLeftInWant >= _amountNeeded) {
+            wantLeft = wmntBalanceLeftInWant - _amountNeeded;
+            uint256 wmntTokensToPreventFromSwap;
+            if (wantLeft > 0) {
+                wmntTokensToPreventFromSwap = LendWmntStrategyLib
+                    .usdcToWmntQuote(wantAddress, wantLeft);
+            }
+            uint256 wmntToSwap = wmntBalanceLeft - wmntTokensToPreventFromSwap;
+            wantAmountFromWmnt = LendWmntStrategyLib.wmntToUsdcSwap(
+                wantAddress,
+                wmntToSwap,
+                slippageBps,
+                this.consult
+            );
+            emit WithdrawnWithWmnt(wmntToSwap, wantAmountFromWmnt);
+        } else if (
+            lendBalanceLeftInWant + wmntBalanceLeftInWant >= _amountNeeded
+        ) {
+            wantAmountFromLend = LendWmntStrategyLib.lendToUsdcSwap(
+                wantAddress,
+                lendBalanceLeft,
+                slippageBps,
+                this.consult
+            );
+            wantAmountFromWmnt = LendWmntStrategyLib.wmntToUsdcSwap(
+                wantAddress,
+                wmntBalanceLeft,
+                slippageBps,
+                this.consult
+            );
+            wantLeft =
+                (lendBalanceLeftInWant + wmntBalanceLeftInWant) -
+                _amountNeeded;
+            if (wantLeft > 0) {
+                LendWmntStrategyLib.mintShares(
+                    wantLeft,
+                    wantAddress,
+                    slippageBps,
+                    this.consult
+                );
+            }
+            emit WithdrawnWithLendAndWmnt(
+                lendBalanceLeft,
+                wmntBalanceLeft,
+                wantLeft,
+                wantAmountFromLend,
+                wantAmountFromWmnt
+            );
+        } else {
+            wantAmountFromLend = LendWmntStrategyLib.lendToUsdcSwap(
+                wantAddress,
+                lendBalanceLeft,
+                slippageBps,
+                this.consult
+            );
+            wantAmountFromWmnt = LendWmntStrategyLib.wmntToUsdcSwap(
+                wantAddress,
+                wmntBalanceLeft,
+                slippageBps,
+                this.consult
+            );
+            uint256 sharesToWithdraw = Math.min(
+                wantToCircuitShares(
+                    _amountNeeded - (wantAmountFromLend + wantAmountFromWmnt)
+                ),
+                balanceOfCircuitShares()
+            );
+            LendWmntStrategyLib.burnShares(
+                sharesToWithdraw,
+                address(want),
+                slippageBps,
+                this.consult
+            );
+            emit WithdrawnWithSharesBurnAndSwaps(
+                lendBalanceLeft,
+                wmntBalanceLeft,
+                sharesToWithdraw,
+                wantAmountFromLend,
+                wantAmountFromWmnt
+            );
+        }
     }
 
     function estimatedTotalAssets()
@@ -162,12 +293,14 @@ contract LendWmntStrategy is
         returns (uint256 _wants)
     {
         _wants += want.balanceOf(address(this));
-        if (lendTokensToAddToMoeLiquidity > 0) {
-            _wants += LendWmntStrategyLib.lendToUsdcQuote(address(want), lendTokensToAddToMoeLiquidity);
-        }
-        if (wmntTokensToAddToMoeLiquidity > 0) {
-            _wants += LendWmntStrategyLib.wmntToUsdcQuote(address(want), wmntTokensToAddToMoeLiquidity);
-        }
+        _wants += LendWmntStrategyLib.lendToUsdcQuote(
+            address(want),
+            LendWmntStrategyLib.LEND.balanceOf(address(this))
+        );
+        _wants += LendWmntStrategyLib.wmntToUsdcQuote(
+            address(want),
+            LendWmntStrategyLib.WMNT.balanceOf(address(this))
+        );
         _wants += circuitSharesToWant(balanceOfCircuitShares());
     }
 
@@ -226,12 +359,7 @@ contract LendWmntStrategy is
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        LendWmntStrategyLib.burnShares(
-            balanceOfCircuitShares(),
-            address(want),
-            slippageBps,
-            this.consult
-        );
+        _withdrawSome(balanceOfCircuitShares());
         return want.balanceOf(address(this));
     }
 

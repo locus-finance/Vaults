@@ -61,9 +61,9 @@ async function main() {
       (await hre.upgrades.erc1967.getImplementationAddress(TARGET_ADDRESS))
   );
 
-  await hre.run("verify:verify", {
-    address: upgraded.address
-  });
+  // await hre.run("verify:verify", {
+  //   address: upgraded.address
+  // });
 }
 
 main()

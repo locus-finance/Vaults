@@ -124,7 +124,7 @@ describe('TestMantleVaultDeposit', () => {
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
     console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
     console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
-      
+    
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await usdcInstance.connect(userSigner).approve(xMantleInstance.address, usdcAmountToDeposit);
       await xMantleInstance.connect(userSigner)["deposit(uint256)"](usdcAmountToDeposit);
@@ -133,16 +133,16 @@ describe('TestMantleVaultDeposit', () => {
       console.log(`Deposit usdc amount: ${hre.ethers.utils.formatUnits(usdcAmountToDeposit, 6)}`);
     });
 
-    console.log(`Before INIT total assets: ${hre.ethers.utils.formatUnits(await initStrategyInstance.estimatedTotalAssets(), 6)}`);
+    // console.log(`Before INIT total assets: ${hre.ethers.utils.formatUnits(await initStrategyInstance.estimatedTotalAssets(), 6)}`);
     
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await initStrategyInstance.connect(userSigner).harvest();
     });
     console.log('Post init');
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
-    console.log(`INIT total assets: ${hre.ethers.utils.formatUnits(await initStrategyInstance.estimatedTotalAssets(), 6)}`);
-    console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
-    console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
+    // console.log(`INIT total assets: ${hre.ethers.utils.formatUnits(await initStrategyInstance.estimatedTotalAssets(), 6)}`);
+    // console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
+    // console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
 
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await lendWmntStrategyInstance.connect(userSigner).resetAllowances();
@@ -152,9 +152,9 @@ describe('TestMantleVaultDeposit', () => {
     });
     console.log('Post lend wmnt');
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
-    console.log(`LEND WMNT total assets: ${hre.ethers.utils.formatUnits(await lendWmntStrategyInstance.estimatedTotalAssets(), 6)}`);
-    console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
-    console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
+    // console.log(`LEND WMNT total assets: ${hre.ethers.utils.formatUnits(await lendWmntStrategyInstance.estimatedTotalAssets(), 6)}`);
+    // console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
+    // console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
 
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await moeWmntStrategyInstance.connect(userSigner).resetAllowances();
@@ -164,9 +164,9 @@ describe('TestMantleVaultDeposit', () => {
     });
     console.log('Post moe wmnt');
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
-    console.log(`MOE WMNT total assets: ${hre.ethers.utils.formatUnits(await moeWmntStrategyInstance.estimatedTotalAssets(), 6)}`);
-    console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
-    console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
+    // console.log(`MOE WMNT total assets: ${hre.ethers.utils.formatUnits(await moeWmntStrategyInstance.estimatedTotalAssets(), 6)}`);
+    // console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
+    // console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
 
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await methWethStrategyInstance.connect(userSigner).resetAllowances();
@@ -176,9 +176,9 @@ describe('TestMantleVaultDeposit', () => {
     });
     console.log('Post meth weth');
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
-    console.log(`MOE WMNT total assets: ${hre.ethers.utils.formatUnits(await methWethStrategyInstance.estimatedTotalAssets(), 6)}`);
-    console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
-    console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
+    // console.log(`MOE WMNT total assets: ${hre.ethers.utils.formatUnits(await methWethStrategyInstance.estimatedTotalAssets(), 6)}`);
+    // console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
+    // console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
 
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await wmntMethStrategyInstance.connect(userSigner).resetAllowances();
@@ -188,9 +188,9 @@ describe('TestMantleVaultDeposit', () => {
     });
     console.log('Post wmnt meth');
     console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
-    console.log(`MOE WMNT total assets: ${hre.ethers.utils.formatUnits(await wmntMethStrategyInstance.estimatedTotalAssets(), 6)}`);
-    console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
-    console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
+    // console.log(`MOE WMNT total assets: ${hre.ethers.utils.formatUnits(await wmntMethStrategyInstance.estimatedTotalAssets(), 6)}`);
+    // console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
+    // console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
 
     
     await withImpersonatedSigner(userAddress, async (userSigner) => {

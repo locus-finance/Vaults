@@ -19,10 +19,39 @@ contract WmntMethStrategy is
     using SafeERC20 for IERC20;
     using Math for uint256;
 
+    /// @dev DEPRECATED - DO NOT USE AND DO NOT DELETE TO PREVENT THE STORAGE RIFF-RAFF.
     uint256 public wmntTokensToAddToMoeLiquidity;
+
+    /// @dev DEPRECATED - DO NOT USE AND DO NOT DELETE TO PREVENT THE STORAGE RIFF-RAFF.
     uint256 public methTokensToAddToMoeLiquidity;
+
     uint256 public slippageBps;
+
+    /// @dev DEPRECATED - DO NOT USE AND DO NOT DELETE TO PREVENT THE STORAGE RIFF-RAFF.
     uint32 public agniTwapRangeSecs;
+
+    event WithdrawnWithWmnt(
+        uint256 indexed amountWmntSwapped,
+        uint256 indexed amountUsdcSwappedTo
+    );
+    event WithdrawnWithMeth(
+        uint256 indexed amountMethSwapped,
+        uint256 indexed amountUsdcSwappedTo
+    );
+    event WithdrawnWithWmntAndMeth(
+        uint256 indexed amountWmntSwapped,
+        uint256 indexed amountMethSwapped,
+        uint256 indexed wantTokensLeft,
+        uint256 amountUsdcSwappedFromWmnt,
+        uint256 amountUsdcSwappedFromMeth
+    );
+    event WithdrawnWithSharesBurnAndSwaps(
+        uint256 indexed amountWmntSwapped,
+        uint256 indexed amountMethSwapped,
+        uint256 indexed sharesBurnt,
+        uint256 amountUsdcSwappedFromWmnt,
+        uint256 amountUsdcSwappedFromMeth
+    );
 
     function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(
@@ -78,10 +107,7 @@ contract WmntMethStrategy is
     }
 
     function updateOracle() external onlyAuthorized {
-        WmntMethStrategyLib.updateTraces(
-            address(want),
-            this.update
-        );
+        WmntMethStrategyLib.updateTraces(address(want), this.update);
     }
 
     function setOracleWindowSize(uint256 newWindowSize) public onlyAuthorized {
@@ -90,12 +116,6 @@ contract WmntMethStrategy is
 
     function setSlippage(uint256 newSlippage) external onlyAuthorized {
         slippageBps = newSlippage;
-    }
-
-    function setAgniTwapRangeSecs(
-        uint32 newAgniTwapRangeSecs
-    ) external onlyAuthorized {
-        agniTwapRangeSecs = newAgniTwapRangeSecs;
     }
 
     function name() external pure override returns (string memory) {
@@ -133,16 +153,125 @@ contract WmntMethStrategy is
         if (_amountNeeded == 0) {
             return;
         }
-        uint256 sharesToWithdraw = Math.min(
-            wantToCircuitShares(_amountNeeded),
-            balanceOfCircuitShares()
+
+        address wantAddress = address(want);
+
+        uint256 wmntBalanceLeft = WmntMethStrategyLib.WMNT.balanceOf(
+            address(this)
         );
-        WmntMethStrategyLib.burnShares(
-            sharesToWithdraw,
-            address(want),
-            slippageBps,
-            this.consult
+        uint256 methBalanceLeft = WmntMethStrategyLib.METH.balanceOf(
+            address(this)
         );
+
+        uint256 wmntBalanceLeftInWant = WmntMethStrategyLib.wmntToUsdcQuote(
+            wantAddress,
+            wmntBalanceLeft
+        );
+        uint256 methBalanceLeftInWant = WmntMethStrategyLib.methToUsdcQuote(
+            wantAddress,
+            methBalanceLeft
+        );
+
+        uint256 wantAmountFromWmnt;
+        uint256 wantAmountFromMeth;
+        uint256 wantLeft;
+
+        if (wmntBalanceLeftInWant >= _amountNeeded) {
+            wantLeft = wmntBalanceLeftInWant - _amountNeeded;
+            uint256 wmntTokensToPreventFromSwap;
+            if (wantLeft > 0) {
+                wmntTokensToPreventFromSwap = WmntMethStrategyLib
+                    .usdcToWmntQuote(wantAddress, wantLeft);
+            }
+            uint256 wmntToSwap = wmntBalanceLeft - wmntTokensToPreventFromSwap;
+            wantAmountFromWmnt = WmntMethStrategyLib.wmntToUsdcSwap(
+                address(want),
+                wmntToSwap,
+                slippageBps,
+                this.consult
+            );
+            emit WithdrawnWithWmnt(wmntToSwap, wantAmountFromWmnt);
+        } else if (methBalanceLeftInWant >= _amountNeeded) {
+            wantLeft = methBalanceLeftInWant - _amountNeeded;
+            uint256 methTokensToPreventFromSwap;
+            if (wantLeft > 0) {
+                methTokensToPreventFromSwap = WmntMethStrategyLib
+                    .usdcToMethQuote(wantAddress, wantLeft);
+            }
+            uint256 methToSwap = methBalanceLeft - methTokensToPreventFromSwap;
+            wantAmountFromMeth = WmntMethStrategyLib.methToUsdcSwap(
+                wantAddress,
+                methToSwap,
+                slippageBps,
+                this.consult
+            );
+            emit WithdrawnWithMeth(methToSwap, wantAmountFromMeth);
+        } else if (
+            wmntBalanceLeftInWant + methBalanceLeftInWant >= _amountNeeded
+        ) {
+            wantAmountFromWmnt = WmntMethStrategyLib.wmntToUsdcSwap(
+                wantAddress,
+                wmntBalanceLeft,
+                slippageBps,
+                this.consult
+            );
+            wantAmountFromMeth = WmntMethStrategyLib.methToUsdcSwap(
+                wantAddress,
+                methBalanceLeft,
+                slippageBps,
+                this.consult
+            );
+            wantLeft =
+                (wmntBalanceLeftInWant + methBalanceLeftInWant) -
+                _amountNeeded;
+            if (wantLeft > 0) {
+                WmntMethStrategyLib.mintShares(
+                    wantLeft,
+                    wantAddress,
+                    slippageBps,
+                    this.consult
+                );
+            }
+            emit WithdrawnWithWmntAndMeth(
+                wmntBalanceLeft,
+                methBalanceLeft,
+                wantLeft,
+                wantAmountFromWmnt,
+                wantAmountFromMeth
+            );
+        } else {
+            wantAmountFromWmnt = WmntMethStrategyLib.wmntToUsdcSwap(
+                wantAddress,
+                wmntBalanceLeft,
+                slippageBps,
+                this.consult
+            );
+            wantAmountFromMeth = WmntMethStrategyLib.methToUsdcSwap(
+                wantAddress,
+                methBalanceLeft,
+                slippageBps,
+                this.consult
+            );
+            uint256 sharesToWithdraw = Math.min(
+                wantToCircuitShares(
+                    _amountNeeded - (wantAmountFromWmnt + wantAmountFromMeth)
+                ),
+                balanceOfCircuitShares()
+            );
+            WmntMethStrategyLib.burnShares(
+                sharesToWithdraw,
+                address(want),
+                slippageBps,
+                this.consult
+            );
+            emit WithdrawnWithSharesBurnAndSwaps(
+                wmntBalanceLeft,
+                methBalanceLeft,
+                sharesToWithdraw,
+                wantAmountFromWmnt,
+                wantAmountFromMeth
+            );
+        }
     }
 
     function estimatedTotalAssets()
@@ -153,12 +282,14 @@ contract WmntMethStrategy is
         returns (uint256 _wants)
     {
         _wants += want.balanceOf(address(this));
-        if (wmntTokensToAddToMoeLiquidity > 0) {
-            _wants += WmntMethStrategyLib.wmntToUsdcQuote(address(want), wmntTokensToAddToMoeLiquidity);
-        }
-        if (methTokensToAddToMoeLiquidity > 0) {
-            _wants += WmntMethStrategyLib.methToUsdcQuote(address(want), methTokensToAddToMoeLiquidity);
-        }
+        _wants += WmntMethStrategyLib.wmntToUsdcQuote(
+            address(want),
+            WmntMethStrategyLib.WMNT.balanceOf(address(this))
+        );
+        _wants += WmntMethStrategyLib.methToUsdcQuote(
+            address(want),
+            WmntMethStrategyLib.METH.balanceOf(address(this))
+        );
         _wants += circuitSharesToWant(balanceOfCircuitShares());
     }
 
@@ -217,12 +348,7 @@ contract WmntMethStrategy is
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        WmntMethStrategyLib.burnShares(
-            balanceOfCircuitShares(),
-            address(want),
-            slippageBps,
-            this.consult
-        );
+        _withdrawSome(balanceOfCircuitShares());
         return want.balanceOf(address(this));
     }
 
@@ -261,10 +387,10 @@ contract WmntMethStrategy is
                 methTokensToAddToMoeLiquidity
             );
         }
-        if (wmntTokensToAddToMoeLiquidity > 0) {
+        if (methTokensToAddToMoeLiquidity > 0) {
             WmntMethStrategyLib.WMNT.safeTransfer(
                 _newStrategy,
-                wmntTokensToAddToMoeLiquidity
+                methTokensToAddToMoeLiquidity
             );
         }
         IERC20(address(WmntMethStrategyLib.CIRCUIT_VAULT)).safeTransfer(

@@ -27,6 +27,29 @@ contract MoeWmntStrategy is
 
     uint256 public slippageBps;
 
+    event WithdrawnWithMoe(
+        uint256 indexed amountMoeSwapped,
+        uint256 indexed amountUsdcSwappedTo
+    );
+    event WithdrawnWithWmnt(
+        uint256 indexed amountWmntSwapped,
+        uint256 indexed amountUsdcSwappedTo
+    );
+    event WithdrawnWithMoeAndWmnt(
+        uint256 indexed amountMoeSwapped,
+        uint256 indexed amountWmntSwapped,
+        uint256 indexed wantTokensLeft,
+        uint256 amountUsdcSwappedFromMoe,
+        uint256 amountUsdcSwappedFromWmnt
+    );
+    event WithdrawnWithSharesBurnAndSwaps(
+        uint256 indexed amountMoeSwapped,
+        uint256 indexed amountWmntSwapped,
+        uint256 indexed sharesBurnt,
+        uint256 amountUsdcSwappedFromMoe,
+        uint256 amountUsdcSwappedFromWmnt
+    );
+
     function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(
             _vault,
@@ -81,10 +104,7 @@ contract MoeWmntStrategy is
     }
 
     function updateOracle() external onlyAuthorized {
-        MoeWmntStrategyLib.updateTraces(
-            address(want),
-            this.update
-        );
+        MoeWmntStrategyLib.updateTraces(address(want), this.update);
     }
 
     function setOracleWindowSize(
@@ -144,16 +164,127 @@ contract MoeWmntStrategy is
         if (_amountNeeded == 0) {
             return;
         }
-        uint256 sharesToWithdraw = Math.min(
-            wantToCircuitShares(_amountNeeded),
-            balanceOfCircuitShares()
+
+        address wantAddress = address(want);
+
+        uint256 moeBalanceLeft = MoeWmntStrategyLib.MOE.balanceOf(
+            address(this)
         );
-        MoeWmntStrategyLib.burnShares(
-            sharesToWithdraw,
-            address(want),
-            slippageBps,
-            this.consult
+        uint256 wmntBalanceLeft = MoeWmntStrategyLib.WMNT.balanceOf(
+            address(this)
         );
+
+        uint256 moeBalanceLeftInWant = MoeWmntStrategyLib.moeToUsdcQuote(
+            wantAddress,
+            moeBalanceLeft
+        );
+        uint256 wmntBalanceLeftInWant = MoeWmntStrategyLib.wmntToUsdcQuote(
+            wantAddress,
+            wmntBalanceLeft
+        );
+
+        uint256 wantAmountFromMoe;
+        uint256 wantAmountFromWmnt;
+        uint256 wantLeft;
+
+        if (moeBalanceLeftInWant >= _amountNeeded) {
+            wantLeft = moeBalanceLeftInWant - _amountNeeded;
+            uint256 moeTokensToPreventFromSwap;
+            if (wantLeft > 0) {
+                moeTokensToPreventFromSwap = MoeWmntStrategyLib.usdcToMoeQuote(
+                    wantAddress,
+                    wantLeft
+                );
+            }
+            uint256 moeToSwap = moeBalanceLeft - moeTokensToPreventFromSwap;
+            wantAmountFromMoe = MoeWmntStrategyLib.moeToUsdcSwap(
+                address(want),
+                moeToSwap,
+                slippageBps,
+                this.consult
+            );
+            emit WithdrawnWithMoe(moeToSwap, wantAmountFromMoe);
+        } else if (wmntBalanceLeftInWant >= _amountNeeded) {
+            wantLeft = wmntBalanceLeftInWant - _amountNeeded;
+            uint256 wmntTokensToPreventFromSwap;
+            if (wantLeft > 0) {
+                wmntTokensToPreventFromSwap = MoeWmntStrategyLib
+                    .usdcToWmntQuote(wantAddress, wantLeft);
+            }
+            uint256 wmntToSwap = wmntBalanceLeft - wmntTokensToPreventFromSwap;
+            wantAmountFromWmnt = MoeWmntStrategyLib.wmntToUsdcSwap(
+                wantAddress,
+                wmntToSwap,
+                slippageBps,
+                this.consult
+            );
+            emit WithdrawnWithWmnt(wmntToSwap, wantAmountFromWmnt);
+        } else if (
+            moeBalanceLeftInWant + wmntBalanceLeftInWant >= _amountNeeded
+        ) {
+            wantAmountFromMoe = MoeWmntStrategyLib.moeToUsdcSwap(
+                wantAddress,
+                moeBalanceLeft,
+                slippageBps,
+                this.consult
+            );
+            wantAmountFromWmnt = MoeWmntStrategyLib.wmntToUsdcSwap(
+                wantAddress,
+                wmntBalanceLeft,
+                slippageBps,
+                this.consult
+            );
+            wantLeft =
+                (moeBalanceLeftInWant + wmntBalanceLeftInWant) -
+                _amountNeeded;
+            if (wantLeft > 0) {
+                MoeWmntStrategyLib.mintShares(
+                    wantLeft,
+                    wantAddress,
+                    slippageBps,
+                    this.consult
+                );
+            }
+            emit WithdrawnWithMoeAndWmnt(
+                moeBalanceLeft,
+                wmntBalanceLeft,
+                wantLeft,
+                wantAmountFromMoe,
+                wantAmountFromWmnt
+            );
+        } else {
+            wantAmountFromMoe = MoeWmntStrategyLib.moeToUsdcSwap(
+                wantAddress,
+                moeBalanceLeft,
+                slippageBps,
+                this.consult
+            );
+            wantAmountFromWmnt = MoeWmntStrategyLib.wmntToUsdcSwap(
+                wantAddress,
+                wmntBalanceLeft,
+                slippageBps,
+                this.consult
+            );
+            uint256 sharesToWithdraw = Math.min(
+                wantToCircuitShares(
+                    _amountNeeded - (wantAmountFromMoe + wantAmountFromWmnt)
+                ),
+                balanceOfCircuitShares()
+            );
+            MoeWmntStrategyLib.burnShares(
+                sharesToWithdraw,
+                address(want),
+                slippageBps,
+                this.consult
+            );
+            emit WithdrawnWithSharesBurnAndSwaps(
+                moeBalanceLeft,
+                wmntBalanceLeft,
+                sharesToWithdraw,
+                wantAmountFromMoe,
+                wantAmountFromWmnt
+            );
+        }
     }
 
     function estimatedTotalAssets()
@@ -164,12 +295,14 @@ contract MoeWmntStrategy is
         returns (uint256 _wants)
     {
         _wants += want.balanceOf(address(this));
-        if (moeTokensToAddToMoeLiquidity > 0) {
-            _wants += MoeWmntStrategyLib.moeToUsdcQuote(address(want), moeTokensToAddToMoeLiquidity);
-        }
-        if (wmntTokensToAddToMoeLiquidity > 0) {
-            _wants += MoeWmntStrategyLib.wmntToUsdcQuote(address(want), wmntTokensToAddToMoeLiquidity);
-        }
+        _wants += MoeWmntStrategyLib.moeToUsdcQuote(
+            address(want),
+            MoeWmntStrategyLib.MOE.balanceOf(address(this))
+        );
+        _wants += MoeWmntStrategyLib.wmntToUsdcQuote(
+            address(want),
+            MoeWmntStrategyLib.WMNT.balanceOf(address(this))
+        );
         _wants += circuitSharesToWant(balanceOfCircuitShares());
     }
 
@@ -228,12 +361,7 @@ contract MoeWmntStrategy is
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        MoeWmntStrategyLib.burnShares(
-            balanceOfCircuitShares(),
-            address(want),
-            slippageBps,
-            this.consult
-        );
+        _withdrawSome(balanceOfCircuitShares());
         return want.balanceOf(address(this));
     }
 

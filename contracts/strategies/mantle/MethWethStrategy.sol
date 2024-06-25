@@ -21,11 +21,34 @@ contract MethWethStrategy is
 
     /// @dev DEPRECATED - DO NOT USE AND DO NOT DELETE TO PREVENT THE STORAGE RIFF-RAFF.
     uint256 public methTokensToAddToMoeLiquidity;
-    
+
     /// @dev DEPRECATED - DO NOT USE AND DO NOT DELETE TO PREVENT THE STORAGE RIFF-RAFF.
     uint256 public wethTokensToAddToMoeLiquidity;
 
     uint256 public slippageBps;
+
+    event WithdrawnWithMeth(
+        uint256 indexed amountMethSwapped,
+        uint256 indexed amountUsdcSwappedTo
+    );
+    event WithdrawnWithWeth(
+        uint256 indexed amountWethSwapped,
+        uint256 indexed amountUsdcSwappedTo
+    );
+    event WithdrawnWithMethAndWeth(
+        uint256 indexed amountMethSwapped,
+        uint256 indexed amountWethSwapped,
+        uint256 indexed wantTokensLeft,
+        uint256 amountUsdcSwappedFromMeth,
+        uint256 amountUsdcSwappedFromWeth
+    );
+    event WithdrawnWithSharesBurnAndSwaps(
+        uint256 indexed amountMethSwapped,
+        uint256 indexed amountWethSwapped,
+        uint256 indexed sharesBurnt,
+        uint256 amountUsdcSwappedFromMeth,
+        uint256 amountUsdcSwappedFromWeth
+    );
 
     function initialize(address _vault, address _strategist) external {
         __Base_Strategy_Initialize(
@@ -134,16 +157,125 @@ contract MethWethStrategy is
         if (_amountNeeded == 0) {
             return;
         }
-        uint256 sharesToWithdraw = Math.min(
-            wantToCircuitShares(_amountNeeded),
-            balanceOfCircuitShares()
+        address wantAddress = address(want);
+
+        uint256 methBalanceLeft = MethWethStrategyLib.METH.balanceOf(
+            address(this)
         );
-        MethWethStrategyLib.burnShares(
-            sharesToWithdraw,
-            address(want),
-            slippageBps,
-            this.consult
+        uint256 wethBalanceLeft = MethWethStrategyLib.WETH.balanceOf(
+            address(this)
         );
+
+        uint256 methBalanceLeftInWant = MethWethStrategyLib.methToUsdcQuote(
+            wantAddress,
+            methBalanceLeft
+        );
+        uint256 wethBalanceLeftInWant = MethWethStrategyLib.wethToUsdcQuote(
+            wantAddress,
+            wethBalanceLeft
+        );
+
+        uint256 wantAmountFromMeth;
+        uint256 wantAmountFromWeth;
+        uint256 wantLeft;
+
+        if (methBalanceLeftInWant >= _amountNeeded) {
+            wantLeft = methBalanceLeftInWant - _amountNeeded;
+            uint256 methTokensToPreventFromSwap;
+            if (wantLeft > 0) {
+                methTokensToPreventFromSwap = MethWethStrategyLib
+                    .usdcToMethQuote(wantAddress, wantLeft);
+            }
+            uint256 methToSwap = methBalanceLeft - methTokensToPreventFromSwap;
+            wantAmountFromMeth = MoeMerchantLib.moeMerchantSwapSingle(
+                wantAddress,
+                address(MethWethStrategyLib.METH),
+                methToSwap,
+                slippageBps,
+                this.consult
+            );
+            emit WithdrawnWithMeth(methToSwap, wantAmountFromMeth);
+        } else if (wethBalanceLeftInWant >= _amountNeeded) {
+            wantLeft = wethBalanceLeftInWant - _amountNeeded;
+            uint256 wethTokensToPreventFromSwap;
+            if (wantLeft > 0) {
+                wethTokensToPreventFromSwap = MethWethStrategyLib
+                    .usdcToWethQuote(wantAddress, wantLeft);
+            }
+            uint256 wethToSwap = wethBalanceLeft - wethTokensToPreventFromSwap;
+            wantAmountFromWeth = MethWethStrategyLib.wethToUsdcSwap(
+                wantAddress,
+                wethToSwap,
+                slippageBps,
+                this.consult
+            );
+            emit WithdrawnWithWeth(wethToSwap, wantAmountFromWeth);
+        } else if (
+            methBalanceLeftInWant + wethBalanceLeftInWant >= _amountNeeded
+        ) {
+            wantAmountFromMeth = MoeMerchantLib.moeMerchantSwapSingle(
+                wantAddress,
+                address(MethWethStrategyLib.METH),
+                methBalanceLeft,
+                slippageBps,
+                this.consult
+            );
+            wantAmountFromWeth = MethWethStrategyLib.wethToUsdcSwap(
+                wantAddress,
+                wethBalanceLeft,
+                slippageBps,
+                this.consult
+            );
+            wantLeft =
+                (methBalanceLeftInWant + wethBalanceLeftInWant) -
+                _amountNeeded;
+            if (wantLeft > 0) {
+                MethWethStrategyLib.mintShares(
+                    wantLeft,
+                    wantAddress,
+                    slippageBps,
+                    this.consult
+                );
+            }
+            emit WithdrawnWithMethAndWeth(
+                methBalanceLeft,
+                wethBalanceLeft,
+                wantLeft,
+                wantAmountFromMeth,
+                wantAmountFromWeth
+            );
+        } else {
+            wantAmountFromMeth = MoeMerchantLib.moeMerchantSwapSingle(
+                wantAddress,
+                address(MethWethStrategyLib.METH),
+                methBalanceLeft,
+                slippageBps,
+                this.consult
+            );
+            wantAmountFromWeth = MethWethStrategyLib.wethToUsdcSwap(
+                wantAddress,
+                wethBalanceLeft,
+                slippageBps,
+                this.consult
+            );
+            uint256 sharesToWithdraw = Math.min(
+                wantToCircuitShares(_amountNeeded - (wantAmountFromMeth + wantAmountFromWeth)),
+                balanceOfCircuitShares()
+            );
+            MethWethStrategyLib.burnShares(
+                sharesToWithdraw,
+                address(want),
+                slippageBps,
+                this.consult
+            );
+            emit WithdrawnWithSharesBurnAndSwaps(
+                methBalanceLeft,
+                wethBalanceLeft,
+                sharesToWithdraw,
+                wantAmountFromMeth,
+                wantAmountFromWeth
+            );
+        }
     }
 
     function estimatedTotalAssets()
@@ -154,18 +286,14 @@ contract MethWethStrategy is
         returns (uint256 _wants)
     {
         _wants += want.balanceOf(address(this));
-        if (methTokensToAddToMoeLiquidity > 0) {
-            _wants += MethWethStrategyLib.methToUsdcQuote(
-                address(want),
-                methTokensToAddToMoeLiquidity
-            );
-        }
-        if (wethTokensToAddToMoeLiquidity > 0) {
-            _wants += MethWethStrategyLib.wethToUsdcQuote(
-                address(want),
-                wethTokensToAddToMoeLiquidity
-            );
-        }
+        _wants += MethWethStrategyLib.methToUsdcQuote(
+            address(want),
+            MethWethStrategyLib.METH.balanceOf(address(this))
+        );
+        _wants += MethWethStrategyLib.wethToUsdcQuote(
+            address(want),
+            MethWethStrategyLib.WETH.balanceOf(address(this))
+        );
         _wants += circuitSharesToWant(balanceOfCircuitShares());
     }
 
@@ -224,12 +352,7 @@ contract MethWethStrategy is
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
-        MethWethStrategyLib.burnShares(
-            balanceOfCircuitShares(),
-            address(want),
-            slippageBps,
-            this.consult
-        );
+        _withdrawSome(balanceOfCircuitShares());
         return want.balanceOf(address(this));
     }
 

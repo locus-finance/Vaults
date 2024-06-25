@@ -52,10 +52,97 @@ library LendWmntStrategyLib {
         update(address(WMNT), address(LEND));
     }
 
+    function usdcToWmntSwap(
+        address wantAddress,
+        uint256 amountUsdc,
+        uint256 slippageBps,
+        function(address, uint256, address)
+            external
+            view
+            returns (uint256) consult
+    ) internal returns (uint256) {
+        address[] memory toWmntPath = new address[](3);
+        toWmntPath[0] = wantAddress;
+        toWmntPath[1] = address(USDT);
+        toWmntPath[2] = address(WMNT);
+        return MoeMerchantLib.moeMerchantSwapMulti(
+            toWmntPath,
+            amountUsdc,
+            slippageBps,
+            consult
+        );
+    }
+
+    function usdcToLendSwap(
+        address wantAddress,
+        uint256 amountUsdc,
+        uint256 slippageBps,
+        function(address, uint256, address)
+            external
+            view
+            returns (uint256) consult
+    ) internal returns (uint256) {
+        address[] memory toLendPath = new address[](4);
+        toLendPath[0] = wantAddress;
+        toLendPath[1] = address(USDT);
+        toLendPath[2] = address(WMNT);
+        toLendPath[3] = address(LEND);
+        return MoeMerchantLib.moeMerchantSwapMulti(
+            toLendPath,
+            amountUsdc,
+            slippageBps,
+            consult
+        );
+    }
+
+    function lendToUsdcSwap(
+        address wantAddress,
+        uint256 amountLend,
+        uint256 slippageBps,
+        function(address, uint256, address)
+            external
+            view
+            returns (uint256) consult
+    ) internal returns (uint256) {
+        address[] memory fromLendPath = new address[](4);
+        fromLendPath[0] = address(LEND);
+        fromLendPath[1] = address(WMNT);
+        fromLendPath[2] = address(USDT);
+        fromLendPath[3] = wantAddress;
+        return MoeMerchantLib.moeMerchantSwapMulti(
+            fromLendPath,
+            amountLend,
+            slippageBps,
+            consult
+        );
+    }
+
+    function wmntToUsdcSwap(
+        address wantAddress,
+        uint256 amountWmnt,
+        uint256 slippageBps,
+        function(address, uint256, address)
+            external
+            view
+            returns (uint256) consult
+    ) internal returns (uint256) {
+        address[] memory fromWmntPath = new address[](3);
+        fromWmntPath[0] = address(WMNT);
+        fromWmntPath[1] = address(USDT);
+        fromWmntPath[2] = wantAddress;
+        return MoeMerchantLib.moeMerchantSwapMulti(
+            fromWmntPath,
+            amountWmnt,
+            slippageBps,
+            consult
+        );
+    }
+
     function usdcToWmntQuote(
         address wantAddress,
         uint256 amountUsdc
     ) internal view returns (uint256) {
+        if (amountUsdc == 0) return 0;
         address[] memory toWmntPath = new address[](3);
         toWmntPath[0] = wantAddress;
         toWmntPath[1] = address(USDT);
@@ -70,6 +157,7 @@ library LendWmntStrategyLib {
         address wantAddress,
         uint256 amountWmnt
     ) internal view returns (uint256) {
+        if (amountWmnt == 0) return 0;
         address[] memory fromWmntPath = new address[](3);
         fromWmntPath[0] = address(WMNT);
         fromWmntPath[1] = address(USDT);
@@ -84,6 +172,7 @@ library LendWmntStrategyLib {
         address wantAddress,
         uint256 amountUsdc
     ) internal view returns (uint256) {
+        if (amountUsdc == 0) return 0;
         address[] memory toLendPath = new address[](4);
         toLendPath[0] = wantAddress;
         toLendPath[1] = address(USDT);
@@ -99,6 +188,7 @@ library LendWmntStrategyLib {
         address wantAddress,
         uint256 amountLend
     ) internal view returns (uint256) {
+        if (amountLend == 0) return 0;
         address[] memory fromLendPath = new address[](4);
         fromLendPath[0] = address(LEND);
         fromLendPath[1] = address(WMNT);
@@ -181,28 +271,8 @@ library LendWmntStrategyLib {
         uint256 oldLendBalance = LEND.balanceOf(address(this));
         uint256 oldWmntBalance = WMNT.balanceOf(address(this));
 
-        address[] memory toWmntPath = new address[](3);
-        toWmntPath[0] = wantAddress;
-        toWmntPath[1] = address(USDT);
-        toWmntPath[2] = address(WMNT);
-        uint256 wmntAmount = MoeMerchantLib.moeMerchantSwapMulti(
-            toWmntPath,
-            usdcForWmntSwapAmount,
-            slippageBps,
-            consult
-        );
-
-        address[] memory toLendPath = new address[](4);
-        toLendPath[0] = wantAddress;
-        toLendPath[1] = address(USDT);
-        toLendPath[2] = address(WMNT);
-        toLendPath[3] = address(LEND);
-        uint256 lendAmount = MoeMerchantLib.moeMerchantSwapMulti(
-            toLendPath,
-            usdcForLendSwapAmount,
-            slippageBps,
-            consult
-        );
+        uint256 wmntAmount = usdcToWmntSwap(wantAddress, usdcForWmntSwapAmount, slippageBps, consult);
+        uint256 lendAmount = usdcToLendSwap(wantAddress, usdcForLendSwapAmount, slippageBps, consult);
 
         (uint256 lpMinted, uint256 lendLeft, uint256 wmntLeft) = MoeMerchantLib
             .moeMerchantAddLiquidity(
@@ -249,30 +319,11 @@ library LendWmntStrategyLib {
             );
         emit BurnedMoeLp(oldLpBalance, MOE_MERCHANT_LEND_WMNT_POOL.balanceOf(address(this)));
 
-        address[] memory fromLendPath = new address[](4);
-        fromLendPath[0] = address(LEND);
-        fromLendPath[1] = address(WMNT);
-        fromLendPath[2] = address(USDT);
-        fromLendPath[3] = wantAddress;
         uint256 lendToBeSwappedToUsdc = amountAWithdrawn + oldLendBalance;
-        uint256 swappedFromLendUsdcAmount = MoeMerchantLib.moeMerchantSwapMulti(
-            fromLendPath,
-            lendToBeSwappedToUsdc,
-            slippageBps,
-            consult
-        );
+        uint256 swappedFromLendUsdcAmount = lendToUsdcSwap(wantAddress, lendToBeSwappedToUsdc, slippageBps, consult);
 
-        address[] memory fromWmntPath = new address[](3);
-        fromWmntPath[0] = address(WMNT);
-        fromWmntPath[1] = address(USDT);
-        fromWmntPath[2] = wantAddress;
         uint256 wmntToBeSwappedToUsdc = amountBWithdrawn + oldWmntBalance;
-        uint256 swappedFromWmntUsdcAmount = MoeMerchantLib.moeMerchantSwapMulti(
-            fromWmntPath,
-            wmntToBeSwappedToUsdc,
-            slippageBps,
-            consult
-        );
+        uint256 swappedFromWmntUsdcAmount = wmntToUsdcSwap(wantAddress, wmntToBeSwappedToUsdc, slippageBps, consult);
 
         emit WantTokensGathered(
             swappedFromLendUsdcAmount + swappedFromWmntUsdcAmount
