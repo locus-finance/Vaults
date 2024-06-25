@@ -188,8 +188,8 @@ contract MethWethStrategy is
             }
             uint256 methToSwap = methBalanceLeft - methTokensToPreventFromSwap;
             wantAmountFromMeth = MoeMerchantLib.moeMerchantSwapSingle(
-                wantAddress,
                 address(MethWethStrategyLib.METH),
+                wantAddress,
                 methToSwap,
                 slippageBps,
                 this.consult
@@ -214,8 +214,8 @@ contract MethWethStrategy is
             methBalanceLeftInWant + wethBalanceLeftInWant >= _amountNeeded
         ) {
             wantAmountFromMeth = MoeMerchantLib.moeMerchantSwapSingle(
-                wantAddress,
                 address(MethWethStrategyLib.METH),
+                wantAddress,
                 methBalanceLeft,
                 slippageBps,
                 this.consult
@@ -247,8 +247,8 @@ contract MethWethStrategy is
         } else {
             if (methBalanceLeft > 0) {
                 wantAmountFromMeth = MoeMerchantLib.moeMerchantSwapSingle(
-                    wantAddress,
                     address(MethWethStrategyLib.METH),
+                    wantAddress,
                     methBalanceLeft,
                     slippageBps,
                     this.consult

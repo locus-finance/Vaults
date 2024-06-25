@@ -4,7 +4,7 @@ const { getEnv } = require("../../utils");
 
 const TARGET_STRATEGY = "WmntMethStrategy";
 const strategist = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe"
-const vaultAddress = "0xd26b740A6C69fcB314159C7f3D514776bEa52C12";
+const vaultAddress = "0x59EC16C1a3dCe0c9C2b07BB267005d3055a88e8d";
 
 const DEPLOY_SETTINGS = {
     vaultAddress: vaultAddress,

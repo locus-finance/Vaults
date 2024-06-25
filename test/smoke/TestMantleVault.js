@@ -24,21 +24,21 @@ const withImpersonatedSigner = async (signerAddress, action) => {
 }
 
 describe('TestMantleVaultDeposit', () => {
-  const xMantleVaultDepositaryAddress = "0xd26b740A6C69fcB314159C7f3D514776bEa52C12";
-  const xMantleVaultTokenAddress = "0x46cBdEC2C229368091227c2073A64d5AC87CbEc5";
+  const xMantleVaultDepositaryAddress = "0x59EC16C1a3dCe0c9C2b07BB267005d3055a88e8d";
+  const xMantleVaultTokenAddress = "0x24fE74805F46D9628c4F151684406eFC455D3BFE";
   
   const userAddress = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe";
   
-  const initStrategyAddress = "0xF74684Ec040edAE6De243B0DC748d19897E84e4C";
-  const lendWmntStrategyAddress = "0x0018C5bcd6ac4DFBDD51C84A0af83575D45b3991";
-  const moeWmntStrategyAddress = "0xC29aa574AaE5cD68209811e2Cd2aAA08E13bA638";
-  const methWethStrategyAddress = "0x91E8535b64c74C5bDBf436308dF3789c7A3d1C4D";
-  const wmntMethStrategyAddress = "0x0bE36BCF77f39360Ac47a697929C3ec907e5a99f";
+  const initStrategyAddress = "0x556475c398CcD0D7f067e580FB4F9A071c779210";
+  const lendWmntStrategyAddress = "0x61D75dF86dC435A5C412d236f3D80C31A34f344D";
+  const moeWmntStrategyAddress = "0x5944eeF6A82D484D0D4f59e49D6328C6BaE0bcfB";
+  const methWethStrategyAddress = "0x35a34693a4Ef216b2C118e57f1418c5F934eB735";
+  const wmntMethStrategyAddress = "0x873c65beb72F28232f4b81fdE8d04707894D47B1";
 
   const usdcWhale = "0x588846213A30fd36244e0ae0eBB2374516dA836C";
   const userUsdcAllowance = hre.ethers.utils.parseUnits("900000", 6);
   const usdcAddress = "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9";
-  const usdcAmountToDeposit = hre.ethers.utils.parseUnits("100", 6);
+  const usdcAmountToDeposit = hre.ethers.utils.parseUnits("300000", 6);
 
   let xMantleInstance;
   let xMantleTokenInstance;
