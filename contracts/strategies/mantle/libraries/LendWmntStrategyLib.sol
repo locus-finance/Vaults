@@ -286,7 +286,9 @@ library LendWmntStrategyLib {
         emit MoePoolUnderlyingTokensRemains(lendLeft, wmntLeft);
         emit MintedMoeLp(oldLpBalance, MOE_MERCHANT_LEND_WMNT_POOL.balanceOf(address(this)));
         uint256 circuitShares = CIRCUIT_VAULT.balanceOf(address(this));
+
         CIRCUIT_VAULT.deposit(lpMinted);
+
         emit MintedCircuitShares(circuitShares, CIRCUIT_VAULT.balanceOf(address(this)));
     }
 
@@ -307,6 +309,7 @@ library LendWmntStrategyLib {
         uint256 oldWmntBalance = WMNT.balanceOf(address(this));
 
         CIRCUIT_VAULT.withdraw(shares);
+
         emit BurnedCircuitShares(
             oldCircuitSharesBalance,
             CIRCUIT_VAULT.balanceOf(address(this))

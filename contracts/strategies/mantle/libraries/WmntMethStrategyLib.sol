@@ -270,8 +270,6 @@ library WmntMethStrategyLib {
         emit MintedCircuitShares(circuitShares, CIRCUIT_VAULT.balanceOf(address(this)));
     }
 
-    event Log(uint256 indexed a, uint256 indexed b);
-
     function burnShares(
         uint256 shares,
         address wantAddress,
@@ -295,8 +293,7 @@ library WmntMethStrategyLib {
             oldCircuitSharesBalance,
             CIRCUIT_VAULT.balanceOf(address(this))
         );
-        emit Log(MOE_MERCHANT_WMNT_METH_POOL.balanceOf(address(this)), oldLpBalance);
-
+        
         (uint256 amountAWithdrawn, uint256 amountBWithdrawn) = MoeMerchantLib
             .moeMerchantRemoveLiquidity(
                 address(WMNT),
