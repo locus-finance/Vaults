@@ -26,9 +26,9 @@ const withImpersonatedSigner = async (signerAddress, action) => {
 describe('TestMantleVaultDeposit', () => {
   const xMantleVaultDepositaryAddress = "0x59EC16C1a3dCe0c9C2b07BB267005d3055a88e8d";
   const xMantleVaultTokenAddress = "0x24fE74805F46D9628c4F151684406eFC455D3BFE";
-  
+
   const userAddress = "0x3C2792d5Ea8f9C03e8E73738E9Ed157aeB4FeCBe";
-  
+
   const initStrategyAddress = "0x556475c398CcD0D7f067e580FB4F9A071c779210";
   const lendWmntStrategyAddress = "0x61D75dF86dC435A5C412d236f3D80C31A34f344D";
   const moeWmntStrategyAddress = "0x5944eeF6A82D484D0D4f59e49D6328C6BaE0bcfB";
@@ -41,15 +41,15 @@ describe('TestMantleVaultDeposit', () => {
 
   let xMantleInstance;
   let xMantleTokenInstance;
-  
+
   let usdcInstance;
-  
+
   let initStrategyInstance;
   let lendWmntStrategyInstance;
   let moeWmntStrategyInstance;
   let methWethStrategyInstance;
   let wmntMethStrategyInstance;
-  
+
   beforeEach(async () => {
     xMantleInstance = await hre.ethers.getContractAt(
       "LocusVault",
@@ -90,8 +90,169 @@ describe('TestMantleVaultDeposit', () => {
     });
   });
 
-  xit('should not influence Circuit Vault PPS', async () => {
+  it('should not influence Circuit Vault PPS', async () => {
+    console.log('Starting to gather all the dependencies and links onchain...');
+    const deadline = (await hre.ethers.provider.getBlock()).timestamp + 100000;
+    const moeRouterAddress = "0xeaEE7EE68874218c3558b40063c42B82D3E7232a";
+    const moeRouterInstance = await hre.ethers.getContractAt("IMoeRouter", moeRouterAddress);
 
+    const circuitVaultsAddresses = [
+      "0x6CeaC8F90B7cAA311E025480503Bb0020B66f22A", // LEND WMNT
+      "0x16FA0C5f3eA649259C02c075dbA1C31fc66ea4E0", // METH WETH
+      "0xa3647389cf2bF9279ab239d3710bB8a2eFE0BC8B", // MOE WMNT
+      "0xc37c7dEBa5E7F5dE572C914D5c159EA08DE1fefF" // WMNT METH
+    ];
+
+    const circuitVaultsInstances = [];
+    const circuitVaultsWantTokensInstances = [];
+    const circuitVaultsWantTokensUnderlyingsInstances = [];
+    for (let i = 0; i < circuitVaultsAddresses.length; i++) {
+      const vaultInstance = await hre.ethers.getContractAt("ICircuitVault", circuitVaultsAddresses[i]);
+      circuitVaultsInstances.push(vaultInstance);
+      
+      const pairAddress = await vaultInstance.want();
+      const moePairInstance = await hre.ethers.getContractAt("IMoePair", pairAddress);
+      circuitVaultsWantTokensInstances.push(moePairInstance);
+      
+      const token0Instance = await hre.ethers.getContractAt(
+        "IERC20",
+        await moePairInstance.token0()
+      );
+      const token1Instance = await hre.ethers.getContractAt(
+        "IERC20",
+        await moePairInstance.token1()
+      );
+
+      circuitVaultsWantTokensUnderlyingsInstances.push([
+        token0Instance,
+        token1Instance,
+      ]);
+  
+      const maxAllowance = hre.ethers.constants.MaxUint256;
+
+      await moePairInstance.approve(vaultInstance.address, maxAllowance);
+      await token0Instance.approve(moeRouterAddress, maxAllowance);
+      await token1Instance.approve(moeRouterAddress, maxAllowance);
+    }
+
+    const lendWhale = "0xF6489621A9F5dA93B72a139ab75AeBf8fC70A1B0";
+    const methWhale = "0x5071c003bB45e49110a905c1915EbdD2383A89dF";
+    const wethWhale = "0x588846213A30fd36244e0ae0eBB2374516dA836C";
+    const wmntWhale = "0x62351b47e060c61868Ab7E05920Cb42bD9A5f2B2";
+    const moeWhale = "0x685489467Ff83E8fF3d1f63f86bE9b1425a0787d";
+
+    const lendAddress = "0x25356aeca4210eF7553140edb9b8026089E49396";
+    const methAddress = "0xcDA86A272531e8640cD7F1a92c01839911B90bb0";
+    const wethAddress = "0xdEAddEaDdeadDEadDEADDEAddEADDEAddead1111";
+    const wmntAddress = "0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8";
+    const moeAddress = "0x4515A45337F461A11Ff0FE8aBF3c606AE5dC00c9";
+
+    const tokensToWhales = {};
+    tokensToWhales[lendWhale] = lendAddress;
+    tokensToWhales[methWhale] = methAddress;
+    tokensToWhales[wethWhale] = wethAddress;
+    tokensToWhales[wmntWhale] = wmntAddress;
+    tokensToWhales[moeWhale] = moeAddress;
+    
+    const maxBps = 10000;
+    const partsOfWhalesBalances = [
+      1000,
+      2000,
+      3000,
+      4000,
+      5000,
+      6000,
+      7000,
+      8000,
+      9000,
+      10000
+    ]
+
+    const getFundsFromWhales = async (whalesBalancesPartToDeposit, token0, token1, wantInstance) => {
+      const whaleToken0Address = tokensToWhales[token0.address];
+      const whaleToken1Address = tokensToWhales[token1.address];
+
+      const token0ToAddToLiquidity = (await token0.balanceOf(whaleToken0Address)).mul(whalesBalancesPartToDeposit).div(maxBps);
+      const token1ToAddToLiquidity = (await token1.balanceOf(whaleToken0Address)).mul(whalesBalancesPartToDeposit).div(maxBps);
+
+      const token0ToAddToLiquidityFormatted = hre.ethers.utils.formatUnits(
+        token0ToAddToLiquidity,
+        await token0.decimals()
+      );
+      const token1ToAddToLiquidityFormatted = hre.ethers.utils.formatUnits(
+        token1ToAddToLiquidity,
+        await token1.decimals()
+      );
+      console.log(`Using whales\' balances part: ${whalesBalancesPartToDeposit} BPS: ${token0ToAddToLiquidityFormatted} ${await token0.symbol()} and ${token1ToAddToLiquidityFormatted} ${await token1.symbol()}`);
+
+      await withImpersonatedSigner(whaleToken0Address, async (whale0Signer) => {
+        await token0.connect(whale0Signer).transfer(userAddress, token0ToAddToLiquidity);
+      });
+      await withImpersonatedSigner(whaleToken1Address, async (whale1Signer) => {
+        await token1.connect(whale1Signer).transfer(userAddress, token1ToAddToLiquidity);
+      });
+      await withImpersonatedSigner(userAddress, async (userSigner) => {
+        const addLiquidityResults = await moeRouterInstance.connect(userSigner).addLiquidity(
+          token0.address,
+          token1.address,
+          token0ToAddToLiquidity,
+          token1ToAddToLiquidity,
+          0,
+          0,
+          userAddress,
+          deadline
+        );
+        console.log(`LP tokens from whales support gathered: ${hre.ethers.utils.formatEther(addLiquidityResults[2])} ${await wantInstance.symbol()}`);
+      });
+      return await wantInstance.balanceOf(userAddress);
+    }
+
+    const depositIntoVault = async (vaultInstance, wantInstance, token0Instance, token1Instance, whalesBalancesPartToDeposit) => {
+      const wantBalance = await getFundsFromWhales(whalesBalancesPartToDeposit, token0Instance, token1Instance, wantInstance);
+      await withImpersonatedSigner(userAddress, async (userSigner) => {
+        await vaultInstance.connect(userSigner).deposit(wantBalance);
+      });
+      console.log(`LP tokens deposited into vault ${await vaultInstance.name()}: ${hre.ethers.utils.formatEther(wantBalance)}`);
+    }
+    const withdrawFromVault = async (vaultInstance, wantInstance) => {
+      const vaultBalance = await vaultInstance.balanceOf(userAddress);
+      await withImpersonatedSigner(userAddress, async (userSigner) => {
+        await vaultInstance.connect(userSigner).deposit(vaultBalance);
+      });
+      const wantBalance = await wantInstance.balanceOf(userAddress);
+      console.log(`LP tokens withdrawn from vault ${await vaultInstance.name()}: ${hre.ethers.utils.formatEther(wantBalance)}`);
+    }
+
+    const depositCalculatePpsAndWithdraw = async (vaultInstance, wantInstance, token0Instance, token1Instance, whalesBalancesPartToDeposit) => {
+      const pricesPerFullShares = [];
+      pricesPerFullShares.push(await vaultInstance.getPricePerFullShare());
+      await depositIntoVault(vaultInstance, wantInstance, token0Instance, token1Instance, whalesBalancesPartToDeposit);
+      pricesPerFullShares.push(await vaultInstance.getPricePerFullShare());
+      await withdrawFromVault(vaultInstance, wantInstance);
+      console.log(`PPS\' for vault ${await vaultInstance.name()} are gathered:`);
+      console.log(pricesPerFullShares);
+      return pricesPerFullShares;
+    }
+
+    console.log('All onchain links and dependencies are gathered. Starting to scan for PPS\' values...');
+    const ppsLists = {};
+    for (let i = 0; i < circuitVaultsInstances.length; i++) {
+      const vault = circuitVaultsInstances[i];
+      const moeLp = circuitVaultsWantTokensInstances[i];
+      const token0 = circuitVaultsWantTokensUnderlyingsInstances[i][0];
+      const token1 = circuitVaultsWantTokensUnderlyingsInstances[i][1];
+      const vaultSymbol = await vault.symbol();
+      const vaultName = await vault.name();
+      console.log(`Gathering info for ${vaultName}...`);
+      ppsLists[vaultSymbol] = {};
+      for (let j = 0; j < partsOfWhalesBalances.length; j++) {
+        ppsLists[vaultSymbol][partsOfWhalesBalances[j].toString()] = await depositCalculatePpsAndWithdraw(
+          vault, moeLp, token0, token1, partsOfWhalesBalances[j]
+        );
+      }
+    }
+    console.log('------------------------------');
+    console.log(ppsLists);
   });
 
   xit('should show something', async () => {
@@ -101,7 +262,7 @@ describe('TestMantleVaultDeposit', () => {
     const pps = await circuitVault.getPricePerFullShare();
     const ts = await circuitVault.totalSupply();
     const balance = await circuitVault.balance();
-    const expectedBalance = pps.mul(ts).div(precision); 
+    const expectedBalance = pps.mul(ts).div(precision);
     console.log(balance.toString());
     console.log(expectedBalance.toString());
     console.log("---");
@@ -130,7 +291,7 @@ describe('TestMantleVaultDeposit', () => {
     // console.log(startPps);
     // console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
     // console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
-    
+
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await usdcInstance.connect(userSigner).approve(xMantleInstance.address, usdcAmountToDeposit);
       await xMantleInstance.connect(userSigner)["deposit(uint256)"](usdcAmountToDeposit);
@@ -138,7 +299,7 @@ describe('TestMantleVaultDeposit', () => {
       // console.log(`Start usdc balance after deposit: ${hre.ethers.utils.formatUnits(oldBalanceUsdc, 6)}`);
       // console.log(`Deposit usdc amount: ${hre.ethers.utils.formatUnits(usdcAmountToDeposit, 6)}`);
     });
-    
+
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await initStrategyInstance.connect(userSigner).harvest();
     });
@@ -172,7 +333,7 @@ describe('TestMantleVaultDeposit', () => {
     });
     // console.log('Post moe wmnt');
     const postMoeWmntPps = hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6);
-    ppsList.push(postMoeWmntPps); 
+    ppsList.push(postMoeWmntPps);
     // console.log(postMoeWmntPps);
     // console.log(`MOE WMNT total assets: ${hre.ethers.utils.formatUnits(await moeWmntStrategyInstance.estimatedTotalAssets(), 6)}`);
     // console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
@@ -205,7 +366,7 @@ describe('TestMantleVaultDeposit', () => {
     // console.log(`MOE WMNT total assets: ${hre.ethers.utils.formatUnits(await wmntMethStrategyInstance.estimatedTotalAssets(), 6)}`);
     // console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
     // console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
-    
+
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       const vaultBalance = await xMantleTokenInstance.balanceOf(userAddress);
       // console.log(`Vault balance to withdraw: ${hre.ethers.utils.formatUnits(vaultBalance, 18)}`);
@@ -219,7 +380,7 @@ describe('TestMantleVaultDeposit', () => {
     return ppsList;
   }
 
-  it('should deposit and harvest and withdraw - deposit amount grows', async () => {
+  xit('should deposit and harvest and withdraw - deposit amount grows', async () => {
     const ppsLists = [];
     for (let i = 1000; i <= 1000; i += 1000) {
       console.log(`Deposit amount: ${i}`);
@@ -248,7 +409,7 @@ describe('TestMantleVaultDeposit', () => {
   xit('should deposit and harvest and withdraw - deposit amount constant', async () => {
     const ppsLists = [];
     const depositAmount = 1000;
-    for (let i = 0; i <= 100; i += 1) {
+    for (let i = 0; i <= 300; i += 1) {
       console.log(`Deposit amount: ${depositAmount}`);
       const usdcToDeposit = hre.ethers.utils.parseUnits(depositAmount.toString(), 6);
       try {
@@ -261,6 +422,7 @@ describe('TestMantleVaultDeposit', () => {
         continue;
       }
     }
+    console.log('CSV STARTS:');
     let csv = "";
     for (const entry of ppsLists) {
       csv = `${csv}${entry.deposit}`;

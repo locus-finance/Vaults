@@ -11,4 +11,6 @@ interface ICircuitVault is IERC20Metadata {
     function getPricePerFullShare() external view returns (uint256);
 
     function balance() external view returns (uint256);
+
+    function want() external view returns (address);
 }
