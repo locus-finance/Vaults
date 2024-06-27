@@ -109,17 +109,17 @@ describe('TestMantleVaultDeposit', () => {
     for (let i = 0; i < circuitVaultsAddresses.length; i++) {
       const vaultInstance = await hre.ethers.getContractAt("ICircuitVault", circuitVaultsAddresses[i]);
       circuitVaultsInstances.push(vaultInstance);
-      
+
       const pairAddress = await vaultInstance.want();
       const moePairInstance = await hre.ethers.getContractAt("IMoePair", pairAddress);
       circuitVaultsWantTokensInstances.push(moePairInstance);
       
       const token0Instance = await hre.ethers.getContractAt(
-        "IERC20",
+        "IERC20Metadata",
         await moePairInstance.token0()
       );
       const token1Instance = await hre.ethers.getContractAt(
-        "IERC20",
+        "IERC20Metadata",
         await moePairInstance.token1()
       );
 
@@ -130,9 +130,13 @@ describe('TestMantleVaultDeposit', () => {
   
       const maxAllowance = hre.ethers.constants.MaxUint256;
 
-      await moePairInstance.approve(vaultInstance.address, maxAllowance);
-      await token0Instance.approve(moeRouterAddress, maxAllowance);
-      await token1Instance.approve(moeRouterAddress, maxAllowance);
+      await withImpersonatedSigner(userAddress, async (userSigner) => {
+        (await moePairInstance.connect(userSigner).approve(vaultInstance.address, maxAllowance)).wait();
+        (await token0Instance.connect(userSigner).approve(moeRouterAddress, maxAllowance)).wait();
+        (await token1Instance.connect(userSigner).approve(moeRouterAddress, maxAllowance)).wait();
+        (await token0Instance.connect(userSigner).approve(moePairInstance.address, maxAllowance)).wait();
+        (await token1Instance.connect(userSigner).approve(moePairInstance.address, maxAllowance)).wait();
+      });
     }
 
     const lendWhale = "0xF6489621A9F5dA93B72a139ab75AeBf8fC70A1B0";
@@ -148,32 +152,26 @@ describe('TestMantleVaultDeposit', () => {
     const moeAddress = "0x4515A45337F461A11Ff0FE8aBF3c606AE5dC00c9";
 
     const tokensToWhales = {};
-    tokensToWhales[lendWhale] = lendAddress;
-    tokensToWhales[methWhale] = methAddress;
-    tokensToWhales[wethWhale] = wethAddress;
-    tokensToWhales[wmntWhale] = wmntAddress;
-    tokensToWhales[moeWhale] = moeAddress;
+    tokensToWhales[lendAddress] = lendWhale;
+    tokensToWhales[methAddress] = methWhale;
+    tokensToWhales[wethAddress] = wethWhale;
+    tokensToWhales[wmntAddress] = wmntWhale;
+    tokensToWhales[moeAddress] = moeWhale;
     
     const maxBps = 10000;
     const partsOfWhalesBalances = [
-      1000,
-      2000,
-      3000,
       4000,
-      5000,
-      6000,
-      7000,
-      8000,
-      9000,
-      10000
+      5000
     ]
 
     const getFundsFromWhales = async (whalesBalancesPartToDeposit, token0, token1, wantInstance) => {
       const whaleToken0Address = tokensToWhales[token0.address];
+      await mintNativeTokens(whaleToken0Address, "0x10000000000000000000");
       const whaleToken1Address = tokensToWhales[token1.address];
-
+      await mintNativeTokens(whaleToken1Address, "0x10000000000000000000");
+      
       const token0ToAddToLiquidity = (await token0.balanceOf(whaleToken0Address)).mul(whalesBalancesPartToDeposit).div(maxBps);
-      const token1ToAddToLiquidity = (await token1.balanceOf(whaleToken0Address)).mul(whalesBalancesPartToDeposit).div(maxBps);
+      const token1ToAddToLiquidity = (await token1.balanceOf(whaleToken1Address)).mul(whalesBalancesPartToDeposit).div(maxBps);
 
       const token0ToAddToLiquidityFormatted = hre.ethers.utils.formatUnits(
         token0ToAddToLiquidity,
@@ -183,16 +181,19 @@ describe('TestMantleVaultDeposit', () => {
         token1ToAddToLiquidity,
         await token1.decimals()
       );
-      console.log(`Using whales\' balances part: ${whalesBalancesPartToDeposit} BPS: ${token0ToAddToLiquidityFormatted} ${await token0.symbol()} and ${token1ToAddToLiquidityFormatted} ${await token1.symbol()}`);
+      console.log(`Using whales\' balances part of ${whalesBalancesPartToDeposit} BPS from whole: ${token0ToAddToLiquidityFormatted} ${await token0.symbol()} and ${token1ToAddToLiquidityFormatted} ${await token1.symbol()}`);
 
       await withImpersonatedSigner(whaleToken0Address, async (whale0Signer) => {
-        await token0.connect(whale0Signer).transfer(userAddress, token0ToAddToLiquidity);
+        (await token0.connect(whale0Signer).transfer(userAddress, token0ToAddToLiquidity)).wait();
       });
       await withImpersonatedSigner(whaleToken1Address, async (whale1Signer) => {
-        await token1.connect(whale1Signer).transfer(userAddress, token1ToAddToLiquidity);
+        (await token1.connect(whale1Signer).transfer(userAddress, token1ToAddToLiquidity)).wait();
       });
+
+      console.log(`Whales\' funds acquired. Trying to add to Merchant Moe liquidity...`);
+
       await withImpersonatedSigner(userAddress, async (userSigner) => {
-        const addLiquidityResults = await moeRouterInstance.connect(userSigner).addLiquidity(
+        const addLiquidityTx = await moeRouterInstance.connect(userSigner).addLiquidity(
           token0.address,
           token1.address,
           token0ToAddToLiquidity,
@@ -202,22 +203,25 @@ describe('TestMantleVaultDeposit', () => {
           userAddress,
           deadline
         );
-        console.log(`LP tokens from whales support gathered: ${hre.ethers.utils.formatEther(addLiquidityResults[2])} ${await wantInstance.symbol()}`);
+        await addLiquidityTx.wait();
       });
-      return await wantInstance.balanceOf(userAddress);
+      const wantBalance = await wantInstance.balanceOf(userAddress);
+      console.log(`LP tokens from whales support gathered: ${hre.ethers.utils.formatEther(wantBalance)} ${await wantInstance.symbol()}`);
+      return wantBalance;
     }
 
     const depositIntoVault = async (vaultInstance, wantInstance, token0Instance, token1Instance, whalesBalancesPartToDeposit) => {
       const wantBalance = await getFundsFromWhales(whalesBalancesPartToDeposit, token0Instance, token1Instance, wantInstance);
       await withImpersonatedSigner(userAddress, async (userSigner) => {
-        await vaultInstance.connect(userSigner).deposit(wantBalance);
+        (await vaultInstance.connect(userSigner).deposit(wantBalance)).wait();
       });
-      console.log(`LP tokens deposited into vault ${await vaultInstance.name()}: ${hre.ethers.utils.formatEther(wantBalance)}`);
+      const vaultBalanceFormatted = hre.ethers.utils.formatEther(await vaultInstance.balanceOf(userAddress));
+      console.log(`LP tokens deposited into vault ${await vaultInstance.name()}: ${hre.ethers.utils.formatEther(wantBalance)} minted ${vaultBalanceFormatted} ${await vaultInstance.symbol()}`);
     }
     const withdrawFromVault = async (vaultInstance, wantInstance) => {
       const vaultBalance = await vaultInstance.balanceOf(userAddress);
       await withImpersonatedSigner(userAddress, async (userSigner) => {
-        await vaultInstance.connect(userSigner).deposit(vaultBalance);
+        (await vaultInstance.connect(userSigner).withdraw(vaultBalance)).wait();
       });
       const wantBalance = await wantInstance.balanceOf(userAddress);
       console.log(`LP tokens withdrawn from vault ${await vaultInstance.name()}: ${hre.ethers.utils.formatEther(wantBalance)}`);
@@ -225,10 +229,13 @@ describe('TestMantleVaultDeposit', () => {
 
     const depositCalculatePpsAndWithdraw = async (vaultInstance, wantInstance, token0Instance, token1Instance, whalesBalancesPartToDeposit) => {
       const pricesPerFullShares = [];
-      pricesPerFullShares.push(await vaultInstance.getPricePerFullShare());
+      
+      pricesPerFullShares.push((await vaultInstance.getPricePerFullShare()).toString());
       await depositIntoVault(vaultInstance, wantInstance, token0Instance, token1Instance, whalesBalancesPartToDeposit);
-      pricesPerFullShares.push(await vaultInstance.getPricePerFullShare());
+      pricesPerFullShares.push((await vaultInstance.getPricePerFullShare()).toString());
       await withdrawFromVault(vaultInstance, wantInstance);
+      pricesPerFullShares.push((await vaultInstance.getPricePerFullShare()).toString());
+
       console.log(`PPS\' for vault ${await vaultInstance.name()} are gathered:`);
       console.log(pricesPerFullShares);
       return pricesPerFullShares;
@@ -243,13 +250,14 @@ describe('TestMantleVaultDeposit', () => {
       const token1 = circuitVaultsWantTokensUnderlyingsInstances[i][1];
       const vaultSymbol = await vault.symbol();
       const vaultName = await vault.name();
-      console.log(`Gathering info for ${vaultName}...`);
+      console.log(`*** Gathering info for ${vaultName} (${vaultSymbol}) ***`);
       ppsLists[vaultSymbol] = {};
       for (let j = 0; j < partsOfWhalesBalances.length; j++) {
-        ppsLists[vaultSymbol][partsOfWhalesBalances[j].toString()] = await depositCalculatePpsAndWithdraw(
+        ppsLists[vaultSymbol][`${partsOfWhalesBalances[j]}`] = await depositCalculatePpsAndWithdraw(
           vault, moeLp, token0, token1, partsOfWhalesBalances[j]
         );
       }
+      console.log(`*** Info gathered for ${vaultName} (${vaultSymbol}) ***`);
     }
     console.log('------------------------------');
     console.log(ppsLists);
