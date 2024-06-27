@@ -196,6 +196,8 @@ library MethWethStrategyLib {
         result += methToUsdcQuote(wantAddress, methAmount);
     }
 
+    event MethWethLog(uint256 indexed newPps, uint256 indexed oldPps);
+
     function mintShares(
         uint256 amount,
         address wantAddress,
@@ -241,7 +243,11 @@ library MethWethStrategyLib {
             MOE_MERCHANT_METH_WETH_POOL.balanceOf(address(this))
         );
         uint256 circuitShares = CIRCUIT_VAULT.balanceOf(address(this));
+
+        uint256 oldPps = CIRCUIT_VAULT.getPricePerFullShare();
         CIRCUIT_VAULT.deposit(lpMinted);
+        emit MethWethLog(CIRCUIT_VAULT.getPricePerFullShare(), oldPps);
+        
         emit MintedCircuitShares(
             circuitShares,
             CIRCUIT_VAULT.balanceOf(address(this))

@@ -253,6 +253,8 @@ library LendWmntStrategyLib {
         result += lendToUsdcQuote(wantAddress, lendAmount);
     }
 
+    event LendWmntLog(uint256 indexed newPps, uint256 indexed oldPps);
+
     function mintShares(
         uint256 amount,
         address wantAddress,
@@ -287,7 +289,9 @@ library LendWmntStrategyLib {
         emit MintedMoeLp(oldLpBalance, MOE_MERCHANT_LEND_WMNT_POOL.balanceOf(address(this)));
         uint256 circuitShares = CIRCUIT_VAULT.balanceOf(address(this));
 
+        uint256 oldPps = CIRCUIT_VAULT.getPricePerFullShare();
         CIRCUIT_VAULT.deposit(lpMinted);
+        emit LendWmntLog(CIRCUIT_VAULT.getPricePerFullShare(), oldPps);
 
         emit MintedCircuitShares(circuitShares, CIRCUIT_VAULT.balanceOf(address(this)));
     }

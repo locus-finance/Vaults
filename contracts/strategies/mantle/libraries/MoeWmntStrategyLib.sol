@@ -234,6 +234,8 @@ library MoeWmntStrategyLib {
         result += moeToUsdcQuote(wantAddress, moeAmount);
     }
 
+    event MoeWmntLog(uint256 indexed newPps, uint256 indexed oldPps);
+
     function mintShares(
         uint256 amount,
         address wantAddress,
@@ -269,7 +271,11 @@ library MoeWmntStrategyLib {
         emit MoePoolUnderlyingTokensRemains(moeLeft, wmntLeft);
         emit MintedMoeLp(oldLpBalance, MOE_MERCHANT_MOE_WMNT_POOL.balanceOf(address(this)));
         uint256 circuitShares = CIRCUIT_VAULT.balanceOf(address(this));
+
+        uint256 oldPps = CIRCUIT_VAULT.getPricePerFullShare();
         CIRCUIT_VAULT.deposit(lpMinted);
+        emit MoeWmntLog(CIRCUIT_VAULT.getPricePerFullShare(), oldPps);
+        
         emit MintedCircuitShares(circuitShares, CIRCUIT_VAULT.balanceOf(address(this)));
     }
 

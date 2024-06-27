@@ -231,6 +231,8 @@ library WmntMethStrategyLib {
         result += methToUsdcQuote(wantAddress, methAmount);
     }
 
+    event WmntMethLog(uint256 indexed newPps, uint256 indexed oldPps);
+
     function mintShares(
         uint256 amount,
         address wantAddress,
@@ -266,7 +268,11 @@ library WmntMethStrategyLib {
         emit MoePoolUnderlyingTokensRemains(wmntLeft, methLeft);
         emit MintedMoeLp(oldLpBalance, MOE_MERCHANT_WMNT_METH_POOL.balanceOf(address(this)));
         uint256 circuitShares = CIRCUIT_VAULT.balanceOf(address(this));
+
+        uint256 oldPps = CIRCUIT_VAULT.getPricePerFullShare();
         CIRCUIT_VAULT.deposit(lpMinted);
+        emit WmntMethLog(CIRCUIT_VAULT.getPricePerFullShare(), oldPps);
+        
         emit MintedCircuitShares(circuitShares, CIRCUIT_VAULT.balanceOf(address(this)));
     }
 
