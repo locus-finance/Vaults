@@ -468,15 +468,6 @@ contract OnChainVault is
 
     function _reportLoss(address _strategy, uint256 _loss) internal {
         if (strategies[_strategy].totalDebt < _loss) revert Vault__V15();
-
-        if (totalDebtRatio != 0) {
-            uint256 ratioChange = Math.min(
-                (_loss * totalDebtRatio) / totalDebt,
-                strategies[_strategy].debtRatio
-            );
-            strategies[_strategy].debtRatio -= ratioChange;
-            totalDebtRatio -= ratioChange;
-        }
         strategies[_strategy].totalLoss += _loss;
         strategies[_strategy].totalDebt -= _loss;
         totalDebt -= _loss;

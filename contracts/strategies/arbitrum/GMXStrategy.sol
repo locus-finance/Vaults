@@ -27,7 +27,7 @@ contract GMXStrategy is BaseStrategy {
         0xf42Ae1D54fd613C9bb14810b0588FaAa09a426cA;
 
     address internal constant GMX_REWARD_ROUTER =
-        0xA906F338CB21815cBc4Bc87ace9e68c87eF8d8F1;
+        0x159854e14A862Df9E39E1D128b8e5F70B4A3cE9B;
 
     address internal constant UNISWAP_V3_ROUTER =
         0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;
