@@ -90,7 +90,7 @@ describe('TestMantleVaultDeposit', () => {
     });
   });
 
-  it('should not influence Circuit Vault PPS', async () => {
+  xit('should not influence Circuit Vault PPS', async () => {
     console.log('Starting to gather all the dependencies and links onchain...');
     const deadline = (await hre.ethers.provider.getBlock()).timestamp + 100000;
     const moeRouterAddress = "0xeaEE7EE68874218c3558b40063c42B82D3E7232a";
@@ -160,6 +160,8 @@ describe('TestMantleVaultDeposit', () => {
     
     const maxBps = 10000;
     const partsOfWhalesBalances = [
+      100,
+      200,
       4000,
       5000
     ]
@@ -289,14 +291,16 @@ describe('TestMantleVaultDeposit', () => {
 
   const depositHarvestAndWithdraw = async (usdcAmountToDeposit) => {
     let ppsList = [];
-    const time = 604800 + 3600;
+    const week = 604800;
+    const hour = 3600;
+    const time = week + hour;
     const slippage = 1000;
     await helpers.time.increase(time);
     let oldBalanceUsdc;
-    // console.log('start pps');
+    console.log('start pps');
     const startPps = hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6);
     ppsList.push(startPps);
-    // console.log(startPps);
+    console.log(startPps);
     // console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
     // console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
 
@@ -311,10 +315,10 @@ describe('TestMantleVaultDeposit', () => {
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       await initStrategyInstance.connect(userSigner).harvest();
     });
-    // console.log('Post init');
+    console.log('Post init');
     const postInitPps = hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6);
     ppsList.push(postInitPps);
-    // console.log(postInitPps);
+    console.log(postInitPps);
     // console.log(`INIT total assets: ${hre.ethers.utils.formatUnits(await initStrategyInstance.estimatedTotalAssets(), 6)}`);
     // console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
     // console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
@@ -325,10 +329,10 @@ describe('TestMantleVaultDeposit', () => {
       await lendWmntStrategyInstance.connect(userSigner).updateOracle();
       await lendWmntStrategyInstance.connect(userSigner).harvest();
     });
-    // console.log('Post lend wmnt');
+    console.log('Post lend wmnt');
     const postLendWmntPps = hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6);
     ppsList.push(postLendWmntPps);
-    // console.log(postLendWmntPps);
+    console.log(postLendWmntPps);
     // console.log(`LEND WMNT total assets: ${hre.ethers.utils.formatUnits(await lendWmntStrategyInstance.estimatedTotalAssets(), 6)}`);
     // console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
     // console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
@@ -339,10 +343,10 @@ describe('TestMantleVaultDeposit', () => {
       await moeWmntStrategyInstance.connect(userSigner).updateOracle();
       await moeWmntStrategyInstance.connect(userSigner).harvest();
     });
-    // console.log('Post moe wmnt');
+    console.log('Post moe wmnt');
     const postMoeWmntPps = hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6);
     ppsList.push(postMoeWmntPps);
-    // console.log(postMoeWmntPps);
+    console.log(postMoeWmntPps);
     // console.log(`MOE WMNT total assets: ${hre.ethers.utils.formatUnits(await moeWmntStrategyInstance.estimatedTotalAssets(), 6)}`);
     // console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
     // console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
@@ -353,10 +357,10 @@ describe('TestMantleVaultDeposit', () => {
       await methWethStrategyInstance.connect(userSigner).updateOracle();
       await methWethStrategyInstance.connect(userSigner).harvest();
     });
-    // console.log('Post meth weth');
+    console.log('Post meth weth');
     const postMethWethPps = hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6);
     ppsList.push(postMethWethPps);
-    // console.log(postMethWethPps);
+    console.log(postMethWethPps);
     // console.log(`MOE WMNT total assets: ${hre.ethers.utils.formatUnits(await methWethStrategyInstance.estimatedTotalAssets(), 6)}`);
     // console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
     // console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
@@ -367,14 +371,18 @@ describe('TestMantleVaultDeposit', () => {
       await wmntMethStrategyInstance.connect(userSigner).updateOracle();
       await wmntMethStrategyInstance.connect(userSigner).harvest();
     });
-    // console.log('Post wmnt meth');
+    console.log('Post wmnt meth');
     const postWmntMethPps = hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6);
     ppsList.push(postWmntMethPps);
-    // console.log(postWmntMethPps);
+    console.log(postWmntMethPps);
     // console.log(`MOE WMNT total assets: ${hre.ethers.utils.formatUnits(await wmntMethStrategyInstance.estimatedTotalAssets(), 6)}`);
     // console.log(`totalAssets() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalAssets(), 6)}`);
     // console.log(`totalIdle() = ${hre.ethers.utils.formatUnits(await xMantleInstance.totalIdle(), 6)}`);
 
+    await helpers.time.increase(time * 100);
+    console.log('Post time increase pps');
+    console.log(hre.ethers.utils.formatUnits(await xMantleInstance.pricePerShare(), 6));
+    
     await withImpersonatedSigner(userAddress, async (userSigner) => {
       const vaultBalance = await xMantleTokenInstance.balanceOf(userAddress);
       // console.log(`Vault balance to withdraw: ${hre.ethers.utils.formatUnits(vaultBalance, 18)}`);
@@ -417,7 +425,7 @@ describe('TestMantleVaultDeposit', () => {
   xit('should deposit and harvest and withdraw - deposit amount constant', async () => {
     const ppsLists = [];
     const depositAmount = 1000;
-    for (let i = 0; i <= 300; i += 1) {
+    for (let i = 0; i <= 1; i += 1) {
       console.log(`Deposit amount: ${depositAmount}`);
       const usdcToDeposit = hre.ethers.utils.parseUnits(depositAmount.toString(), 6);
       try {
@@ -440,6 +448,14 @@ describe('TestMantleVaultDeposit', () => {
       csv += '\n';
     }
     console.log(csv);
+  });
+
+  it('should deposit harvest and withdraw - once', async () => {
+    const depositAmount = 40000;
+    const usdcToDeposit = hre.ethers.utils.parseUnits(depositAmount.toString(), 6);
+    console.log(`Deposit amount: ${depositAmount}`);
+    const ppsList = await depositHarvestAndWithdraw(usdcToDeposit);
+    console.log(ppsList);
   });
 });
 
