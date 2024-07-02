@@ -33,6 +33,7 @@ require("./tasks/migration/finalDrop")(task);
 require("./tasks/migration/populateMigration")(task);
 require("./tasks/redeploy/generateFinalHoldersList")(task);
 require("./tasks/redeploy/calculateWantBalances")(task);
+require("./tasks/harvest/reserves")(task);
 
 task("fork_reset", "Reset to local fork", async (taskArgs) => {
   await network.provider.request({
@@ -76,6 +77,20 @@ module.exports = {
           },
         },
       },
+      {
+        version: "0.6.6",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 5,
+          },
+          outputSelection: {
+            "*": {
+              "*": ["storageLayout"],
+            },
+          },
+        },
+      },
     ],
     overrides: {
       "contracts/strategies/arbitrum/*.sol": {
@@ -98,7 +113,8 @@ module.exports = {
     hardhat: {
       chainId: 42161,
       forking: {
-        url: ARBITRUM_NODE || "",
+        url: "https://rpc.mantle.xyz/",
+        // blockNumber: 62363593
       },
       // maxPriorityFeePerGas: 2000000000,
       // allowUnlimitedContractSize: true,
@@ -154,13 +170,29 @@ module.exports = {
       chainId: 42161,
       accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY || ""}`],
     },
+    mantle: {
+      url: "https://rpc.mantle.xyz/",
+      chainId: 5000,
+      accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
+    }
   },
   etherscan: {
     apiKey: {
-      mainnet: process.env.ETHERSCAN_API_KEY || "",
-      sepolia: process.env.ETHERSCAN_API_KEY || "",
-      arbitrumOne: process.env.ARBISCAN_API_KEY || "",
+      mainnet: process.env.ETHERSCAN_API_KEY,
+      sepolia: process.env.ETHERSCAN_API_KEY,
+      arbitrumOne: process.env.ARBISCAN_API_KEY,
+      mantle: process.env.ETHERSCAN_API_KEY
     },
+    customChains: [
+      {
+        network: "mantle",
+        chainId: 5000,
+        urls: {
+          apiURL: "https://explorer.mantle.xyz/api",
+          browserURL: "https://explorer.mantle.xyz/"
+        }
+      }
+    ]
   },
   gasReporter: {
     enable: true,
@@ -175,6 +207,9 @@ module.exports = {
     disambiguatePaths: false,
     runOnCompile: true,
     strict: false,
+  },
+  tracer: {
+    gasCost: false
   },
   abiExporter: {
     path: "./abi",
