@@ -55,7 +55,6 @@ contract LocusPendleVaultStrategy is BaseStrategy {
         wantAmount = (locusPendleVaultShares * LOCUS_VAULT_PENDLE.pricePerShare()) / PRECISION;
     }
 
-
     function estimatedTotalAssets()
         public
         view
