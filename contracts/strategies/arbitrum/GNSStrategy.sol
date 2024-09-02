@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.19;
 
-import {BaseStrategy, StrategyParams, VaultAPI} from "@yearn-protocol/contracts/BaseStrategy.sol";
+import {BaseStrategy, StrategyParams, VaultAPI} from "lib/yearn-vaults/contracts/BaseStrategy.sol";
 import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -94,10 +94,11 @@ contract GNSStrategy is BaseStrategy {
         uint128[] memory rewardsArray = (
             IGNSVault(GNS_VAULT).pendingRewardTokens(address(this))
         );
-        require(rewardsArray.length == 3, "Rewards array length missmatch");
+        require(rewardsArray.length == 4, "Rewards array length missmatch");
         rewards += daiToWant(uint256(rewardsArray[0]));
         rewards += ethToWant(uint256(rewardsArray[1]));
         rewards += uint256(rewardsArray[2]);
+        rewards += gnsToWant(rewardsArray[3]);
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {
@@ -122,6 +123,7 @@ contract GNSStrategy is BaseStrategy {
         uint256 balDai = IERC20(DAI).balanceOf(address(this));
         uint256 balWeth = IERC20(WETH).balanceOf(address(this));
         uint256 balUsdc = IERC20(USDC).balanceOf(address(this));
+        uint256 balGns = IERC20(GNS).balanceOf(address(this));
         if (balDai > 0) {
             uint256 minAmountOut = (daiToWant(balDai) * slippage) / 10000;
             IV3SwapRouter.ExactInputSingleParams memory params = IV3SwapRouter
@@ -163,6 +165,23 @@ contract GNSStrategy is BaseStrategy {
                     sqrtPriceLimitX96: 0
                 });
             IV3SwapRouter(UNISWAP_V3_ROUTER).exactInputSingle(params);
+        }
+        if (balGns > 0) {
+            uint256 minAmountOut = (gnsToWant(balGns) * slippage) / 10000;
+            IV3SwapRouter.ExactInputParams memory params = IV3SwapRouter
+                .ExactInputParams({
+                    path: abi.encodePacked(
+                        GNS,
+                        GNS_ETH_UNI_FEE,
+                        WETH,
+                        ETH_USDC_UNI_FEE,
+                        address(want)
+                    ),
+                    recipient: address(this),
+                    amountIn: balGns,
+                    amountOutMinimum: minAmountOut
+                });
+            IV3SwapRouter(UNISWAP_V3_ROUTER).exactInput(params);
         }
     }
 

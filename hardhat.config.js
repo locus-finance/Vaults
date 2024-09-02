@@ -1,18 +1,13 @@
 require("@openzeppelin/hardhat-upgrades");
-require("@nomiclabs/hardhat-waffle");
 // eslint-disable-next-line node/no-extraneous-require
-require("@nomiclabs/hardhat-etherscan");
-require("@nomiclabs/hardhat-truffle5");
-require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-vyper");
 require("hardhat-gas-reporter");
-require("hardhat-log-remover");
-require("hardhat-abi-exporter");
 require("dotenv").config();
 require("solidity-coverage");
 require("hardhat-contract-sizer");
 require("hardhat-deploy");
-require("hardhat-tracer");
+require("@nomicfoundation/hardhat-verify");
++require("@nomicfoundation/hardhat-toolbox");
 
 const fs = require("fs");
 
@@ -24,16 +19,16 @@ const {
   ARBITRUM_NODE,
 } = process.env;
 
-require("./tasks/migration/saveDropReceiversFromMigration")(task);
-require("./tasks/migration/countDropReceiversFromMigration")(task);
-require("./tasks/migration/migrateVaults")(task);
-require("./tasks/migration/dropToVaults")(task);
-require("./tasks/migration/gatherUnmigrated")(task);
-require("./tasks/migration/finalDrop")(task);
-require("./tasks/migration/populateMigration")(task);
-require("./tasks/redeploy/generateFinalHoldersList")(task);
-require("./tasks/redeploy/calculateWantBalances")(task);
-require("./tasks/harvest/reserves")(task);
+// require("./tasks/migration/saveDropReceiversFromMigration")(task);
+// require("./tasks/migration/countDropReceiversFromMigration")(task);
+// require("./tasks/migration/migrateVaults")(task);
+// require("./tasks/migration/dropToVaults")(task);
+// require("./tasks/migration/gatherUnmigrated")(task);
+// require("./tasks/migration/finalDrop")(task);
+// require("./tasks/migration/populateMigration")(task);
+// require("./tasks/redeploy/generateFinalHoldersList")(task);
+// require("./tasks/redeploy/calculateWantBalances")(task);
+// require("./tasks/harvest/reserves")(task);
 
 task("fork_reset", "Reset to local fork", async (taskArgs) => {
   await network.provider.request({
@@ -113,8 +108,8 @@ module.exports = {
     hardhat: {
       chainId: 42161,
       forking: {
-        url: "https://rpc.mantle.xyz/",
-        // blockNumber: 62363593
+        url: process.env.ARBITRUM_NODE || "",
+        blockNumber: 231466451,
       },
       // maxPriorityFeePerGas: 2000000000,
       // allowUnlimitedContractSize: true,
@@ -174,14 +169,14 @@ module.exports = {
       url: "https://rpc.mantle.xyz/",
       chainId: 5000,
       accounts: [`0x${PROD_DEPLOYER_PRIVATE_KEY}`],
-    }
+    },
   },
   etherscan: {
     apiKey: {
-      mainnet: process.env.ETHERSCAN_API_KEY,
+      mainnet: process.env.ETHERSCAN_API_KEY || "",
       sepolia: process.env.ETHERSCAN_API_KEY,
       arbitrumOne: process.env.ARBISCAN_API_KEY,
-      mantle: process.env.ETHERSCAN_API_KEY
+      mantle: process.env.ETHERSCAN_API_KEY,
     },
     customChains: [
       {
@@ -189,10 +184,10 @@ module.exports = {
         chainId: 5000,
         urls: {
           apiURL: "https://explorer.mantle.xyz/api",
-          browserURL: "https://explorer.mantle.xyz/"
-        }
-      }
-    ]
+          browserURL: "https://explorer.mantle.xyz/",
+        },
+      },
+    ],
   },
   gasReporter: {
     enable: true,
@@ -209,7 +204,7 @@ module.exports = {
     strict: false,
   },
   tracer: {
-    gasCost: false
+    gasCost: false,
   },
   abiExporter: {
     path: "./abi",
@@ -383,17 +378,17 @@ task("flat", "Flattens and prints contracts and their dependencies")
 //   return paths;
 // });
 
-subtask("compile:solidity:transform-import-name").setAction(
-  async ({ importName }, _hre, runSuper) => {
-    const remappings = { "@yearn-protocol/": "lib/yearn-vaults/" };
-    for (const [from, to] of Object.entries(remappings)) {
-      if (importName.startsWith(from) && !importName.startsWith(".")) {
-        return importName.replace(from, to);
-      }
-    }
-    return importName;
-  }
-);
+// subtask("compile:solidity:transform-import-name").setAction(
+//   async ({ importName }, _hre, runSuper) => {
+//     const remappings = { "@yearn-protocol/": "lib/yearn-vaults/" };
+//     for (const [from, to] of Object.entries(remappings)) {
+//       if (importName.startsWith(from) && !importName.startsWith(".")) {
+//         return importName.replace(from, to);
+//       }
+//     }
+//     return importName;
+//   }
+// );
 
 subtask("compile:solidity:get-compilation-job-for-file").setAction(
   async ({ dependencyGraph, file }, _hre, runSuper) => {

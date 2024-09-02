@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.19;
 
-import {BaseStrategy, StrategyParams, VaultAPI} from "@yearn-protocol/contracts/BaseStrategy.sol";
+import {BaseStrategy, StrategyParams, VaultAPI} from "lib/yearn-vaults/contracts/BaseStrategy.sol";
 import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -46,7 +46,8 @@ contract FXSStrategy is BaseStrategy {
     address internal constant FRAX_ROUTER_V2 =
         0xC14d550632db8592D1243Edc8B95b0Ad06703867;
 
-    address internal constant FRAX_USDC_POOL = 0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2;
+    address internal constant FRAX_USDC_POOL =
+        0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
     uint256 public slippage;
@@ -157,7 +158,8 @@ contract FXSStrategy is BaseStrategy {
         uint256 earnedCvx = balanceOfCvxRewards(earnedCrv);
         uint256 totalCrv = earnedCrv + ERC20(CRV).balanceOf(address(this));
         uint256 totalCvx = earnedCvx + ERC20(CVX).balanceOf(address(this));
-        total = crvToWant(totalCrv) +
+        total =
+            crvToWant(totalCrv) +
             cvxToWant(totalCvx) +
             fxsToWant(ERC20(FXS).balanceOf(address(this)));
     }
@@ -167,7 +169,6 @@ contract FXSStrategy is BaseStrategy {
             return;
         }
 
-        
         uint256 rewardsTotal = _getCrvCvxFxs();
 
         if (rewardsTotal >= _amountNeeded) {
@@ -275,9 +276,12 @@ contract FXSStrategy is BaseStrategy {
         override
         returns (uint256 _wants)
     {
-        _wants = balanceOfWant() + _getCrvCvxFxs() + curveLPToWant(
-            balanceOfCurveLPStaked() + balanceOfCurveLPUnstaked()
-        );
+        _wants =
+            balanceOfWant() +
+            _getCrvCvxFxs() +
+            curveLPToWant(
+                balanceOfCurveLPStaked() + balanceOfCurveLPUnstaked()
+            );
     }
 
     function prepareReturn(
@@ -424,11 +428,11 @@ contract FXSStrategy is BaseStrategy {
             uint256 _expected = (_cvxToCrv(_cvxAmount) * slippage) / 10000;
 
             _crvAmount += ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
-                _route,
-                _swap_params,
-                _cvxAmount,
-                _expected
-            );
+                    _route,
+                    _swap_params,
+                    _cvxAmount,
+                    _expected
+                );
         }
 
         if (_crvAmount > 0) {

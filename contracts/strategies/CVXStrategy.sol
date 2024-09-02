@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.18;
 
-import {BaseStrategy, StrategyParams, VaultAPI} from "@yearn-protocol/contracts/BaseStrategy.sol";
+import {BaseStrategy, StrategyParams, VaultAPI} from "lib/yearn-vaults/contracts/BaseStrategy.sol";
 import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -328,11 +328,11 @@ contract CVXStrategy is BaseStrategy {
             uint256 _expected = (_cvxToCrv(_cvxAmount) * slippage) / 10000;
 
             _crvAmount += ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
-                _route,
-                _swap_params,
-                _cvxAmount,
-                _expected
-            );
+                    _route,
+                    _swap_params,
+                    _cvxAmount,
+                    _expected
+                );
         }
 
         if (_crvAmount > 0) {

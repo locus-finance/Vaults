@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.18;
 
-import {BaseStrategy, StrategyParams, VaultAPI} from "@yearn-protocol/contracts/BaseStrategy.sol";
+import {BaseStrategy, StrategyParams, VaultAPI} from "lib/yearn-vaults/contracts/BaseStrategy.sol";
 import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -16,13 +16,19 @@ import "../integrations/across/IAcrossStaker.sol";
 contract AcrossStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
 
-    address public constant ACROSS_HUB = 0xc186fA914353c44b2E33eBE05f21846F1048bEda;
-    address public constant ACROSS_STAKER = 0x9040e41eF5E8b281535a96D9a48aCb8cfaBD9a48;
-    address public constant LP_TOKEN = 0x28F77208728B0A45cAb24c4868334581Fe86F95B;
+    address public constant ACROSS_HUB =
+        0xc186fA914353c44b2E33eBE05f21846F1048bEda;
+    address public constant ACROSS_STAKER =
+        0x9040e41eF5E8b281535a96D9a48aCb8cfaBD9a48;
+    address public constant LP_TOKEN =
+        0x28F77208728B0A45cAb24c4868334581Fe86F95B;
     address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-    address public constant REWARD_TOKEN = 0x44108f0223A3C3028F5Fe7AEC7f9bb2E66beF82F;
-    address public constant UNISWAP_V3_ROUTER = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
-    address public constant ACX_WETH_UNI_POOL = 0x508acdC358be2ed126B1441F0Cff853dEc49d40F;
+    address public constant REWARD_TOKEN =
+        0x44108f0223A3C3028F5Fe7AEC7f9bb2E66beF82F;
+    address public constant UNISWAP_V3_ROUTER =
+        0xE592427A0AEce92De3Edee1F18E0157C05861564;
+    address public constant ACX_WETH_UNI_POOL =
+        0x508acdC358be2ed126B1441F0Cff853dEc49d40F;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
     uint256 public slippage;
@@ -42,7 +48,9 @@ contract AcrossStrategy is BaseStrategy {
         slippage = 9800; // 2%
     }
 
-    function ethToWant(uint256 _amtInWei) public view virtual override returns (uint256){
+    function ethToWant(
+        uint256 _amtInWei
+    ) public view virtual override returns (uint256) {
         return 0;
     }
 
@@ -65,32 +73,37 @@ contract AcrossStrategy is BaseStrategy {
 
     function balanceOfLPStaked() public view returns (uint256) {
         return
-            IAcrossStaker(ACROSS_STAKER).getUserStake(LP_TOKEN, address(this)).cumulativeBalance;
+            IAcrossStaker(ACROSS_STAKER)
+                .getUserStake(LP_TOKEN, address(this))
+                .cumulativeBalance;
     }
 
     function getRewards() public view virtual returns (uint256) {
-        return IAcrossStaker(ACROSS_STAKER).getOutstandingRewards(LP_TOKEN, address(this));
+        return
+            IAcrossStaker(ACROSS_STAKER).getOutstandingRewards(
+                LP_TOKEN,
+                address(this)
+            );
     }
 
     function LPToWant(uint256 _lpTokens) public view returns (uint256) {
-        return _lpTokens * _exchangeRate() / 1e18;
+        return (_lpTokens * _exchangeRate()) / 1e18;
     }
 
-    function wantToLp(uint256 _wantAmount) public view returns(uint256){
-       return (_wantAmount * 1e18) / _exchangeRate();
+    function wantToLp(uint256 _wantAmount) public view returns (uint256) {
+        return (_wantAmount * 1e18) / _exchangeRate();
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {
         if (_amountNeeded == 0) {
             return;
         }
-        
-            uint256 lpTokensToWithdraw = Math.min(
-                wantToLp(_amountNeeded),
-                balanceOfLPStaked()
-            );
-            _exitPosition(lpTokensToWithdraw);
-        
+
+        uint256 lpTokensToWithdraw = Math.min(
+            wantToLp(_amountNeeded),
+            balanceOfLPStaked()
+        );
+        _exitPosition(lpTokensToWithdraw);
     }
 
     function estimatedTotalAssets()
@@ -101,8 +114,17 @@ contract AcrossStrategy is BaseStrategy {
         returns (uint256 _wants)
     {
         _wants += want.balanceOf(address(this));
-        _wants += LPToWant(IAcrossStaker(ACROSS_STAKER).getUserStake(LP_TOKEN, address(this)).cumulativeBalance);
-        _wants += AcxToWant(IAcrossStaker(ACROSS_STAKER).getOutstandingRewards(WETH, address(this)));
+        _wants += LPToWant(
+            IAcrossStaker(ACROSS_STAKER)
+                .getUserStake(LP_TOKEN, address(this))
+                .cumulativeBalance
+        );
+        _wants += AcxToWant(
+            IAcrossStaker(ACROSS_STAKER).getOutstandingRewards(
+                WETH,
+                address(this)
+            )
+        );
         _wants += LPToWant(IERC20(LP_TOKEN).balanceOf(address(this)));
         // console.log(want.balanceOf(address(this)));
         // console.log(IAcrossStaker(ACROSS_STAKER).getUserStake(WETH, address(this)).cumulativeBalance);
@@ -142,8 +164,9 @@ contract AcrossStrategy is BaseStrategy {
         }
     }
 
-    function _exchangeRate() internal view returns(uint256){
-        IAcrossHub.PooledToken memory pooledToken = IAcrossHub(ACROSS_HUB).pooledTokens(WETH); // Note this is storage so the state can be modified.
+    function _exchangeRate() internal view returns (uint256) {
+        IAcrossHub.PooledToken memory pooledToken = IAcrossHub(ACROSS_HUB)
+            .pooledTokens(WETH); // Note this is storage so the state can be modified.
         uint256 lpTokenTotalSupply = IERC20(pooledToken.lpToken).totalSupply();
         int256 numerator = int256(pooledToken.liquidReserves) +
             pooledToken.utilizedReserves -
@@ -164,10 +187,12 @@ contract AcrossStrategy is BaseStrategy {
 
         if (_excessWant > 0) {
             IAcrossHub(ACROSS_HUB).addLiquidity(WETH, _excessWant);
-
         }
         if (balanceOfLPUnstaked() > 0) {
-            IAcrossStaker(ACROSS_STAKER).stake(LP_TOKEN, IERC20(LP_TOKEN).balanceOf(address(this)));
+            IAcrossStaker(ACROSS_STAKER).stake(
+                LP_TOKEN,
+                IERC20(LP_TOKEN).balanceOf(address(this))
+            );
         }
     }
 
@@ -193,15 +218,10 @@ contract AcrossStrategy is BaseStrategy {
         if (amountIn == 0) {
             return 0;
         }
-        amountOut = smthToSmth(
-            ACX_WETH_UNI_POOL,
-            REWARD_TOKEN,
-            WETH,
-            amountIn
-        );
+        amountOut = smthToSmth(ACX_WETH_UNI_POOL, REWARD_TOKEN, WETH, amountIn);
     }
 
-    function claimAndSell() external onlyStrategist{
+    function claimAndSell() external onlyStrategist {
         IAcrossStaker(ACROSS_STAKER).withdrawReward(LP_TOKEN);
         ISwapRouter.ExactInputSingleParams memory params;
         params.tokenIn = REWARD_TOKEN;
@@ -210,22 +230,21 @@ contract AcrossStrategy is BaseStrategy {
         params.recipient = address(this);
         params.deadline = block.timestamp;
         params.amountIn = IERC20(REWARD_TOKEN).balanceOf(address(this));
-        params.amountOutMinimum = AcxToWant(IERC20(REWARD_TOKEN).balanceOf(address(this))) * slippage / 10000;
+        params.amountOutMinimum =
+            (AcxToWant(IERC20(REWARD_TOKEN).balanceOf(address(this))) *
+                slippage) /
+            10000;
         params.sqrtPriceLimitX96 = 0;
         ISwapRouter(UNISWAP_V3_ROUTER).exactInputSingle(params);
     }
 
     function _exitPosition(uint256 _stakedLpTokens) internal {
-        IAcrossStaker(ACROSS_STAKER).unstake(
-            LP_TOKEN,
-            _stakedLpTokens
-        );
+        IAcrossStaker(ACROSS_STAKER).unstake(LP_TOKEN, _stakedLpTokens);
 
         uint256 lpTokens = ERC20(LP_TOKEN).balanceOf(address(this));
         // uint256 withdrawAmount = IAcrossHub(ACROSS_HUB).exchangeRateCurrent(WETH) * balanceOfLPUnstaked() / 1e18;
 
         IAcrossHub(ACROSS_HUB).removeLiquidity(WETH, _stakedLpTokens, false);
-        
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
@@ -253,10 +272,7 @@ contract AcrossStrategy is BaseStrategy {
     }
 
     function prepareMigration(address _newStrategy) internal override {
-        IAcrossStaker(ACROSS_STAKER).unstake(
-            LP_TOKEN,
-            balanceOfLPStaked()
-        );
+        IAcrossStaker(ACROSS_STAKER).unstake(LP_TOKEN, balanceOfLPStaked());
         IERC20(LP_TOKEN).safeTransfer(
             _newStrategy,
             IERC20(LP_TOKEN).balanceOf(address(this))
