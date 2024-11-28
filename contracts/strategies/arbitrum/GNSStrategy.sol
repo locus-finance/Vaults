@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0
 
-pragma solidity ^0.8.18;
+pragma solidity ^0.8.19;
 
-import {BaseStrategy, StrategyParams, VaultAPI} from "@yearn-protocol/contracts/BaseStrategy.sol";
+import {BaseStrategy, StrategyParams, VaultAPI} from "lib/yearn-vaults/contracts/BaseStrategy.sol";
 import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -37,6 +37,9 @@ contract GNSStrategy is BaseStrategy {
     uint32 internal constant TWAP_RANGE_SECS = 1800;
 
     uint256 public slippage;
+
+    address internal constant USDC = 0xaf88d065e77c8cC2239327C5EDb3A432268e5831;
+    uint24 internal constant USDCe_USDC_UNI_FEE = 100;
 
     constructor(address _vault) BaseStrategy(_vault) {}
 
@@ -77,18 +80,31 @@ contract GNSStrategy is BaseStrategy {
     }
 
     function balanceOfStakedGns() public view returns (uint256) {
-        IGNSVault.Staker memory staker = IGNSVault(GNS_VAULT).stakers(address(this));
+        IGNSVault.Staker memory staker = IGNSVault(GNS_VAULT).stakers(
+            address(this)
+        );
         return staker.stakedGns;
     }
 
-    function balanceOfRewards() public view returns (uint256) {
-        return IGNSVault(GNS_VAULT).pendingRewardDai();
+    function balanceOfRewardsInWantToken()
+        public
+        view
+        returns (uint256 rewards)
+    {
+        uint128[] memory rewardsArray = (
+            IGNSVault(GNS_VAULT).pendingRewardTokens(address(this))
+        );
+        require(rewardsArray.length == 4, "Rewards array length missmatch");
+        rewards += daiToWant(uint256(rewardsArray[0]));
+        rewards += ethToWant(uint256(rewardsArray[1]));
+        rewards += uint256(rewardsArray[2]);
+        rewards += gnsToWant(rewardsArray[3]);
     }
 
     function _withdrawSome(uint256 _amountNeeded) internal {
         if (_amountNeeded == 0) return;
 
-        uint256 rewardsTotal = daiToWant(balanceOfRewards());
+        uint256 rewardsTotal = balanceOfRewardsInWantToken();
         if (rewardsTotal >= _amountNeeded) {
             _sellRewards();
             return;
@@ -103,8 +119,11 @@ contract GNSStrategy is BaseStrategy {
     }
 
     function _sellRewards() internal {
-        IGNSVault(GNS_VAULT).harvestDai();
+        IGNSVault(GNS_VAULT).harvestTokens();
         uint256 balDai = IERC20(DAI).balanceOf(address(this));
+        uint256 balWeth = IERC20(WETH).balanceOf(address(this));
+        uint256 balUsdc = IERC20(USDC).balanceOf(address(this));
+        uint256 balGns = IERC20(GNS).balanceOf(address(this));
         if (balDai > 0) {
             uint256 minAmountOut = (daiToWant(balDai) * slippage) / 10000;
             IV3SwapRouter.ExactInputSingleParams memory params = IV3SwapRouter
@@ -118,6 +137,59 @@ contract GNSStrategy is BaseStrategy {
                     sqrtPriceLimitX96: 0
                 });
             IV3SwapRouter(UNISWAP_V3_ROUTER).exactInputSingle(params);
+        }
+        if (balWeth > 0) {
+            uint256 minAmountOut = (ethToWant(balWeth) * slippage) / 10000;
+            IV3SwapRouter.ExactInputSingleParams memory params = IV3SwapRouter
+                .ExactInputSingleParams({
+                    tokenIn: WETH,
+                    tokenOut: address(want),
+                    fee: ETH_USDC_UNI_FEE,
+                    recipient: address(this),
+                    amountIn: balWeth,
+                    amountOutMinimum: minAmountOut,
+                    sqrtPriceLimitX96: 0
+                });
+            IV3SwapRouter(UNISWAP_V3_ROUTER).exactInputSingle(params);
+        }
+        if (balUsdc > 0) {
+            uint256 minAmountOut = (balUsdc * slippage) / 10000;
+            IV3SwapRouter.ExactInputSingleParams memory params = IV3SwapRouter
+                .ExactInputSingleParams({
+                    tokenIn: USDC,
+                    tokenOut: address(want),
+                    fee: USDCe_USDC_UNI_FEE,
+                    recipient: address(this),
+                    amountIn: balUsdc,
+                    amountOutMinimum: minAmountOut,
+                    sqrtPriceLimitX96: 0
+                });
+            IV3SwapRouter(UNISWAP_V3_ROUTER).exactInputSingle(params);
+        }
+        if (balGns > 0) {
+            uint256 minAmountOut = (gnsToWant(balGns) * slippage) / 10000;
+            IV3SwapRouter.ExactInputParams memory params = IV3SwapRouter
+                .ExactInputParams({
+                    path: abi.encodePacked(
+                        GNS,
+                        GNS_ETH_UNI_FEE,
+                        WETH,
+                        ETH_USDC_UNI_FEE,
+                        address(want)
+                    ),
+                    recipient: address(this),
+                    amountIn: balGns,
+                    amountOutMinimum: minAmountOut
+                });
+            IV3SwapRouter(UNISWAP_V3_ROUTER).exactInput(params);
+        }
+    }
+
+    function approveNewRewardsForUniRouter(
+        address[] memory tokens
+    ) external onlyStrategist {
+        for (uint256 i = 0; i < tokens.length; i++) {
+            IERC20(tokens[i]).safeApprove(UNISWAP_V3_ROUTER, type(uint256).max);
         }
     }
 
@@ -221,7 +293,7 @@ contract GNSStrategy is BaseStrategy {
         _wants = balanceOfWant();
         _wants += gnsToWant(balanceOfGns());
         _wants += gnsToWant(balanceOfStakedGns());
-        _wants += daiToWant(balanceOfRewards());
+        _wants += balanceOfRewardsInWantToken();
         _wants += daiToWant(balanceOfDai());
     }
 

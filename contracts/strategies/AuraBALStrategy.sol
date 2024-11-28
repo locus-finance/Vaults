@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.18;
 
-import {BaseStrategy, StrategyParams} from "@yearn-protocol/contracts/BaseStrategy.sol";
+import {BaseStrategy, StrategyParams} from "lib/yearn-vaults/contracts/BaseStrategy.sol";
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";

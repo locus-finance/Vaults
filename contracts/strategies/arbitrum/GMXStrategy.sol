@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0
 
-pragma solidity ^0.8.18;
+pragma solidity ^0.8.19;
 
-import {BaseStrategy, StrategyParams, VaultAPI} from "@yearn-protocol/contracts/BaseStrategy.sol";
+import {BaseStrategy, StrategyParams, VaultAPI} from "lib/yearn-vaults/contracts/BaseStrategy.sol";
 import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -27,7 +27,7 @@ contract GMXStrategy is BaseStrategy {
         0xf42Ae1D54fd613C9bb14810b0588FaAa09a426cA;
 
     address internal constant GMX_REWARD_ROUTER =
-        0xA906F338CB21815cBc4Bc87ace9e68c87eF8d8F1;
+        0x159854e14A862Df9E39E1D128b8e5F70B4A3cE9B;
 
     address internal constant UNISWAP_V3_ROUTER =
         0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45;

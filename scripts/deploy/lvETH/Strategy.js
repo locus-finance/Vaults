@@ -2,31 +2,27 @@ const hre = require("hardhat");
 
 const { getEnv } = require("../../utils");
 
-const WETH_DECIMALS = 18;
 const TARGET_STRATEGY = getEnv("TARGET_STRATEGY");
 
+const strategist = "0xC1287e8e489e990b424299376f37c83CD39Bfc4c"
+
 const DEPLOY_SETTINGS = {
-    vaultAddress: getEnv("lvETH_ADDRESS"),
+    vaultAddress: getEnv("lyETH_ADDRESS"),
     RocketAuraStrategy: {
         ratio: "3000",
         minDebtHarvestWeth: "0",
         maxDebtHarvestWeth: "100000000000000000000000",
     },
-    LidoAuraStrategy: {
-        ratio: "0",
-        minDebtHarvestWeth: "0",
-        maxDebtHarvestWeth: "100000000000000000000000",
-    },
-    FraxStrategy: {
-        ratio: "0",
-        minDebtHarvestWeth: "0",
-        maxDebtHarvestWeth: "100000000000000000000000",
-    },
     AuraTriPoolStrategy: {
-        ratio: "6750",
+        ratio: "6000",
         minDebtHarvestWeth: "0",
         maxDebtHarvestWeth: "100000000000000000000000",
     },
+    AcrossStrategy:{
+        ratio: "3000",
+        minDebtHarvestWeth: "0",
+        maxDebtHarvestWeth: "100000000000000000000000",
+    }
 };
 
 const OWNABLE_ABI = ["function owner() view returns (address)"];
@@ -40,7 +36,7 @@ async function main() {
 
     const { vaultAddress } = DEPLOY_SETTINGS;
 
-    const Vault = await hre.ethers.getContractFactory("Vault");
+    const Vault = await hre.ethers.getContractFactory("OnChainVault");
     const vault = Vault.attach(vaultAddress);
 
     const Strategy = await hre.ethers.getContractFactory(
@@ -49,7 +45,7 @@ async function main() {
     );
     const strategy = await upgrades.deployProxy(
         Strategy,
-        [vault.address, deployer.address],
+        [vault.address, strategist],
         {
             initializer: "initialize",
             kind: "transparent",
@@ -83,9 +79,9 @@ async function main() {
         ](
             strategy.address,
             Number(ratio),
-            ethers.utils.parseUnits(minDebtHarvestWeth, WETH_DECIMALS),
-            ethers.utils.parseUnits(maxDebtHarvestWeth, WETH_DECIMALS),
-            0
+            500,
+            minDebtHarvestWeth,
+            maxDebtHarvestWeth,
         );
         await addStrategyTx.wait();
 

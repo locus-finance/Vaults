@@ -8,11 +8,17 @@ interface IGNSVault {
 
     function harvestDai() external;
 
+    function harvestTokens() external;
+
     function stakeGns(uint128 amount) external;
 
     function unstakeGns(uint128 _amountAmount) external;
 
     function stakers(address staker) external view returns (Staker memory);
 
-    function pendingRewardDai() external view returns (uint);
+    function pendingRewardDai(address staker) external view returns (uint);
+
+    function pendingRewardTokens(
+        address staker
+    ) external view returns (uint128[] memory);
 }

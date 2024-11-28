@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0
 
-pragma solidity ^0.8.18;
+pragma solidity ^0.8.19;
 
-import {BaseStrategy, StrategyParams, VaultAPI} from "@yearn-protocol/contracts/BaseStrategy.sol";
+import {BaseStrategy, StrategyParams, VaultAPI} from "lib/yearn-vaults/contracts/BaseStrategy.sol";
 import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -45,6 +45,9 @@ contract FXSStrategy is BaseStrategy {
 
     address internal constant FRAX_ROUTER_V2 =
         0xC14d550632db8592D1243Edc8B95b0Ad06703867;
+
+    address internal constant FRAX_USDC_POOL =
+        0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2;
 
     uint32 internal constant TWAP_RANGE_SECS = 1800;
     uint256 public slippage;
@@ -89,10 +92,6 @@ contract FXSStrategy is BaseStrategy {
         return IERC20(FRAX).balanceOf(address(this));
     }
 
-    function balanceOfFxs() public view returns (uint256) {
-        return IERC20(FXS).balanceOf(address(this));
-    }
-
     function balanceOfCurveLPUnstaked() public view returns (uint256) {
         return ERC20(CURVE_FXS_POOL).balanceOf(address(this));
     }
@@ -103,10 +102,6 @@ contract FXSStrategy is BaseStrategy {
 
     function balanceOfCrvRewards() public view virtual returns (uint256) {
         return IConvexRewards(FXS_CONVEX_CRV_REWARDS).earned(address(this));
-    }
-
-    function balanceOfFxsRewards() public view returns (uint256) {
-        return 0;
     }
 
     function balanceOfCvxRewards(
@@ -158,20 +153,23 @@ contract FXSStrategy is BaseStrategy {
         return y;
     }
 
+    function _getCrvCvxFxs() internal view returns (uint256 total) {
+        uint256 earnedCrv = balanceOfCrvRewards();
+        uint256 earnedCvx = balanceOfCvxRewards(earnedCrv);
+        uint256 totalCrv = earnedCrv + ERC20(CRV).balanceOf(address(this));
+        uint256 totalCvx = earnedCvx + ERC20(CVX).balanceOf(address(this));
+        total =
+            crvToWant(totalCrv) +
+            cvxToWant(totalCvx) +
+            fxsToWant(ERC20(FXS).balanceOf(address(this)));
+    }
+
     function _withdrawSome(uint256 _amountNeeded) internal {
         if (_amountNeeded == 0) {
             return;
         }
 
-        uint256 earnedCrv = balanceOfCrvRewards();
-        uint256 earnedCvx = balanceOfCvxRewards(earnedCrv);
-        uint256 earnedFxs = balanceOfFxsRewards();
-        uint256 totalCrv = earnedCrv + ERC20(CRV).balanceOf(address(this));
-        uint256 totalCvx = earnedCvx + ERC20(CVX).balanceOf(address(this));
-        uint256 totalFxs = earnedFxs + ERC20(FXS).balanceOf(address(this));
-        uint256 rewardsTotal = crvToWant(totalCrv) +
-            cvxToWant(totalCvx) +
-            fxsToWant(totalFxs);
+        uint256 rewardsTotal = _getCrvCvxFxs();
 
         if (rewardsTotal >= _amountNeeded) {
             IConvexRewards(FXS_CONVEX_CRV_REWARDS).getReward(
@@ -278,21 +276,12 @@ contract FXSStrategy is BaseStrategy {
         override
         returns (uint256 _wants)
     {
-        _wants = balanceOfWant();
-        _wants += curveLPToWant(
-            balanceOfCurveLPStaked() + balanceOfCurveLPUnstaked()
-        );
-
-        uint256 earnedCrv = balanceOfCrvRewards();
-        uint256 earnedCvx = balanceOfCvxRewards(earnedCrv);
-        uint256 earnedFxs = balanceOfFxsRewards();
-        uint256 totalCrv = earnedCrv + ERC20(CRV).balanceOf(address(this));
-        uint256 totalCvx = earnedCvx + ERC20(CVX).balanceOf(address(this));
-        uint256 totalFxs = earnedFxs + ERC20(FXS).balanceOf(address(this));
-
-        _wants += crvToWant(totalCrv);
-        _wants += cvxToWant(totalCvx);
-        _wants += fxsToWant(totalFxs);
+        _wants =
+            balanceOfWant() +
+            _getCrvCvxFxs() +
+            curveLPToWant(
+                balanceOfCurveLPStaked() + balanceOfCurveLPUnstaked()
+            );
     }
 
     function prepareReturn(
@@ -350,7 +339,7 @@ contract FXSStrategy is BaseStrategy {
 
             address[9] memory _route = [
                 address(want),
-                0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2, // fraxusdc pool
+                FRAX_USDC_POOL, // fraxusdc pool
                 FRAX, // FRAX
                 address(0),
                 address(0),
@@ -439,11 +428,11 @@ contract FXSStrategy is BaseStrategy {
             uint256 _expected = (_cvxToCrv(_cvxAmount) * slippage) / 10000;
 
             _crvAmount += ICurveSwapRouter(CURVE_SWAP_ROUTER).exchange_multiple(
-                _route,
-                _swap_params,
-                _cvxAmount,
-                _expected
-            );
+                    _route,
+                    _swap_params,
+                    _cvxAmount,
+                    _expected
+                );
         }
 
         if (_crvAmount > 0) {
@@ -524,7 +513,7 @@ contract FXSStrategy is BaseStrategy {
 
             address[9] memory _route = [
                 FRAX, // FRAX
-                0xDcEF968d416a41Cdac0ED8702fAC8128A64241A2, // fraxusdc pool
+                FRAX_USDC_POOL, // fraxusdc pool
                 address(want), // USDC
                 address(0),
                 address(0),

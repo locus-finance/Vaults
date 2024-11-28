@@ -10,4 +10,9 @@ interface IConvexDeposit {
         uint256 _amount,
         bool _stake
     ) external returns (bool);
+
+    function withdraw(
+        uint256 _pid,
+        uint256 _amount
+    ) external returns (bool);
 }

@@ -1,126 +1,125 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.19;
 
-import {ERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
-import {StrategyParams, IOnChainVault} from "./interfaces/IOnChainVault.sol";
-import {IBaseStrategy} from "./interfaces/IBaseStrategy.sol";
+import {StrategyParams, BaseStrategyForSeparatedVault} from "../../abstracts/BaseStrategyForSeparatedVault.sol";
+import {ILocusVaultToken} from "../../interfaces/separatedVault/ILocusVaultToken.sol";
+import {ILocusVault} from "../../interfaces/separatedVault/ILocusVault.sol";
 
-contract OnChainVault is
+contract LocusVault is
     Initializable,
-    ERC20Upgradeable,
-    IOnChainVault,
-    OwnableUpgradeable
+    ILocusVault,
+    UUPSUpgradeable,
+    AccessControlUpgradeable
 {
+    using EnumerableSet for EnumerableSet.AddressSet;
+    using SafeERC20 for IERC20Metadata;
+    using SafeERC20 for ILocusVaultToken;
+
+    modifier checkAmountOnDeposit(uint256 amount) {
+        if (amount + totalAssets() > depositLimit || amount == 0) {
+            revert AmountIsIncorrect(amount);
+        }
+        _;
+    }
+
+    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+
     uint256 public constant SECS_PER_YEAR = 31_556_952;
     uint256 public constant MAX_BPS = 10_000;
     uint256 public constant DEGRADATION_COEFFICIENT = 10 ** 18;
-    uint256 public constant lockedProfitDegradation =
-        (DEGRADATION_COEFFICIENT * 46) / 10 ** 6;
+    uint256 public constant LOCKED_PROFIT_DEGRADATION = (DEGRADATION_COEFFICIENT * 46) / 10 ** 6;
+
+    IERC20Metadata public override token;
+    ILocusVaultToken public vaultToken;
+    
     uint256 public lockedProfit;
     uint256 public lastReport;
-    address public override governance;
     address public treasury;
-    IERC20 public override token;
     uint256 public depositLimit;
     uint256 public totalDebtRatio;
     uint256 public totalDebt;
     uint256 public managementFee;
+    /// @dev Following `performanceFee` is used only for an initial value of performance fee.
     uint256 public performanceFee;
-    address public management;
     bool public emergencyShutdown;
+
     mapping(address => StrategyParams) public strategies;
-    mapping(address strategy => uint256 position)
-        public strategyPositionInArray;
+    EnumerableSet.AddressSet strategiesSet;
 
-    address[] public OnChainStrategies;
-
-    using SafeERC20 for IERC20;
-    using SafeERC20 for ERC20;
+    uint256 public lastPricePerShare;
 
     function initialize(
-        IERC20 _token,
-        address _governance,
-        address _treasury,
-        string calldata name,
-        string calldata symbol
+        IERC20Metadata _token,
+        address _admin,
+        address _treasury
     ) external initializer {
-        __Ownable_init();
-        __ERC20_init(name, symbol);
-
-        governance = _governance;
+        __UUPSUpgradeable_init();
+        __AccessControl_init();
+        address sender = _msgSender();
+        _grantRole(ADMIN_ROLE, _admin);
+        _grantRole(ADMIN_ROLE, sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, _admin);
+        _grantRole(DEFAULT_ADMIN_ROLE, sender);
         token = _token;
         treasury = _treasury;
-        approve(treasury, type(uint256).max);
     }
 
-    modifier onlyAuthorized() {
-        if (
-            msg.sender != governance &&
-            msg.sender != owner() &&
-            msg.sender != management
-        ) revert Vault__OnlyAuthorized(msg.sender);
-        _;
+    function totalSupply() public view returns (uint256) {
+        return vaultToken.totalSupply();
     }
 
-    modifier checkAmountOnDeposit(uint256 amount) {
-        if (amount + totalAssets() > depositLimit || amount == 0) {
-            revert Vault__AmountIsIncorrect(amount);
-        }
-        _;
+    function decimals() public view virtual returns (uint8) {
+        return vaultToken.decimals();
     }
 
-    function decimals() public view virtual override returns (uint8) {
-        return ERC20(address(token)).decimals();
-    }
-
-    function revokeFunds() external onlyAuthorized {
-        payable(msg.sender).transfer(address(this).balance);
+    function revokeFunds() external onlyRole(ADMIN_ROLE) {
+        payable(_msgSender()).transfer(address(this).balance);
     }
 
     function setEmergencyShutdown(
         bool _emergencyShutdown
-    ) external onlyAuthorized {
+    ) external onlyRole(ADMIN_ROLE) {
         emergencyShutdown = _emergencyShutdown;
     }
 
-    function setTreasury(address _newTreasuryAddress) external onlyAuthorized {
+    function setTreasury(address _newTreasuryAddress) external onlyRole(ADMIN_ROLE) {
         treasury = _newTreasuryAddress;
     }
 
-    function setDepositLimit(uint256 _limit) external onlyAuthorized {
+    function setDepositLimit(uint256 _limit) external onlyRole(ADMIN_ROLE) {
         depositLimit = _limit;
     }
 
-    //!Tests are not working with this implementation of PPS
+    function setVaultToken(ILocusVaultToken _newToken) external onlyRole(ADMIN_ROLE) {
+        vaultToken = _newToken;
+    }
+
     function totalAssets() public view returns (uint256 _assets) {
-        for (uint256 i = 0; i < OnChainStrategies.length; i++) {
-            _assets += IBaseStrategy(OnChainStrategies[i])
+        uint256 strategiesLen = strategiesSet.length();
+        for (uint256 i = 0; i < strategiesLen; i++) {
+            _assets += BaseStrategyForSeparatedVault(strategiesSet.at(i))
                 .estimatedTotalAssets();
         }
         _assets += totalIdle();
-        // _assets += totalIdle() + totalDebt;
     }
 
-    function setPerformanceFee(uint256 fee) external onlyAuthorized {
-        if (fee > MAX_BPS / 2) revert Vault__UnAcceptableFee();
+    function setInitialPerformanceFee(uint256 fee) external onlyRole(ADMIN_ROLE) {
+        if (fee > MAX_BPS / 2) revert UnacceptableFee();
         performanceFee = fee;
     }
 
-    function setManagementFee(uint256 fee) external onlyAuthorized {
-        if (fee > MAX_BPS) revert Vault__UnAcceptableFee();
+    function setManagementFee(uint256 fee) external onlyRole(ADMIN_ROLE) {
+        if (fee > MAX_BPS) revert UnacceptableFee();
         managementFee = fee;
-    }
-
-    function setManagement(address _management) external onlyAuthorized {
-        management = _management;
     }
 
     function totalIdle() public view returns (uint256) {
@@ -130,22 +129,22 @@ contract OnChainVault is
     function updateStrategyMinDebtPerHarvest(
         address strategy,
         uint256 _minDebtPerHarvest
-    ) external onlyAuthorized {
+    ) external onlyRole(ADMIN_ROLE) {
         if (strategies[strategy].activation == 0)
-            revert Vault__InactiveStrategy();
+            revert InactiveStrategy();
         if (strategies[strategy].maxDebtPerHarvest <= _minDebtPerHarvest)
-            revert Vault__MinMaxDebtError();
+            revert MinMaxDebtError();
         strategies[strategy].minDebtPerHarvest = _minDebtPerHarvest;
     }
 
     function updateStrategyMaxDebtPerHarvest(
         address strategy,
         uint256 _maxDebtPerHarvest
-    ) external onlyAuthorized {
+    ) external onlyRole(ADMIN_ROLE) {
         if (strategies[strategy].activation == 0)
-            revert Vault__InactiveStrategy();
+            revert InactiveStrategy();
         if (strategies[strategy].minDebtPerHarvest >= _maxDebtPerHarvest)
-            revert Vault__MinMaxDebtError();
+            revert MinMaxDebtError();
         strategies[strategy].maxDebtPerHarvest = _maxDebtPerHarvest;
     }
 
@@ -159,7 +158,7 @@ contract OnChainVault is
     function deposit(
         uint256 _amount
     ) external checkAmountOnDeposit(_amount) returns (uint256) {
-        return _deposit(_amount, msg.sender);
+        return _deposit(_amount, _msgSender());
     }
 
     function withdraw(
@@ -170,18 +169,22 @@ contract OnChainVault is
         _initiateWithdraw(_maxShares, _recipient, _maxLoss);
     }
 
+    function getStrategyParams(address strategyAddress) external view returns (StrategyParams memory) {
+        return strategies[strategyAddress];
+    }
+
     function addStrategy(
         address _strategy,
         uint256 _debtRatio,
         uint256 _performanceFee,
         uint256 _minDebtPerHarvest,
         uint256 _maxDebtPerHarvest
-    ) external onlyAuthorized {
-        if (strategies[_strategy].activation != 0) revert Vault__V2();
-        if (totalDebtRatio + _debtRatio > MAX_BPS) revert Vault__V3();
-        if (_performanceFee > MAX_BPS / 2) revert Vault__UnAcceptableFee();
+    ) external onlyRole(ADMIN_ROLE) {
+        if (strategies[_strategy].activation != 0) revert V2();
+        if (totalDebtRatio + _debtRatio > MAX_BPS) revert V3();
+        if (_performanceFee > MAX_BPS / 2) revert UnacceptableFee();
         if (_minDebtPerHarvest > _maxDebtPerHarvest)
-            revert Vault__MinMaxDebtError();
+            revert MinMaxDebtError();
         strategies[_strategy] = StrategyParams({
             performanceFee: _performanceFee,
             activation: block.timestamp,
@@ -193,10 +196,10 @@ contract OnChainVault is
             totalGain: 0,
             totalLoss: 0
         });
-
         totalDebtRatio += _debtRatio;
-        strategyPositionInArray[_strategy] = OnChainStrategies.length;
-        OnChainStrategies.push(_strategy);
+        if (!strategiesSet.add(_strategy)) {
+            revert AlreadyAdded(_strategy);
+        }
     }
 
     function debtOutstanding(
@@ -206,7 +209,7 @@ contract OnChainVault is
     }
 
     function debtOutstanding() external view returns (uint256) {
-        return _debtOutstanding(msg.sender);
+        return _debtOutstanding(_msgSender());
     }
 
     function creditAvailable(
@@ -218,35 +221,35 @@ contract OnChainVault is
     function _initiateWithdraw(
         uint256 maxShares,
         address recipient,
-        uint256 maxLoss
+        uint256 maxLoss 
     ) internal returns (uint256) {
         uint256 shares = maxShares;
-        if (maxLoss > MAX_BPS) revert Vault__V4();
+        if (maxLoss > MAX_BPS) revert V4();
         if (shares == type(uint256).max) {
-            shares = balanceOf(msg.sender);
+            shares = vaultToken.balanceOf(_msgSender());
         }
-        if (shares > balanceOf(msg.sender)) revert Vault__NotEnoughShares();
-        if (shares == 0) revert Vault__ZeroToWithdraw();
+        if (shares > vaultToken.balanceOf(_msgSender())) revert NotEnoughShares();
+        if (shares == 0) revert ZeroToWithdraw();
 
         uint256 value = _shareValue(shares);
         uint256 vaultBalance = totalIdle();
         if (value > vaultBalance) {
             uint256 totalLoss;
-            for (uint256 i = 0; i < OnChainStrategies.length; i++) {
+            uint256 strategiesLen = strategiesSet.length();
+            for (uint256 i = 0; i < strategiesLen; i++) {
                 if (value <= vaultBalance) {
                     break;
                 }
                 uint256 amountNeeded = value - vaultBalance;
                 amountNeeded = Math.min(
                     amountNeeded,
-                    // IBaseStrategy(OnChainStrategies[i]).estimatedTotalAssets()
-                    strategies[OnChainStrategies[i]].totalDebt
+                    strategies[strategiesSet.at(i)].totalDebt
                 );
                 if (amountNeeded == 0) {
                     continue;
                 }
                 uint256 balanceBefore = token.balanceOf(address(this));
-                uint256 loss = IBaseStrategy(OnChainStrategies[i]).withdraw(
+                uint256 loss = BaseStrategyForSeparatedVault(strategiesSet.at(i)).withdraw(
                     amountNeeded
                 );
                 uint256 withdrawn = token.balanceOf(address(this)) -
@@ -255,73 +258,70 @@ contract OnChainVault is
                 if (loss > 0) {
                     value -= loss;
                     totalLoss += loss;
-                    _reportLoss(OnChainStrategies[i], loss);
+                    _reportLoss(strategiesSet.at(i), loss);
                 }
-                strategies[OnChainStrategies[i]].totalDebt -= withdrawn;
+                strategies[strategiesSet.at(i)].totalDebt -= withdrawn;
                 totalDebt -= withdrawn;
                 emit StrategyWithdrawnSome(
-                    OnChainStrategies[i],
-                    strategies[OnChainStrategies[i]].totalDebt,
+                    strategiesSet.at(i),
+                    strategies[strategiesSet.at(i)].totalDebt,
                     loss
                 );
             }
             if (value > vaultBalance) {
                 value = vaultBalance;
                 shares = _sharesForAmount(value + totalLoss);
-                require(
-                    shares < balanceOf(msg.sender),
-                    "shares amount to burn grater than balance of user"
-                );
+                if (shares >= vaultToken.balanceOf(_msgSender())) {
+                    revert CannotBurnMoreThanActualBalance();
+                }
             }
-            if (totalLoss > (maxLoss * (value + totalLoss)) / MAX_BPS)
-                revert Vault__UnacceptableLoss();
+            if (totalLoss > (maxLoss * (value + totalLoss)) / MAX_BPS) {
+                revert UnacceptableLoss();
+            }
         }
 
-        _burn(msg.sender, shares);
+        vaultToken.burn(_msgSender(), shares);
         token.safeTransfer(recipient, value);
-        emit Withdraw(recipient, shares, value);
+        emit Withdraw(recipient, shares, value, block.timestamp);
         return value;
     }
 
-    function pricePerShare() external view returns (uint256) {
+    function pricePerShare() public view returns (uint256) {
         return _shareValue(10 ** decimals());
     }
 
-    function revokeStrategy(address _strategy) external onlyAuthorized {
+    function revokeStrategy(address _strategy) external onlyRole(ADMIN_ROLE) {
         _revokeStrategy(_strategy);
     }
 
     function revokeStrategy() external {
-        require(
-            msg.sender == governance ||
-                msg.sender == owner() ||
-                msg.sender ==
-                OnChainStrategies[strategyPositionInArray[msg.sender]],
-            "notAuthorized"
-        );
-        _revokeStrategy(msg.sender);
+        address sender = _msgSender();
+        if (!hasRole(ADMIN_ROLE, sender) && !strategiesSet.contains(sender)) {
+            revert OnlyAuthorizedOrStrategy();
+        }
+        _revokeStrategy(sender);
     }
 
     function updateStrategyDebtRatio(
         address _strategy,
         uint256 _debtRatio
-    ) external onlyAuthorized {
+    ) external onlyRole(ADMIN_ROLE) {
         if (strategies[_strategy].activation == 0)
-            revert Vault__InactiveStrategy();
+            revert InactiveStrategy();
 
         totalDebtRatio -= strategies[_strategy].debtRatio;
         strategies[_strategy].debtRatio = _debtRatio;
-        if (totalDebtRatio + _debtRatio > MAX_BPS) revert Vault__V6();
+        if (totalDebtRatio + _debtRatio > MAX_BPS) revert V6();
         totalDebtRatio += _debtRatio;
     }
 
     function migrateStrategy(
         address _oldStrategy,
         address _newStrategy
-    ) external onlyAuthorized {
-        if (_newStrategy == address(0)) revert Vault__V7();
-        if (strategies[_oldStrategy].activation == 0) revert Vault__V8();
-        if (strategies[_newStrategy].activation > 0) revert Vault__V9();
+    ) external onlyRole(ADMIN_ROLE) {
+        if (_newStrategy == address(0)) revert V7();
+        if (strategies[_oldStrategy].activation == 0) revert V8();
+        if (strategies[_newStrategy].activation > 0) revert V9();
         StrategyParams memory params = strategies[_oldStrategy];
         _revokeStrategy(_oldStrategy);
         totalDebtRatio += params.debtRatio;
@@ -339,21 +339,17 @@ contract OnChainVault is
         });
         strategies[_oldStrategy].totalDebt = 0;
 
-        IBaseStrategy(_oldStrategy).migrate(_newStrategy);
-        OnChainStrategies[strategyPositionInArray[_oldStrategy]] = _newStrategy;
-        strategyPositionInArray[_newStrategy] = strategyPositionInArray[
-            _oldStrategy
-        ];
-        strategyPositionInArray[_oldStrategy] = 0;
+        BaseStrategyForSeparatedVault(_oldStrategy).migrate(_newStrategy);
     }
 
     function _deposit(
         uint256 _amount,
         address _recipient
     ) internal returns (uint256) {
-        if (emergencyShutdown) revert Vault__V13();
+        if (emergencyShutdown) revert V13();
         uint256 shares = _issueSharesForAmount(_recipient, _amount);
-        token.safeTransferFrom(msg.sender, address(this), _amount);
+        token.safeTransferFrom(_msgSender(), address(this), _amount);
+        emit Deposit(_recipient, shares, _amount, block.timestamp);
         return shares;
     }
 
@@ -362,35 +358,36 @@ contract OnChainVault is
         uint256 _loss,
         uint256 _debtPayment
     ) external returns (uint256) {
-        if (strategies[msg.sender].activation == 0) revert Vault__V14();
+        if (strategies[_msgSender()].activation == 0) revert V14();
 
         if (_loss > 0) {
-            _reportLoss(msg.sender, _loss);
+            _reportLoss(_msgSender(), _loss);
         }
-        uint256 totalFees = _assessFees(msg.sender, _gain);
-        strategies[msg.sender].totalGain += _gain;
-        uint256 credit = _creditAvailable(msg.sender);
+        uint256 totalFees = _assessFees(_msgSender(), _gain);
+        strategies[_msgSender()].totalGain += _gain;
+        uint256 credit = _creditAvailable(_msgSender());
 
-        uint256 debt = _debtOutstanding(msg.sender);
+        uint256 debt = _debtOutstanding(_msgSender());
         uint256 debtPayment = Math.min(debt, _debtPayment);
 
         if (debtPayment > 0) {
-            strategies[msg.sender].totalDebt -= debtPayment;
+            strategies[_msgSender()].totalDebt -= debtPayment;
             totalDebt -= debtPayment;
             debt -= debtPayment;
         }
 
         if (credit > 0) {
-            strategies[msg.sender].totalDebt += credit;
+            strategies[_msgSender()].totalDebt += credit;
             totalDebt += credit;
         }
 
         uint256 totalAvail = _gain + debtPayment;
+
         if (totalAvail < credit) {
-            token.safeTransfer(msg.sender, credit - totalAvail);
+            token.safeTransfer(_msgSender(), credit - totalAvail);
         } else if (totalAvail > credit) {
             token.safeTransferFrom(
-                msg.sender,
+                _msgSender(),
                 address(this),
                 totalAvail - credit
             );
@@ -405,12 +402,12 @@ contract OnChainVault is
             lockedProfit = 0;
         }
 
-        strategies[msg.sender].lastReport = block.timestamp;
+        strategies[_msgSender()].lastReport = block.timestamp;
         lastReport = block.timestamp;
 
-        StrategyParams memory params = strategies[msg.sender];
+        StrategyParams memory params = strategies[_msgSender()];
         emit StrategyReported(
-            msg.sender,
+            _msgSender(),
             _gain,
             _loss,
             _debtPayment,
@@ -420,8 +417,8 @@ contract OnChainVault is
             credit,
             params.debtRatio
         );
-        if (strategies[msg.sender].debtRatio == 0 || emergencyShutdown) {
-            return IBaseStrategy(msg.sender).estimatedTotalAssets();
+        if (strategies[_msgSender()].debtRatio == 0 || emergencyShutdown) {
+            return BaseStrategyForSeparatedVault(_msgSender()).estimatedTotalAssets();
         } else {
             return debt;
         }
@@ -429,19 +426,19 @@ contract OnChainVault is
 
     function _calculateLockedProfit() internal view returns (uint256) {
         uint256 lockedFundsRatio = (block.timestamp - lastReport) *
-            lockedProfitDegradation;
+            LOCKED_PROFIT_DEGRADATION;
         if (lockedFundsRatio < DEGRADATION_COEFFICIENT) {
             uint256 _lockedProfit = lockedProfit;
             return
                 _lockedProfit -
-                ((lockedFundsRatio * lockedProfit) / DEGRADATION_COEFFICIENT);
+                ((lockedFundsRatio * _lockedProfit) / DEGRADATION_COEFFICIENT);
         } else {
             return 0;
         }
     }
 
     function _reportLoss(address _strategy, uint256 _loss) internal {
-        if (strategies[_strategy].totalDebt < _loss) revert Vault__V15();
+        if (strategies[_strategy].totalDebt < _loss) revert V15();
 
         if (totalDebtRatio != 0) {
             uint256 ratioChange = Math.min(
@@ -478,9 +475,10 @@ contract OnChainVault is
 
     function maxAvailableShares() external view returns (uint256) {
         uint256 shares = _sharesForAmount(totalIdle());
-        for (uint256 i = 0; i < OnChainStrategies.length; i++) {
+        uint256 strategiesLen = strategiesSet.length();
+        for (uint256 i = 0; i < strategiesLen; i++) {
             shares += _sharesForAmount(
-                strategies[OnChainStrategies[i]].totalDebt
+                strategies[strategiesSet.at(i)].totalDebt
             );
         }
         return shares;
@@ -491,17 +489,21 @@ contract OnChainVault is
         uint256 _amount
     ) internal returns (uint256) {
         uint256 shares = 0;
-        if (totalSupply() == 0) {
+        uint256 _totalSupply = totalSupply();
+        if (_totalSupply == 0) {
             shares = _amount;
         } else {
-            shares = (_amount * totalSupply()) / _freeFunds();
+            shares = (_amount * _totalSupply) / _freeFunds();
         }
-        if (shares == 0) revert Vault__V17();
-        _mint(_to, shares);
+        if (shares == 0) revert V17();
+        vaultToken.mint(_to, shares);
         return shares;
     }
 
     function _revokeStrategy(address _strategy) internal {
+        if (!strategiesSet.remove(_strategy)) {
+            revert AlreadyRemoved(_strategy);
+        }
         totalDebtRatio -= strategies[_strategy].debtRatio;
         strategies[_strategy].debtRatio = 0;
     }
@@ -549,6 +551,36 @@ contract OnChainVault is
         }
     }
 
+    function previewPerformanceFee() public view returns (uint256) {
+        uint256 _lastPricePerShare = lastPricePerShare; 
+        uint256 currentPps = pricePerShare();
+        if (_lastPricePerShare >= currentPps) return 0;
+        uint256 localPrecision = 10 ** token.decimals();
+        uint256 diff = currentPps - _lastPricePerShare;
+        uint256 nominator = diff * performanceFee;
+        uint256 denominator = MAX_BPS * localPrecision; 
+        if (nominator < denominator) return 1;
+        return nominator * MAX_BPS / denominator;
+    }
+
+    function updateLastPricePerShare() external override {
+        address sender = _msgSender();
+        if (!hasRole(ADMIN_ROLE, sender) && !strategiesSet.contains(sender)) {
+            revert OnlyAuthorizedOrStrategy();
+        }
+        lastPricePerShare = pricePerShare();
+    }
+
+    function _calculatePerformanceFee() internal returns (uint256) {
+        if (lastPricePerShare == 0) {
+            lastPricePerShare = pricePerShare();
+            return performanceFee;
+        }
+        uint256 newPerformanceFee = previewPerformanceFee();
+        emit NewPerformanceFeeCalculated(newPerformanceFee);
+        return newPerformanceFee;   
+    }
+
     function _assessFees(
         address strategy,
         uint256 gain
@@ -558,38 +590,31 @@ contract OnChainVault is
         }
 
         uint256 duration = block.timestamp - strategies[strategy].lastReport;
-
-        require(duration != 0, "can't assessFees twice within the same block");
-
+        if (duration == 0) {
+            revert DurationCannotBeZero();
+        }
         if (gain == 0) {
             return 0;
         }
-
-        uint256 _managementFee = ((strategies[strategy].totalDebt -
-            IBaseStrategy(strategy).delegatedAssets()) *
+        uint256 _managementFee = (strategies[strategy].totalDebt -
             duration *
             managementFee) /
             MAX_BPS /
             SECS_PER_YEAR;
-        uint256 _strategistFee = (gain * strategies[strategy].performanceFee) /
-            MAX_BPS;
-        uint256 _performanceFee = (gain * performanceFee) / MAX_BPS;
-        uint256 totalFee = _managementFee + _strategistFee + _performanceFee;
+        uint256 _performanceFee = (gain * _calculatePerformanceFee()) / MAX_BPS;
+        uint256 totalFee = _managementFee + _performanceFee;
         if (totalFee > gain) {
             totalFee = gain;
         }
         if (totalFee > 0) {
-            uint256 reward = _issueSharesForAmount(address(this), totalFee);
-            if (_strategistFee > 0) {
-                uint256 strategistReward = (_strategistFee * reward) / totalFee;
-                transfer(treasury, strategistReward);
-            }
-            if (balanceOf(address(this)) > 0) {
-                transfer(treasury, balanceOf(address(this)));
+            if (vaultToken.balanceOf(address(this)) > 0) {
+                vaultToken.safeTransfer(treasury, vaultToken.balanceOf(address(this)));
             }
         }
         return totalFee;
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE) {}
 
     receive() external payable {}
 }
